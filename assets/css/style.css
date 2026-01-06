@@ -1,182 +1,376 @@
-/* Math/assets/css/style.css */
-/* Homepage Styles - UPDATED to match your HTML */
-.home-container {
+/* ===== HEADER & FOOTER STYLES ===== */
+
+/* Header Styles */
+.site-header {
+    background: linear-gradient(135deg, #2c3e50 0%, #4a6491 100%);
+    color: white;
+    padding: 1rem 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.main-navigation ul {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    gap: 2rem;
+    flex-wrap: wrap;
+    padding: 0;
+    margin: 0;
+}
+
+.main-navigation a {
+    color: white;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.main-navigation a:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.main-navigation a.active {
+    background: rgba(255, 255, 255, 0.3);
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Footer Styles */
+.site-footer {
+    background: linear-gradient(135deg, #2c3e50 0%, #4a6491 100%);
+    color: white;
+    text-align: center;
+    padding: 2rem 0;
+    margin-top: 3rem;
+}
+
+.footer-content {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 2rem;
-    min-height: 80vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    padding: 0 20px;
 }
 
-.mathintro {
+.footer-content p {
+    margin: 0.5rem 0;
+    opacity: 0.9;
+}
+
+/* ===== MATH PRACTICE PAGE STYLES ===== */
+
+/* Container base styles */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.page-content {
+    padding: 20px;
+}
+
+/* Title Container */
+.title-container {
     text-align: center;
-    margin-bottom: 4rem;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.mathintro h1 {
-    font-size: 4rem;
-    font-weight: 800;
+.page-title {
+    font-size: 2.5rem;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.page-description {
+    font-size: 1.2rem;
+    color: #7f8c8d;
+}
+
+/* Page Intro Styles (for your intro text) */
+.page-intro {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    margin: 2rem auto;
+    max-width: 800px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.page-intro h2 {
     color: #2c3e50;
     margin-bottom: 1rem;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    font-size: 1.8rem;
 }
 
-.math-description {
-    font-size: 1.5rem;
+.page-intro p {
     color: #7f8c8d;
-    max-width: 600px;
-    margin: 0 auto;
     line-height: 1.6;
+    margin-bottom: 1rem;
 }
 
-/* Links/Operation Cards - UPDATED for your .links class */
-.links {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 2rem;
-    max-width: 1000px;
-    margin: 0 auto;
+.page-intro ol {
+    padding-left: 1.5rem;
+    color: #7f8c8d;
 }
 
-.operation-card {
+.page-intro li {
+    margin-bottom: 0.5rem;
+}
+
+/* Workspace Container */
+.workspace-container {
+    margin: 2rem auto;
+    padding: 2rem;
     background: white;
-    border-radius: 16px;
-    text-decoration: none;
-    color: #333;
-    transition: all 0.3s ease;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.problem-display {
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
-    height: 180px;
-    padding: 2rem;
-    border: 2px solid transparent;
-    position: relative;
-    overflow: hidden;
+    gap: 2rem;
 }
 
-.operation-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
-    border-color: rgba(74, 100, 145, 0.2);
-}
-
-.operation-card:active {
-    transform: translateY(-4px);
-}
-
-.card-content {
+.problem-statement {
+    font-size: 3rem;
+    font-weight: bold;
     text-align: center;
-    width: 100%;
-}
-
-.card-title {
-    font-size: 2.2rem;
-    font-weight: 700;
-    color: #2c3e50;
-    margin: 0;
-    position: relative;
-    padding-top: 60px; /* Space for the icon */
-}
-
-/* Add colored icons using pseudo-elements */
-.card-title::before {
-    content: '';
-    position: absolute;
-    top: -50px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
+    padding: 2rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    min-width: 300px;
+    min-height: 150px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2rem;
+    border: 2px solid #e9ecef;
+}
+
+.user-input {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+#userAnswer {
+    padding: 0.75rem 1rem;
+    font-size: 1.5rem;
+    width: 200px;
+    border: 2px solid #4a6491;
+    border-radius: 6px;
+    text-align: center;
+}
+
+#userAnswer:focus {
+    outline: none;
+    border-color: #2c3e50;
+    box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
+}
+
+button {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 600;
+}
+
+#submitAnswer {
+    background: linear-gradient(135deg, #4a6491 0%, #2c3e50 100%);
     color: white;
-    font-weight: bold;
 }
 
-/* Individual operation colors and icons */
-.addition-card .card-title::before {
-    content: '+';
+#newProblem {
     background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    color: white;
 }
 
-.subtraction-card .card-title::before {
-    content: '−';
+#resetScores {
     background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
 }
 
-.multiplication-card .card-title::before {
-    content: '×';
-    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.division-card .card-title::before {
-    content: '÷';
-    background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+button:active {
+    transform: translateY(0);
 }
 
-/* Add subtle background effect on hover */
-.operation-card::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, 
-        rgba(52, 152, 219, 0.05) 0%,
-        rgba(231, 76, 60, 0.05) 25%,
-        rgba(46, 204, 113, 0.05) 50%,
-        rgba(155, 89, 182, 0.05) 75%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    z-index: -1;
+.feedback {
+    min-height: 40px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-align: center;
+    padding: 0.5rem;
+    border-radius: 6px;
+    background: #f8f9fa;
+    width: 100%;
+    max-width: 400px;
 }
 
-.operation-card:hover::after {
-    opacity: 1;
+.feedback.correct {
+    color: #27ae60;
+    background: rgba(39, 174, 96, 0.1);
+    border: 1px solid rgba(39, 174, 96, 0.2);
 }
 
-/* Responsive Design for Homepage */
-@media (max-width: 1024px) {
-    .links {
-        grid-template-columns: repeat(2, 1fr);
-        max-width: 600px;
-    }
-    
-    .mathintro h1 {
-        font-size: 3.5rem;
-    }
+.feedback.incorrect {
+    color: #e74c3c;
+    background: rgba(231, 76, 60, 0.1);
+    border: 1px solid rgba(231, 76, 60, 0.2);
 }
 
+/* Ratio Container */
+.ratio-container {
+    margin: 2rem auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.score-display {
+    text-align: center;
+}
+
+.score-display h3 {
+    font-size: 1.8rem;
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+}
+
+.score-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat {
+    padding: 1rem;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.stat.correct {
+    border-left: 4px solid #27ae60;
+}
+
+.stat.incorrect {
+    border-left: 4px solid #e74c3c;
+}
+
+.stat.total {
+    border-left: 4px solid #3498db;
+}
+
+.stat.accuracy {
+    border-left: 4px solid #9b59b6;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    margin-bottom: 0.5rem;
+}
+
+.stat-value {
+    display: block;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+/* ===== BASE BODY STYLES ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+body > main {
+    flex: 1;
+}
+
+/* Responsive Design for all pages */
 @media (max-width: 768px) {
-    .home-container {
-        padding: 1.5rem;
+    /* Header responsive */
+    .main-navigation ul {
+        gap: 1rem;
     }
     
-    .mathintro {
-        margin-bottom: 3rem;
+    .main-navigation a {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.9rem;
     }
     
+    /* Math Practice Page Responsive */
+    .page-title {
+        font-size: 2rem;
+    }
+    
+    .problem-statement {
+        font-size: 2.5rem;
+        padding: 1rem;
+        min-width: 250px;
+        min-height: 120px;
+    }
+    
+    #userAnswer {
+        width: 100%;
+        max-width: 200px;
+    }
+    
+    .user-input {
+        flex-direction: column;
+    }
+    
+    .score-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Homepage responsive (keep your existing) */
     .mathintro h1 {
-        font-size: 3rem;
+        font-size: 2.5rem;
     }
     
     .math-description {
-        font-size: 1.3rem;
-        padding: 0 1rem;
+        font-size: 1.2rem;
     }
     
     .links {
         grid-template-columns: 1fr;
         max-width: 400px;
-        gap: 1.5rem;
     }
     
     .operation-card {
@@ -187,18 +381,28 @@
         font-size: 2rem;
         padding-top: 50px;
     }
-    
-    .card-title::before {
-        width: 50px;
-        height: 50px;
-        top: -45px;
-        font-size: 1.8rem;
-    }
 }
 
 @media (max-width: 480px) {
+    /* Header mobile */
+    .main-navigation ul {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    /* Math Practice Page Mobile */
+    .problem-statement {
+        font-size: 2rem;
+    }
+    
+    .page-title {
+        font-size: 1.8rem;
+    }
+    
+    /* Homepage mobile (keep your existing) */
     .mathintro h1 {
-        font-size: 2.5rem;
+        font-size: 2rem;
     }
     
     .math-description {
