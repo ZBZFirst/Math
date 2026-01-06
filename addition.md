@@ -1,7 +1,6 @@
 ---
-layout: default
+layout: addition
 title: Addition Practice
-description: Practice addition problems
+description: Practice addition problems step-by-step
 permalink: /addition/
-operation: addition
 ---
