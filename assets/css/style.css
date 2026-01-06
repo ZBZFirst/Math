@@ -42,6 +42,229 @@
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
+/* ===== HOMEPAGE STYLES ===== */
+.home-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.mathintro {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.mathintro h1 {
+    font-size: 4rem;
+    font-weight: 800;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.math-description {
+    font-size: 1.5rem;
+    color: #7f8c8d;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* Operation Cards */
+.links {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.operation-card {
+    background: white;
+    border-radius: 16px;
+    text-decoration: none;
+    color: #333;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 180px;
+    padding: 2rem;
+    border: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.operation-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    border-color: rgba(74, 100, 145, 0.2);
+}
+
+.operation-card:active {
+    transform: translateY(-4px);
+}
+
+.card-content {
+    text-align: center;
+    width: 100%;
+}
+
+.card-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0;
+    position: relative;
+    padding-top: 60px; /* Space for the icon */
+}
+
+/* Add colored icons using pseudo-elements */
+.card-title::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: white;
+    font-weight: bold;
+}
+
+/* Individual operation colors and icons */
+.addition-card .card-title::before {
+    content: '+';
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+}
+
+.subtraction-card .card-title::before {
+    content: '−';
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+}
+
+.multiplication-card .card-title::before {
+    content: '×';
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+}
+
+.division-card .card-title::before {
+    content: '÷';
+    background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+}
+
+/* Add subtle background effect on hover */
+.operation-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, 
+        rgba(52, 152, 219, 0.05) 0%,
+        rgba(231, 76, 60, 0.05) 25%,
+        rgba(46, 204, 113, 0.05) 50%,
+        rgba(155, 89, 182, 0.05) 75%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+}
+
+.operation-card:hover::after {
+    opacity: 1;
+}
+
+/* ===== RESPONSIVE FOR HOMEPAGE ===== */
+@media (max-width: 1024px) {
+    .links {
+        grid-template-columns: repeat(2, 1fr);
+        max-width: 600px;
+    }
+    
+    .mathintro h1 {
+        font-size: 3.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .home-container {
+        padding: 1.5rem;
+    }
+    
+    .mathintro {
+        margin-bottom: 3rem;
+    }
+    
+    .mathintro h1 {
+        font-size: 3rem;
+    }
+    
+    .math-description {
+        font-size: 1.3rem;
+        padding: 0 1rem;
+    }
+    
+    .links {
+        grid-template-columns: 1fr;
+        max-width: 400px;
+        gap: 1.5rem;
+    }
+    
+    .operation-card {
+        height: 160px;
+    }
+    
+    .card-title {
+        font-size: 2rem;
+        padding-top: 50px;
+    }
+    
+    .card-title::before {
+        width: 50px;
+        height: 50px;
+        top: -45px;
+        font-size: 1.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .mathintro h1 {
+        font-size: 2.5rem;
+    }
+    
+    .math-description {
+        font-size: 1.1rem;
+    }
+    
+    .operation-card {
+        height: 140px;
+    }
+    
+    .card-title {
+        font-size: 1.8rem;
+        padding-top: 45px;
+    }
+    
+    .card-title::before {
+        width: 45px;
+        height: 45px;
+        top: -40px;
+        font-size: 1.6rem;
+    }
+}
+
 /* Footer Styles */
 .site-footer {
     background: linear-gradient(135deg, #2c3e50 0%, #4a6491 100%);
