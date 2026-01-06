@@ -12,25 +12,25 @@ permalink: /
     </div>
 
     <div class="links">
-        <a href="Math/addition" class="operation-card addition-card">
+        <a href="/addition" class="operation-card addition-card">
             <div class="card-content">
                 <h3 class="card-title">Addition</h3>
             </div>
         </a>
         
-        <a href="Math/subtraction" class="operation-card subtraction-card">
+        <a href="/subtraction" class="operation-card subtraction-card">
             <div class="card-content">
                 <h3 class="card-title">Subtraction</h3>
             </div>
         </a>
         
-        <a href="Math/multiplication" class="operation-card multiplication-card">
+        <a href="/multiplication" class="operation-card multiplication-card">
             <div class="card-content">
                 <h3 class="card-title">Multiplication</h3>
             </div>
         </a>
         
-        <a href="Math/division" class="operation-card division-card">
+        <a href="/division" class="operation-card division-card">
             <div class="card-content">
                 <h3 class="card-title">Division</h3>
             </div>
