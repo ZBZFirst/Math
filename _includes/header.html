@@ -1,0 +1,14 @@
+<header class="site-header">
+    <nav class="main-navigation">
+        <ul>
+            {% for operation in site.math_operations %}
+            <li>
+                <a href="{{ operation.path | relative_url }}" 
+                   {% if page.url == operation.path %}class="active"{% endif %}>
+                    {{ operation.name }}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </nav>
+</header>
