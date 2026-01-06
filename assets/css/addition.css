@@ -572,3 +572,88 @@
         width: 140px;
     }
 }
+
+/* ===== NEW ANIMATIONS ===== */
+
+/* Fly from Main to Current */
+@keyframes flyToCurrent {
+    0% {
+        transform: scale(1) translate(0, 0);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2) translate(var(--fly-x, 0), var(--fly-y, 0));
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1) translate(0, 0);
+        opacity: 1;
+    }
+}
+
+/* Fly from Current to Main */
+@keyframes flyToMain {
+    0% {
+        transform: scale(1) translate(0, 0);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2) translate(var(--fly-x, 0), var(--fly-y, 0));
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1) translate(0, 0);
+        opacity: 1;
+    }
+}
+
+/* Drop into place */
+@keyframes dropIn {
+    0% {
+        transform: translateY(-30px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Highlight pulse for source */
+@keyframes sourcePulse {
+    0% { box-shadow: 0 0 0 0 rgba(33, 150, 243, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(33, 150, 243, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(33, 150, 243, 0); }
+}
+
+/* Animation classes */
+.animate-source {
+    animation: sourcePulse 1s ease;
+    z-index: 10;
+}
+
+.animate-to-current {
+    animation: flyToCurrent 1s ease forwards;
+}
+
+.animate-to-main {
+    animation: flyToMain 1s ease forwards;
+}
+
+.animate-drop-in {
+    animation: dropIn 0.5s ease forwards;
+}
+
+/* Ghost element for flying animation */
+.flying-ghost {
+    position: absolute;
+    font-size: 2rem;
+    font-weight: bold;
+    background: white;
+    border: 2px solid #2196f3;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    z-index: 1000;
+    pointer-events: none;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
