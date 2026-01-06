@@ -142,14 +142,14 @@ document.addEventListener('DOMContentLoaded', function() {
             ],
             // Row 1: First Number Row
             [
-                { value: '+', class: 'plus-column' },
+                { value: '', class: 'plus-column' },
                 { value: num1Digits.hundreds, class: 'number-cell' },
                 { value: num1Digits.tens, class: 'number-cell' },
                 { value: num1Digits.ones, class: 'number-cell' }
             ],
             // Row 2: Second Number Row  
             [
-                { value: '', class: 'plus-column' },
+                { value: '+', class: 'plus-column' },
                 { value: num2Digits.hundreds, class: 'number-cell' },
                 { value: num2Digits.tens, class: 'number-cell' },
                 { value: num2Digits.ones, class: 'number-cell' }
