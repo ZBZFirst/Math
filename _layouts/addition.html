@@ -21,23 +21,41 @@
                 <p class="page-description">{{ page.description }}</p>
             </div>
 
-            <!-- Workspace Container -->
-            <div class="container workspace-container">
-                <div class="addition-problem">
-                    <!-- Problem Display -->
+            <!-- Main Workspace -->
+            <div class="dual-container">
+                <!-- Left: Main Problem Container -->
+                <div class="main-problem-container">
+                    <h3>Main Problem</h3>
                     <div class="problem-grid" id="problemGrid">
                         <!-- Will be filled by JavaScript -->
                     </div>
-                    
-                    <!-- Simple Controls -->
-                    <div class="simple-controls">
-                        <button id="submitAnswer">Submit Answer</button>
-                        <button id="newProblem">New Problem</button>
+                </div>
+                
+                <!-- Right: Sub-Problem Container -->
+                <div class="sub-problem-container">
+                    <h3>Current Column</h3>
+                    <div class="sub-problem" id="subProblem">
+                        <!-- Will be filled by JavaScript -->
                     </div>
                     
-                    <div class="feedback" id="feedback"></div>
+                    <div class="sub-input-container">
+                        <input type="number" id="subAnswer" placeholder="Enter sum">
+                        <div class="sub-buttons">
+                            <button id="submitSubAnswer">Submit</button>
+                            <button id="nextColumn">Next Column</button>
+                        </div>
+                    </div>
+                    
+                    <div class="sub-feedback" id="subFeedback"></div>
                 </div>
             </div>
+            
+            <!-- Simple Controls -->
+            <div class="simple-controls">
+                <button id="newProblem">New Problem</button>
+            </div>
+            
+            <div class="feedback" id="feedback"></div>
 
             <!-- Ratio Container -->
             <div class="container ratio-container">
