@@ -14,35 +14,37 @@ permalink: /
 
     <!-- Operation Cards -->
     <div class="operation-cards">
-        {% for operation in site.math_operations %}
-        <a href="{{ operation.path | relative_url }}" class="operation-card">
+        <a href="/addition.html" class="operation-card addition-card">
             <div class="card-content">
-                {% case operation.name %}
-                    {% when 'Addition' %}
-                        <div class="card-icon">+</div>
-                        <h3 class="card-title">Addition</h3>
-                        <p class="card-description">Practice adding numbers together</p>
-                        <div class="card-example">12 + 7 = 19</div>
-                    {% when 'Subtraction' %}
-                        <div class="card-icon">−</div>
-                        <h3 class="card-title">Subtraction</h3>
-                        <p class="card-description">Practice subtracting numbers</p>
-                        <div class="card-example">15 - 8 = 7</div>
-                    {% when 'Multiplication' %}
-                        <div class="card-icon">×</div>
-                        <h3 class="card-title">Multiplication</h3>
-                        <p class="card-description">Practice multiplying numbers</p>
-                        <div class="card-example">6 × 9 = 54</div>
-                    {% when 'Division' %}
-                        <div class="card-icon">÷</div>
-                        <h3 class="card-title">Division</h3>
-                        <p class="card-description">Practice dividing numbers</p>
-                        <div class="card-example">56 ÷ 7 = 8</div>
-                {% endcase %}
+                <div class="card-icon">+</div>
+                <h3 class="card-title">Addition</h3>
             </div>
             <div class="card-action">Start Practicing →</div>
         </a>
-        {% endfor %}
+        
+        <a href="/subtraction.html" class="operation-card subtraction-card">
+            <div class="card-content">
+                <div class="card-icon">−</div>
+                <h3 class="card-title">Subtraction</h3>
+            </div>
+            <div class="card-action">Start Practicing →</div>
+        </a>
+        
+        <a href="/multiplication.html" class="operation-card multiplication-card">
+            <div class="card-content">
+                <div class="card-icon">×</div>
+                <h3 class="card-title">Multiplication</h3>
+            </div>
+            <div class="card-action">Start Practicing →</div>
+        </a>
+        
+        <a href="/division.html" class="operation-card division-card">
+            <div class="card-content">
+                <div class="card-icon">÷</div>
+                <h3 class="card-title">Division</h3>
+            </div>
+            <div class="card-action">Start Practicing →</div>
+        </a>
     </div>
 
     <!-- Features Section -->
