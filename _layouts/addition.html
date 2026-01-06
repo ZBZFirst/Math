@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        {{ page.title }} - {{ site.title }}
+    </title>
+    <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/style.css">
+    <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/addition.css">
+    <meta name="operation" content="addition">
+</head>
+<body>
+    {% include header.html %}
+    
+    <main class="page-content">
+        <div class="addition-container">
+            <!-- Title Container -->
+            <div class="container title-container">
+                <h1 class="page-title">{{ page.title }}</h1>
+                <p class="page-description">{{ page.description }}</p>
+            </div>
+
+            <!-- Workspace Container -->
+            <div class="container workspace-container">
+                <div class="addition-problem">
+                    <!-- Problem Display -->
+                    <div class="problem-grid" id="problemGrid">
+                        <!-- Will be filled by JavaScript -->
+                    </div>
+                    
+                    <!-- Step-by-step Instructions -->
+                    <div class="step-instructions">
+                        <h3>Step-by-Step Addition:</h3>
+                        <ol id="stepList">
+                            <!-- Will be filled by JavaScript -->
+                        </ol>
+                    </div>
+                    
+                    <!-- User Input Area -->
+                    <div class="user-input-area">
+                        <div class="current-step" id="currentStep">
+                            <span class="step-label">Step 1:</span>
+                            <span class="step-description" id="stepDescription">Add the ones column</span>
+                        </div>
+                        
+                        <div class="input-container">
+                            <input type="number" id="stepAnswer" placeholder="Enter answer for this step">
+                            <div class="input-buttons">
+                                <button id="submitStep">Submit Step</button>
+                                <button id="nextStep" disabled>Next Step</button>
+                                <button id="showAnswer">Show Answer</button>
+                                <button id="newProblem">New Problem</button>
+                            </div>
+                        </div>
+                        
+                        <div class="feedback" id="feedback"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ratio Container -->
+            <div class="container ratio-container">
+                <div class="score-display">
+                    <h3>Your Progress</h3>
+                    <div class="score-stats">
+                        <div class="stat correct">
+                            <span class="stat-label">Steps Correct:</span>
+                            <span class="stat-value" id="correctSteps">0</span>
+                        </div>
+                        <div class="stat incorrect">
+                            <span class="stat-label">Steps Incorrect:</span>
+                            <span class="stat-value" id="incorrectSteps">0</span>
+                        </div>
+                        <div class="stat total">
+                            <span class="stat-label">Total Steps:</span>
+                            <span class="stat-value" id="totalSteps">0</span>
+                        </div>
+                        <div class="stat accuracy">
+                            <span class="stat-label">Accuracy:</span>
+                            <span class="stat-value" id="accuracyRate">0%</span>
+                        </div>
+                        <div class="stat problems">
+                            <span class="stat-label">Problems Solved:</span>
+                            <span class="stat-value" id="problemsSolved">0</span>
+                        </div>
+                    </div>
+                    <button id="resetScores">Reset Scores</button>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    {% include footer.html %}
+    
+    <script src="{{ site.baseurl }}/assets/js/addition-practice.js"></script>
+</body>
+</html>
