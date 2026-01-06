@@ -12,13 +12,13 @@ markdown: kramdown
 # Custom variables for navigation
 math_operations:
   - name: Addition
-    path: /addition.html
+    path: Math/addition.html
   - name: Subtraction
-    path: /subtraction.html
+    path: Math/subtraction.html
   - name: Multiplication
-    path: /multiplication.html
+    path: Math/multiplication.html
   - name: Division
-    path: /division.html
+    path: Math/division.html
 
 # Exclude from processing
 exclude:
