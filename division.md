@@ -2,8 +2,6 @@
 layout: default
 title: Division Practice
 description: Practice division problems
-permalink: /division.html
+permalink: /division/
 operation: division
 ---
-
-{% include containers.html %}
