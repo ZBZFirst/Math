@@ -1,10 +1,10 @@
-// Addition Practice with Dual Container System
+// Addition Practice with Dual Container System - FIXED
 
 document.addEventListener('DOMContentLoaded', function() {
     // State management
     let currentProblem = null;
     let currentColumn = 'ones'; // Start with ones column
-    let columns = ['ones', 'tens', 'hundreds', 'thousands'];
+    let columns = ['ones', 'tens', 'hundreds']; // Start with three, add thousands if needed
     let userAnswers = {};
     let correctAnswers = {};
     let scores = {
@@ -38,7 +38,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const getDigits = (num) => {
             const str = num.toString().padStart(3, '0');
             return {
-                thousands: 0, // Will be filled if needed
                 hundreds: parseInt(str[0]),
                 tens: parseInt(str[1]),
                 ones: parseInt(str[2])
@@ -54,16 +53,35 @@ document.addEventListener('DOMContentLoaded', function() {
             answer: answer,
             num1Digits: num1Digits,
             num2Digits: num2Digits,
-            columns: []
+            columns: [],
+            visibleCarries: {} // Track which carries are visible
         };
         
         // Reset state
         userAnswers = {};
         correctAnswers = {};
         currentColumn = 'ones';
+        columns = ['ones', 'tens', 'hundreds']; // Reset columns
         
         // Calculate column problems
         calculateColumnProblems();
+        
+        // Add thousands column if needed (only if there's a carry)
+        const lastColumn = currentProblem.columns[currentProblem.columns.length - 1];
+        if (lastColumn && lastColumn.nextCarry > 0) {
+            columns.push('thousands');
+            currentProblem.columns.push({
+                column: 'thousands',
+                digit1: 0,
+                digit2: 0,
+                carry: lastColumn.nextCarry,
+                sum: lastColumn.nextCarry,
+                result: lastColumn.nextCarry,
+                nextCarry: 0,
+                answered: false,
+                correct: null
+            });
+        }
         
         // Update display
         renderMainGrid();
@@ -80,9 +98,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const { num1Digits, num2Digits } = currentProblem;
         let carry = 0;
         
-        columns.forEach(column => {
-            const digit1 = num1Digits[column] || 0;
-            const digit2 = num2Digits[column] || 0;
+        ['ones', 'tens', 'hundreds'].forEach(column => {
+            const digit1 = num1Digits[column];
+            const digit2 = num2Digits[column];
             const sum = digit1 + digit2 + carry;
             const result = sum % 10;
             const nextCarry = Math.floor(sum / 10);
@@ -96,7 +114,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 result: result,
                 nextCarry: nextCarry,
                 answered: false,
-                correct: null
+                correct: null,
+                carryVisible: false // Carries become visible when generated
             });
             
             carry = nextCarry;
@@ -155,24 +174,25 @@ document.addEventListener('DOMContentLoaded', function() {
         colData.forEach(col => {
             const colIndex = col.column === 'ones' ? 3 : 
                            col.column === 'tens' ? 2 : 
-                           col.column === 'hundreds' ? 1 : 0;
+                           col.column === 'hundreds' ? 1 : 
+                           col.column === 'thousands' ? 0 : -1;
             
-            // Show carries in row 0
-            if (col.carry > 0 && colIndex > 0) {
+            // Show carries in row 0 (only if they should be visible)
+            if (col.carry > 0 && colIndex >= 0 && col.carryVisible) {
                 gridData[0][colIndex].value = col.carry;
                 gridData[0][colIndex].class += ' active-carry';
                 
-                // Strikethrough if used
+                // Strikethrough if used (answered)
                 if (col.answered) {
                     gridData[0][colIndex].class += ' used-carry';
                 }
             }
             
             // Show answers in row 4
-            if (col.answered) {
+            if (col.answered && colIndex >= 0) {
                 gridData[4][colIndex].value = col.result;
                 gridData[4][colIndex].class += col.correct ? ' correct' : ' incorrect';
-            } else {
+            } else if (colIndex >= 0) {
                 gridData[4][colIndex].value = '_';
             }
         });
@@ -206,83 +226,111 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Render sub-problem container
+    // Render sub-problem container (side-by-side layout)
     function renderSubProblem() {
         subProblemDiv.innerHTML = '';
         
         const currentColData = currentProblem.columns.find(c => c.column === currentColumn);
-        if (!currentColData) return;
-        
-        // Create sub-problem grid (3 rows: carry, numbers, answer)
-        const subGrid = document.createElement('div');
-        subGrid.className = 'sub-problem-grid';
-        
-        // Row 0: Carry (if any)
-        const carryRow = document.createElement('div');
-        carryRow.className = 'sub-row carry-row';
-        const carryCell = document.createElement('div');
-        carryCell.className = 'sub-cell';
-        carryCell.textContent = currentColData.carry > 0 ? currentColData.carry : '';
-        carryRow.appendChild(carryCell);
-        subGrid.appendChild(carryRow);
-        
-        // Row 1: Numbers with plus sign
-        const numbersRow = document.createElement('div');
-        numbersRow.className = 'sub-row numbers-row';
-        
-        const num1Cell = document.createElement('div');
-        num1Cell.className = 'sub-cell';
-        num1Cell.textContent = currentColData.digit1;
-        numbersRow.appendChild(num1Cell);
-        
-        const plusCell = document.createElement('div');
-        plusCell.className = 'sub-cell plus-cell';
-        plusCell.textContent = '+';
-        numbersRow.appendChild(plusCell);
-        
-        const num2Cell = document.createElement('div');
-        num2Cell.className = 'sub-cell';
-        num2Cell.textContent = currentColData.digit2;
-        numbersRow.appendChild(num2Cell);
-        
-        subGrid.appendChild(numbersRow);
-        
-        // Row 2: Line
-        const lineRow = document.createElement('div');
-        lineRow.className = 'sub-row line-row';
-        const lineCell = document.createElement('div');
-        lineCell.className = 'sub-cell line-cell';
-        lineCell.textContent = '';
-        lineRow.appendChild(lineCell);
-        subGrid.appendChild(lineRow);
-        
-        // Row 3: Answer (if answered)
-        const answerRow = document.createElement('div');
-        answerRow.className = 'sub-row answer-row';
-        const answerCell = document.createElement('div');
-        answerCell.className = 'sub-cell answer-cell';
-        
-        if (currentColData.answered) {
-            answerCell.textContent = currentColData.sum;
-            answerCell.classList.add(currentColData.correct ? 'correct' : 'incorrect');
-        } else {
-            answerCell.textContent = '?';
+        if (!currentColData) {
+            // No more columns to solve
+            const completeMsg = document.createElement('div');
+            completeMsg.className = 'sub-complete';
+            completeMsg.innerHTML = `
+                <h4>🎉 Problem Complete!</h4>
+                <p>${currentProblem.num1} + ${currentProblem.num2} = ${currentProblem.answer}</p>
+                <p>All columns solved correctly!</p>
+            `;
+            subProblemDiv.appendChild(completeMsg);
+            return;
         }
         
-        answerRow.appendChild(answerCell);
-        subGrid.appendChild(answerRow);
+        // Don't ask 0+0 questions (for thousands place when it's just a carry)
+        if (currentColData.digit1 === 0 && currentColData.digit2 === 0 && currentColData.carry === 0) {
+            // Skip to next column or mark as complete
+            nextColumn();
+            return;
+        }
         
-        subProblemDiv.appendChild(subGrid);
+        // Create sub-problem in side-by-side layout
+        const subProblemContainer = document.createElement('div');
+        subProblemContainer.className = 'sub-problem-container-inner';
         
-        // Update instructions
+        // Create the addition problem display
+        const problemDisplay = document.createElement('div');
+        problemDisplay.className = 'sub-problem-display';
+        
+        // Row 1: Numbers with plus sign (side-by-side)
+        const numbersRow = document.createElement('div');
+        numbersRow.className = 'sub-numbers-row';
+        
+        // If there's a carry, show it
+        if (currentColData.carry > 0) {
+            const carryDiv = document.createElement('div');
+            carryDiv.className = 'sub-carry-value';
+            carryDiv.textContent = currentColData.carry;
+            numbersRow.appendChild(carryDiv);
+            
+            const plus1 = document.createElement('div');
+            plus1.className = 'sub-plus';
+            plus1.textContent = '+';
+            numbersRow.appendChild(plus1);
+        }
+        
+        const num1Div = document.createElement('div');
+        num1Div.className = 'sub-number';
+        num1Div.textContent = currentColData.digit1;
+        numbersRow.appendChild(num1Div);
+        
+        const plusDiv = document.createElement('div');
+        plusDiv.className = 'sub-plus';
+        plusDiv.textContent = '+';
+        numbersRow.appendChild(plusDiv);
+        
+        const num2Div = document.createElement('div');
+        num2Div.className = 'sub-number';
+        num2Div.textContent = currentColData.digit2;
+        numbersRow.appendChild(num2Div);
+        
+        problemDisplay.appendChild(numbersRow);
+        
+        // Line
+        const lineDiv = document.createElement('div');
+        lineDiv.className = 'sub-line';
+        problemDisplay.appendChild(lineDiv);
+        
+        // Answer display (if answered)
+        if (currentColData.answered) {
+            const answerDiv = document.createElement('div');
+            answerDiv.className = `sub-answer ${currentColData.correct ? 'correct' : 'incorrect'}`;
+            answerDiv.textContent = currentColData.sum;
+            problemDisplay.appendChild(answerDiv);
+        } else {
+            const answerPlaceholder = document.createElement('div');
+            answerPlaceholder.className = 'sub-answer-placeholder';
+            answerPlaceholder.textContent = '?';
+            problemDisplay.appendChild(answerPlaceholder);
+        }
+        
+        subProblemContainer.appendChild(problemDisplay);
+        
+        // Instructions
         const instructions = document.createElement('div');
         instructions.className = 'sub-instructions';
-        instructions.innerHTML = `
-            <p><strong>Step:</strong> Add the ${currentColumn} column</p>
-            <p>${currentColData.digit1} + ${currentColData.digit2}${currentColData.carry > 0 ? ' + ' + currentColData.carry + ' (carry)' : ''}</p>
-            <p>Enter the total sum below:</p>
-        `;
-        subProblemDiv.appendChild(instructions);
+        
+        let instructionText = `<strong>Add the ${currentColumn} column:</strong><br>`;
+        
+        if (currentColData.carry > 0) {
+            instructionText += `${currentColData.carry} (carry) + ${currentColData.digit1} + ${currentColData.digit2}`;
+        } else {
+            instructionText += `${currentColData.digit1} + ${currentColData.digit2}`;
+        }
+        
+        instructionText += `<br><em>Enter the total sum below:</em>`;
+        
+        instructions.innerHTML = instructionText;
+        subProblemContainer.appendChild(instructions);
+        
+        subProblemDiv.appendChild(subProblemContainer);
     }
     
     // Check sub-answer
@@ -304,16 +352,31 @@ document.addEventListener('DOMContentLoaded', function() {
             currentColData.answered = true;
             currentColData.correct = true;
             
-            showSubFeedback(`✓ Correct! ${currentColData.digit1} + ${currentColData.digit2}${currentColData.carry > 0 ? ' + ' + currentColData.carry : ''} = ${currentColData.sum}`, 'correct');
-            
-            // If sum >= 10, there's a carry
-            if (currentColData.sum >= 10) {
+            // Make the carry for the NEXT column visible
+            if (currentColData.nextCarry > 0) {
                 const nextColumn = getNextColumn();
                 if (nextColumn) {
-                    showSubFeedback(`✓ Write ${currentColData.result} below, carry ${currentColData.nextCarry} to ${nextColumn} column`, 'correct');
+                    const nextColData = currentProblem.columns.find(c => c.column === nextColumn);
+                    if (nextColData) {
+                        nextColData.carryVisible = true;
+                    }
                 }
             }
             
+            let feedbackMsg = `✓ Correct! `;
+            if (currentColData.carry > 0) {
+                feedbackMsg += `${currentColData.carry} + `;
+            }
+            feedbackMsg += `${currentColData.digit1} + ${currentColData.digit2} = ${currentColData.sum}`;
+            
+            if (currentColData.sum >= 10) {
+                const nextColumn = getNextColumn();
+                if (nextColumn) {
+                    feedbackMsg += `<br>Write ${currentColData.result} below, carry ${currentColData.nextCarry} to ${nextColumn} column`;
+                }
+            }
+            
+            showSubFeedback(feedbackMsg, 'correct');
             subAnswerInput.disabled = true;
             nextColumnBtn.disabled = false;
             nextColumnBtn.focus();
@@ -323,8 +386,13 @@ document.addEventListener('DOMContentLoaded', function() {
             currentColData.answered = true;
             currentColData.correct = false;
             
-            showSubFeedback(`✗ Incorrect. ${currentColData.digit1} + ${currentColData.digit2}${currentColData.carry > 0 ? ' + ' + currentColData.carry : ''} = ${currentColData.sum}`, 'incorrect');
+            let feedbackMsg = `✗ Incorrect. `;
+            if (currentColData.carry > 0) {
+                feedbackMsg += `${currentColData.carry} + `;
+            }
+            feedbackMsg += `${currentColData.digit1} + ${currentColData.digit2} = ${currentColData.sum}`;
             
+            showSubFeedback(feedbackMsg, 'incorrect');
             subAnswerInput.disabled = true;
             nextColumnBtn.disabled = false;
             nextColumnBtn.focus();
@@ -352,6 +420,11 @@ document.addEventListener('DOMContentLoaded', function() {
             renderSubProblem();
             subAnswerInput.focus();
             clearSubFeedback();
+        } else {
+            // No more columns
+            showSubFeedback('All columns completed!', 'correct');
+            subAnswerInput.disabled = true;
+            nextColumnBtn.disabled = true;
         }
     }
     
@@ -361,7 +434,8 @@ document.addEventListener('DOMContentLoaded', function() {
         for (let i = currentIndex + 1; i < columns.length; i++) {
             const col = columns[i];
             const colData = currentProblem.columns.find(c => c.column === col);
-            if (colData && !colData.answered) {
+            // Skip 0+0 columns
+            if (colData && !colData.answered && !(colData.digit1 === 0 && colData.digit2 === 0 && colData.carry === 0)) {
                 return col;
             }
         }
@@ -370,7 +444,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Check if entire problem is complete
     function isProblemComplete() {
-        return currentProblem.columns.every(col => col.answered);
+        return currentProblem.columns.every(col => col.answered || (col.digit1 === 0 && col.digit2 === 0 && col.carry === 0));
     }
     
     // Show feedback in main area
@@ -381,7 +455,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Show feedback in sub-problem area
     function showSubFeedback(message, type) {
-        subFeedbackDiv.textContent = message;
+        subFeedbackDiv.innerHTML = message;
         subFeedbackDiv.className = `sub-feedback ${type}`;
     }
     
