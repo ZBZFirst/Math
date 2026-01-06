@@ -6,27 +6,22 @@
     <title>
         {% if page.title %}{{ page.title }} - {{ site.title }}{% else %}{{ site.title }}{% endif %}
     </title>
+    <!-- Link to your CSS -->
     <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
     {% if page.operation %}
     <meta name="operation" content="{{ page.operation }}">
-    {% else %}
-    <meta name="operation" content="addition">
     {% endif %}
 </head>
 <body>
     {% include header.html %}
     
-    <main class="page-content" aria-label="Content">
-        {% if page.show_containers %}
-            {% include containers.html %}
-        {% else %}
-            {{ content }}
-        {% endif %}
+    <main class="page-content">
+        {{ content }}
     </main>
     
     {% include footer.html %}
     
-    {% if page.show_containers %}
+    {% if page.operation %}
     <script src="{{ '/assets/js/math-practice.js' | relative_url }}"></script>
     {% endif %}
 </body>
