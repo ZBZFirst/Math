@@ -1,4 +1,5 @@
-// Addition Practice with Step-by-Step Teaching
+// Addition Practice with Traditional Carry Method
+// Based on Wikipedia: https://en.wikipedia.org/wiki/Carry_(arithmetic)
 
 document.addEventListener('DOMContentLoaded', function() {
     // State management
@@ -29,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const problemsSolvedEl = document.getElementById('problemsSolved');
     const resetScoresBtn = document.getElementById('resetScores');
     
-    // Generate a new addition problem
+    // Generate a new addition problem (0-399)
     function generateProblem() {
         const num1 = Math.floor(Math.random() * 400); // 0-399
         const num2 = Math.floor(Math.random() * 400); // 0-399
@@ -41,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
             answer: answer,
             num1Str: num1.toString().padStart(3, '0'),
             num2Str: num2.toString().padStart(3, '0'),
-            answerStr: answer.toString()
+            answerStr: answer.toString().padStart(4, '0') // Up to 4 digits for 399+399
         };
         
         // Reset steps
@@ -59,19 +60,23 @@ document.addEventListener('DOMContentLoaded', function() {
         // Disable next step button initially
         nextStepBtn.disabled = true;
         showAnswerBtn.disabled = false;
+        
+        console.log('New problem:', currentProblem);
+        console.log('Steps:', steps);
     }
     
-    // Generate step-by-step instructions for addition
+    // Generate step-by-step instructions using traditional carry method
     function generateSteps(problem) {
         const steps = [];
-        const num1Digits = problem.num1Str.split('').reverse(); // ones, tens, hundreds
-        const num2Digits = problem.num2Str.split('').reverse();
+        const num1Digits = problem.num1Str.split('').reverse(); // [ones, tens, hundreds]
+        const num2Digits = problem.num2Str.split('').reverse(); // [ones, tens, hundreds]
         
         let carry = 0;
         let stepNumber = 1;
         let columnNames = ['ones', 'tens', 'hundreds'];
+        let placeValues = ['1', '10', '100'];
         
-        // Process each column
+        // Process each column from right to left (ones → tens → hundreds)
         for (let i = 0; i < 3; i++) {
             const digit1 = parseInt(num1Digits[i] || '0');
             const digit2 = parseInt(num2Digits[i] || '0');
@@ -82,13 +87,15 @@ document.addEventListener('DOMContentLoaded', function() {
             steps.push({
                 step: stepNumber++,
                 column: columnNames[i],
+                placeValue: placeValues[i],
                 digit1: digit1,
                 digit2: digit2,
                 carry: carry,
                 sum: columnSum,
                 result: columnResult,
                 nextCarry: nextCarry,
-                description: `Add ${columnNames[i]} column: ${digit1} + ${digit2}${carry > 0 ? ' + ' + carry + ' (carry)' : ''} = ${columnSum}`
+                columnIndex: i,
+                description: `Add ${columnNames[i]} place (${placeValues[i]}): ${digit1} + ${digit2}${carry > 0 ? ' + ' + carry + ' (carry from previous)' : ''} = ${columnSum}`
             });
             
             carry = nextCarry;
@@ -99,90 +106,138 @@ document.addEventListener('DOMContentLoaded', function() {
             steps.push({
                 step: stepNumber,
                 column: 'thousands',
+                placeValue: '1000',
                 digit1: 0,
                 digit2: 0,
                 carry: carry,
                 sum: carry,
                 result: carry,
                 nextCarry: 0,
-                description: `Bring down the carry: ${carry}`
+                columnIndex: 3,
+                description: `Write the final carry: ${carry} (thousands place)`
+            });
+        } else {
+            // No thousands place needed
+            steps.push({
+                step: stepNumber,
+                column: 'complete',
+                placeValue: 'complete',
+                digit1: 0,
+                digit2: 0,
+                carry: 0,
+                sum: 0,
+                result: 0,
+                nextCarry: 0,
+                columnIndex: -1,
+                description: 'Problem complete! No thousands place needed.'
             });
         }
         
         return steps;
     }
     
-    // Render the problem in a 4x4 grid
+    // Render the problem in a grid showing the traditional columnar format
     function renderProblemGrid() {
         problemGrid.innerHTML = '';
         
         const { num1Str, num2Str, answerStr } = currentProblem;
         
-        // Create grid cells
-        const gridCells = [
-            // Row 1: Hundreds, Tens, Ones labels
-            { value: 'H', class: 'placeholder' },
-            { value: 'T', class: 'placeholder' },
-            { value: 'O', class: 'placeholder' },
-            { value: '', class: 'placeholder' },
-            
-            // Row 2: First number
-            { value: num1Str[0] || '0', class: '' },
-            { value: num1Str[1] || '0', class: '' },
-            { value: num1Str[2] || '0', class: '' },
-            { value: '', class: 'placeholder' },
-            
-            // Row 3: Second number with plus sign
-            { value: '+', class: 'operator', rowspan: 2 },
-            { value: num2Str[0] || '0', class: '' },
-            { value: num2Str[1] || '0', class: '' },
-            { value: num2Str[2] || '0', class: '' },
-            
-            // Row 4: Line
-            { value: '', class: 'line', colspan: 4 },
-            
-            // Row 5: Answer (initially empty)
-            { value: '_', class: 'placeholder' },
-            { value: '_', class: 'placeholder' },
-            { value: '_', class: 'placeholder' },
-            { value: '_', class: 'placeholder' }
-        ];
+        // Create a 6x4 grid to show carries properly
+        const gridCells = [];
         
-        // Add carry cells
-        if (currentStep > 0) {
-            const currentStepData = steps[currentStep - 1];
-            if (currentStepData.nextCarry > 0 && currentStep < steps.length) {
-                // Add carry cell above appropriate column
-                const carryPosition = 8 + (2 - steps[currentStep].columnIndex); // Adjust based on column
-                gridCells[carryPosition] = { 
-                    value: currentStepData.nextCarry, 
-                    class: 'carry' 
-                };
+        // Row 0: Column labels
+        gridCells.push({ value: '1000s', class: 'column-label', row: 0, col: 0 });
+        gridCells.push({ value: '100s', class: 'column-label', row: 0, col: 1 });
+        gridCells.push({ value: '10s', class: 'column-label', row: 0, col: 2 });
+        gridCells.push({ value: '1s', class: 'column-label', row: 0, col: 3 });
+        
+        // Row 1: Carry row (initially empty)
+        const currentStepData = currentStep > 0 ? steps[currentStep - 1] : null;
+        const nextCarry = currentStepData ? currentStepData.nextCarry : 0;
+        
+        // Show carries in appropriate positions based on current step
+        for (let col = 0; col < 4; col++) {
+            let carryValue = '';
+            let carryClass = 'carry-cell';
+            
+            if (currentStepData) {
+                // Show current carry if it exists for this column
+                if (currentStepData.carry > 0 && col === (3 - currentStepData.columnIndex)) {
+                    carryValue = currentStepData.carry;
+                    carryClass += ' active-carry';
+                }
+                // Show next carry if calculated
+                if (nextCarry > 0 && col === (2 - currentStepData.columnIndex) && currentStepData.columnIndex < 2) {
+                    // Next carry goes to the left column
+                    carryValue = nextCarry;
+                    carryClass += ' next-carry';
+                }
             }
+            
+            gridCells.push({ value: carryValue, class: carryClass, row: 1, col: col });
         }
         
-        // Create and append grid cells
-        gridCells.forEach((cell, index) => {
+        // Row 2: First number with place value alignment
+        gridCells.push({ value: num1Str.length > 3 ? num1Str[0] : '', class: 'number-digit', row: 2, col: 0 });
+        gridCells.push({ value: num1Str[0] || '0', class: 'number-digit', row: 2, col: 1 });
+        gridCells.push({ value: num1Str[1] || '0', class: 'number-digit', row: 2, col: 2 });
+        gridCells.push({ value: num1Str[2] || '0', class: 'number-digit', row: 2, col: 3 });
+        
+        // Row 3: Plus sign and second number
+        gridCells.push({ value: '+', class: 'operator', row: 3, col: 0, rowspan: 2 });
+        gridCells.push({ value: num2Str.length > 3 ? num2Str[0] : '', class: 'number-digit', row: 3, col: 1 });
+        gridCells.push({ value: num2Str[0] || '0', class: 'number-digit', row: 3, col: 2 });
+        gridCells.push({ value: num2Str[1] || '0', class: 'number-digit', row: 3, col: 3 });
+        
+        // Row 4: Line (horizontal rule)
+        gridCells.push({ value: '', class: 'line', row: 4, col: 0, colspan: 4 });
+        
+        // Row 5: Answer row (show completed digits)
+        const answerDigits = answerStr.split('').reverse(); // Reverse for [1s, 10s, 100s, 1000s]
+        for (let col = 0; col < 4; col++) {
+            let value = '_';
+            let cellClass = 'answer-digit';
+            
+            // Fill in completed steps
+            if (currentStep > 0) {
+                const completedSteps = steps.slice(0, currentStep);
+                const stepForThisColumn = completedSteps.find(step => {
+                    const colMapping = { 0: 'thousands', 1: 'hundreds', 2: 'tens', 3: 'ones' };
+                    return step.column === colMapping[col];
+                });
+                
+                if (stepForThisColumn && stepForThisColumn.completed) {
+                    value = stepForThisColumn.result;
+                    cellClass += stepForThisColumn.correct ? ' correct' : ' incorrect';
+                } else if (col === 3 && currentStep > steps.length - 1) {
+                    // All steps done, show all digits
+                    value = answerDigits[col] || '0';
+                }
+            }
+            
+            gridCells.push({ value: value, class: cellClass, row: 5, col: col });
+        }
+        
+        // Apply grid positioning and create cells
+        gridCells.forEach(cell => {
             const cellEl = document.createElement('div');
-            cellEl.className = `grid-cell ${cell.class || ''}`;
+            cellEl.className = `grid-cell ${cell.class}`;
             cellEl.textContent = cell.value;
+            cellEl.dataset.row = cell.row;
+            cellEl.dataset.col = cell.col;
+            
+            // Apply grid positioning
+            cellEl.style.gridRow = cell.row + 1; // +1 because CSS grid is 1-indexed
+            cellEl.style.gridColumn = cell.col + 1;
             
             if (cell.rowspan) cellEl.style.gridRow = `span ${cell.rowspan}`;
             if (cell.colspan) cellEl.style.gridColumn = `span ${cell.colspan}`;
             
-            // Highlight current step cells
-            if (currentStep > 0 && currentStep <= steps.length) {
-                const stepData = steps[currentStep - 1];
-                if (cell.value !== '' && cell.value !== '_' && cell.value !== '+' && 
-                    !cell.class.includes('placeholder') && !cell.class.includes('operator') &&
-                    !cell.class.includes('line')) {
-                    
-                    // Check if this cell is part of current step
-                    const digitIndex = index % 4;
-                    const columnMapping = { ones: 2, tens: 1, hundreds: 0, thousands: -1 };
-                    if (digitIndex === columnMapping[stepData.column]) {
-                        cellEl.classList.add('active');
-                    }
+            // Highlight active column for current step
+            if (currentStepData && currentStepData.columnIndex >= 0) {
+                const activeCol = 3 - currentStepData.columnIndex; // Map to grid columns
+                if (cell.col === activeCol && cell.row >= 1 && cell.row <= 3) {
+                    cellEl.classList.add('active-column');
                 }
             }
             
@@ -196,10 +251,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         steps.forEach((step, index) => {
             const li = document.createElement('li');
-            li.textContent = step.description;
+            li.textContent = `${step.step}. ${step.description}`;
+            li.dataset.step = step.step;
             
             if (index < currentStep) {
                 li.classList.add('completed');
+                li.innerHTML += step.correct ? ' ✓' : ' ✗';
             } else if (index === currentStep) {
                 li.classList.add('active');
             }
@@ -214,9 +271,19 @@ document.addEventListener('DOMContentLoaded', function() {
             const stepData = steps[currentStep];
             stepDescription.textContent = stepData.description;
             document.querySelector('.step-label').textContent = `Step ${stepData.step}:`;
+            
+            // Update input placeholder based on step type
+            if (stepData.column === 'complete') {
+                stepAnswerInput.placeholder = 'Press Next for new problem';
+                stepAnswerInput.disabled = true;
+            } else {
+                stepAnswerInput.placeholder = `Enter sum for ${stepData.column} place`;
+                stepAnswerInput.disabled = false;
+            }
         } else {
             stepDescription.textContent = 'All steps completed! Great job!';
             document.querySelector('.step-label').textContent = 'Complete!';
+            stepAnswerInput.disabled = true;
         }
         
         // Update grid highlighting
@@ -227,8 +294,15 @@ document.addEventListener('DOMContentLoaded', function() {
     function checkStepAnswer() {
         if (currentStep >= steps.length) return;
         
-        const userAnswer = parseInt(stepAnswerInput.value);
         const stepData = steps[currentStep];
+        
+        // Skip checking for completion step
+        if (stepData.column === 'complete') {
+            nextStep();
+            return;
+        }
+        
+        const userAnswer = parseInt(stepAnswerInput.value);
         
         if (isNaN(userAnswer)) {
             showFeedback('Please enter a valid number', 'incorrect');
@@ -239,40 +313,48 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (userAnswer === stepData.sum) {
             scores.correctSteps++;
-            showFeedback(`✓ Correct! ${stepData.digit1} + ${stepData.digit2}${stepData.carry > 0 ? ' + ' + stepData.carry : ''} = ${stepData.sum}`, 'correct');
+            showFeedback(`✓ Correct! ${stepData.digit1} + ${stepData.digit2}${stepData.carry > 0 ? ' + ' + stepData.carry + ' (carry)' : ''} = ${stepData.sum}`, 'correct');
             
-            // Mark step as completed
+            // Mark step as completed correctly
             stepData.completed = true;
             stepData.correct = true;
+            stepData.userAnswer = userAnswer;
             
             // Enable next step button
             nextStepBtn.disabled = false;
             
-            // Update answer in grid
+            // Show the result digit in answer row
             updateAnswerInGrid(stepData);
+            
+            // If there's a next carry, show it in the carry row
+            if (stepData.nextCarry > 0 && stepData.columnIndex < 3) {
+                showFeedback(`✓ Correct! Write ${stepData.result} below, carry ${stepData.nextCarry} to the next column`, 'correct');
+            }
             
         } else {
             scores.incorrectSteps++;
-            showFeedback(`✗ Incorrect. The correct answer is ${stepData.sum}`, 'incorrect');
+            showFeedback(`✗ Incorrect. ${stepData.digit1} + ${stepData.digit2}${stepData.carry > 0 ? ' + ' + stepData.carry : ''} = ${stepData.sum}`, 'incorrect');
             stepData.completed = true;
             stepData.correct = false;
+            stepData.userAnswer = userAnswer;
+            
+            // Still enable next step but mark as incorrect
+            nextStepBtn.disabled = false;
+            updateAnswerInGrid(stepData);
         }
         
         updateScoreDisplay();
         renderStepList();
+        
+        // Auto-focus on next step button
+        setTimeout(() => nextStepBtn.focus(), 500);
     }
     
     // Update answer in grid
     function updateAnswerInGrid(stepData) {
-        const answerCells = document.querySelectorAll('.grid-cell.placeholder');
-        const columnMapping = { ones: 3, tens: 2, hundreds: 1, thousands: 0 };
-        const answerIndex = columnMapping[stepData.column];
-        
-        if (answerCells[answerIndex]) {
-            answerCells[answerIndex].textContent = stepData.result;
-            answerCells[answerIndex].classList.remove('placeholder');
-            answerCells[answerIndex].classList.add('correct');
-        }
+        // The answer will be updated in the next render
+        // This function triggers a re-render
+        renderProblemGrid();
     }
     
     // Move to next step
@@ -286,6 +368,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 showFeedback('🎉 Problem solved! Well done!', 'correct');
                 nextStepBtn.disabled = true;
                 showAnswerBtn.disabled = true;
+                stepAnswerInput.value = '';
             } else {
                 stepAnswerInput.value = '';
                 stepAnswerInput.focus();
@@ -299,33 +382,26 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Show full answer
     function showAnswer() {
+        // Mark all steps as completed (incorrectly)
         steps.forEach(step => {
             if (!step.completed) {
                 step.completed = true;
                 step.correct = false;
+                step.userAnswer = 'shown';
             }
         });
         
         currentStep = steps.length;
         scores.problemsSolved++;
         
-        // Fill in all answers
-        const answerStr = currentProblem.answerStr.padStart(4, '0');
-        const answerCells = document.querySelectorAll('.grid-cell.placeholder');
-        answerStr.split('').reverse().forEach((digit, index) => {
-            if (answerCells[index]) {
-                answerCells[index].textContent = digit;
-                answerCells[index].classList.remove('placeholder');
-                answerCells[index].classList.add('incorrect');
-            }
-        });
-        
-        showFeedback('Answer revealed: ' + currentProblem.answer, 'incorrect');
+        showFeedback(`Answer revealed: ${currentProblem.num1} + ${currentProblem.num2} = ${currentProblem.answer}`, 'incorrect');
         updateStepDisplay();
         updateScoreDisplay();
         renderStepList();
+        renderProblemGrid(); // Show all digits
         nextStepBtn.disabled = true;
         showAnswerBtn.disabled = true;
+        stepAnswerInput.disabled = true;
     }
     
     // Show feedback
