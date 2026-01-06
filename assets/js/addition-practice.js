@@ -1,12 +1,10 @@
-// Addition Practice with Dual Container System - FIXED
+// Addition Practice with Dual Container System - ANIMATED VERSION
 
 document.addEventListener('DOMContentLoaded', function() {
     // State management
     let currentProblem = null;
     let currentColumn = 'ones'; // Start with ones column
     let columns = ['ones', 'tens', 'hundreds']; // Start with three, add thousands if needed
-    let userAnswers = {};
-    let correctAnswers = {};
     let scores = {
         correct: 0,
         incorrect: 0,
@@ -28,13 +26,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const accuracyRateEl = document.getElementById('accuracyRate');
     const resetScoresBtn = document.getElementById('resetScores');
     
+    // ===== CORE FUNCTIONS =====
+    
     // Generate a new addition problem (0-399)
     function generateProblem() {
-        const num1 = Math.floor(Math.random() * 400); // 0-399
-        const num2 = Math.floor(Math.random() * 400); // 0-399
+        const num1 = Math.floor(Math.random() * 400);
+        const num2 = Math.floor(Math.random() * 400);
         const answer = num1 + num2;
         
-        // Convert to individual digits [hundreds, tens, ones]
+        // Convert to individual digits
         const getDigits = (num) => {
             const str = num.toString().padStart(3, '0');
             return {
@@ -53,20 +53,17 @@ document.addEventListener('DOMContentLoaded', function() {
             answer: answer,
             num1Digits: num1Digits,
             num2Digits: num2Digits,
-            columns: [],
-            visibleCarries: {} // Track which carries are visible
+            columns: []
         };
         
         // Reset state
-        userAnswers = {};
-        correctAnswers = {};
         currentColumn = 'ones';
-        columns = ['ones', 'tens', 'hundreds']; // Reset columns
+        columns = ['ones', 'tens', 'hundreds'];
         
         // Calculate column problems
         calculateColumnProblems();
         
-        // Add thousands column if needed (only if there's a carry)
+        // Add thousands column if needed
         const lastColumn = currentProblem.columns[currentProblem.columns.length - 1];
         if (lastColumn && lastColumn.nextCarry > 0) {
             columns.push('thousands');
@@ -79,7 +76,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 result: lastColumn.nextCarry,
                 nextCarry: 0,
                 answered: false,
-                correct: null
+                correct: null,
+                carryVisible: true // Carry is immediately visible for thousands
             });
         }
         
@@ -124,114 +122,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // ===== ANIMATION FUNCTIONS =====
     
-    // Highlight source in main problem
-    function highlightSourceColumn(columnName) {
-        const columnIndex = columnName === 'ones' ? 3 : 
-                           columnName === 'tens' ? 2 : 
-                           columnName === 'hundreds' ? 1 : -1;
-        
-        if (columnIndex >= 0) {
-            const numberCells = document.querySelectorAll('.grid-cell.number-cell');
-            // Get the two number cells for this column (from both rows)
-            const firstNumberCell = numberCells[columnIndex]; // First row number
-            const secondNumberCell = numberCells[columnIndex + 4]; // Second row number (skip plus column)
-            
-            if (firstNumberCell) {
-                firstNumberCell.classList.add('animate-source');
-                setTimeout(() => {
-                    firstNumberCell.classList.remove('animate-source');
-                }, 1000);
-            }
-            
-            if (secondNumberCell) {
-                secondNumberCell.classList.add('animate-source');
-                setTimeout(() => {
-                    secondNumberCell.classList.remove('animate-source');
-                }, 1000);
-            }
-        }
-    }
-    
-    // Animate values from Main Problem to Current Column
-    function animateToCurrentColumn(columnName) {
-        const currentColData = currentProblem.columns.find(c => c.column === columnName);
-        if (!currentColData) return;
-        
-        // Get the sub-problem container position
-        const subProblemContainer = document.querySelector('.sub-problem-container');
-        if (!subProblemContainer) return;
-        
-        const subProblemRect = subProblemContainer.getBoundingClientRect();
-        
-        // Get source cells from main problem
-        const columnIndex = columnName === 'ones' ? 3 : 
-                           columnName === 'tens' ? 2 : 
-                           columnName === 'hundreds' ? 1 : -1;
-        
-        if (columnIndex < 0) return;
-        
-        const numberCells = document.querySelectorAll('.grid-cell.number-cell');
-        const firstNumberCell = numberCells[columnIndex]; // First number in current column
-        const secondNumberCell = numberCells[columnIndex + 4]; // Second number in current column
-        
-        // Animate first number (digit1)
-        if (firstNumberCell && currentColData.digit1 !== 0) {
-            setTimeout(() => {
-                animateValueToSubProblem(
-                    currentColData.digit1,
-                    firstNumberCell,
-                    '.sub-number:first-of-type',
-                    '#2196f3',
-                    'digit1'
-                );
-            }, 300);
-        }
-        
-        // Animate second number (digit2)
-        if (secondNumberCell && currentColData.digit2 !== 0) {
-            setTimeout(() => {
-                animateValueToSubProblem(
-                    currentColData.digit2,
-                    secondNumberCell,
-                    '.sub-number:last-of-type',
-                    '#2196f3',
-                    'digit2'
-                );
-            }, 600);
-        }
-        
-        // Animate carry if present
-        if (currentColData.carry > 0 && currentColData.carryVisible) {
-            const carryCell = document.querySelector(`.grid-cell.carry-cell.active-carry`);
-            if (carryCell) {
-                setTimeout(() => {
-                    animateValueToSubProblem(
-                        currentColData.carry,
-                        carryCell,
-                        '.sub-carry-value',
-                        '#ff9800',
-                        'carry'
-                    );
-                }, 900);
-            }
-        }
-    }
-    
-    // Animate value to sub-problem
-    function animateValueToSubProblem(value, sourceElement, targetSelector, color, type) {
-        const target = document.querySelector(targetSelector);
-        if (!target || !sourceElement) return;
-        
-        const sourceRect = sourceElement.getBoundingClientRect();
-        const targetRect = target.getBoundingClientRect();
-        
-        // Create ghost element
+    // Create a flying ghost element
+    function createGhostElement(value, sourceRect, color, type = 'number') {
         const ghost = document.createElement('div');
         ghost.className = 'flying-ghost';
         ghost.textContent = value;
         ghost.style.color = color;
         ghost.style.borderColor = color;
         ghost.style.backgroundColor = 'white';
+        ghost.style.position = 'fixed';
         ghost.style.left = `${sourceRect.left}px`;
         ghost.style.top = `${sourceRect.top}px`;
         ghost.style.width = `${sourceRect.width}px`;
@@ -241,227 +140,309 @@ document.addEventListener('DOMContentLoaded', function() {
         ghost.style.justifyContent = 'center';
         ghost.style.fontSize = type === 'carry' ? '1.2rem' : '1.8rem';
         ghost.style.fontWeight = 'bold';
-        document.body.appendChild(ghost);
-        
-        // Calculate animation path
-        const deltaX = targetRect.left - sourceRect.left;
-        const deltaY = targetRect.top - sourceRect.top;
-        
-        // Animate
-        setTimeout(() => {
-            ghost.style.transition = 'all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
-            ghost.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(${type === 'carry' ? 1.2 : 1.3})`;
-            ghost.style.opacity = '0.8';
-        }, 50);
-        
-        // Clean up and animate target
-        setTimeout(() => {
-            ghost.remove();
-            // Animate target drop-in
-            target.classList.add('animate-drop-in');
-            setTimeout(() => {
-                target.classList.remove('animate-drop-in');
-            }, 500);
-        }, 850);
+        ghost.style.borderRadius = '4px';
+        ghost.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.2)';
+        ghost.style.zIndex = '10000';
+        ghost.style.pointerEvents = 'none';
+        return ghost;
     }
     
-    // Animate answer from Current Column to Main Problem
-    function animateAnswerToMain(answer, columnName) {
-        const subAnswer = document.querySelector('.sub-answer.correct') || 
-                          document.querySelector('.sub-answer-placeholder');
-        if (!subAnswer) return;
+    // Animate element from source to target
+    function animateElement(source, target, value, color, type = 'number') {
+        if (!source || !target) return Promise.resolve();
         
-        // Find the target answer cell in main grid
-        const columnIndex = columnName === 'ones' ? 3 : 
-                           columnName === 'tens' ? 2 : 
-                           columnName === 'hundreds' ? 1 : -1;
+        return new Promise((resolve) => {
+            const sourceRect = source.getBoundingClientRect();
+            const targetRect = target.getBoundingClientRect();
+            
+            // Create ghost element
+            const ghost = createGhostElement(value, sourceRect, color, type);
+            document.body.appendChild(ghost);
+            
+            // Calculate animation path
+            const deltaX = targetRect.left - sourceRect.left;
+            const deltaY = targetRect.top - sourceRect.top;
+            
+            // Animate
+            setTimeout(() => {
+                ghost.style.transition = 'all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+                ghost.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(1.2)`;
+                ghost.style.opacity = '0.8';
+            }, 50);
+            
+            // Clean up and resolve
+            setTimeout(() => {
+                ghost.remove();
+                
+                // Add drop-in animation to target
+                target.classList.add('animate-drop-in');
+                setTimeout(() => {
+                    target.classList.remove('animate-drop-in');
+                }, 500);
+                
+                resolve();
+            }, 850);
+        });
+    }
+    
+    // Animate numbers from Main Problem to Current Column
+    async function animateToCurrentColumn() {
+        const currentColData = currentProblem.columns.find(c => c.column === currentColumn);
+        if (!currentColData) return;
+        
+        // Wait for sub-problem to render
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Get all grid cells (5 rows × 4 columns = 20 cells)
+        const allGridCells = document.querySelectorAll('.grid-cell');
+        const columnIndex = currentColumn === 'ones' ? 3 : 
+                           currentColumn === 'tens' ? 2 : 
+                           currentColumn === 'hundreds' ? 1 : -1;
         
         if (columnIndex < 0) return;
         
-        const answerCells = document.querySelectorAll('.grid-cell.answer-cell');
-        const targetAnswerCell = answerCells[columnIndex];
+        // Get source cells from main grid
+        // Row indices: 0=carry, 1=num1, 2=num2, 3=line, 4=answer
+        const firstNumCell = allGridCells[columnIndex + 4];  // Row 1
+        const secondNumCell = allGridCells[columnIndex + 8]; // Row 2
         
-        if (!targetAnswerCell) return;
+        // Get target elements in sub-problem
+        const subNumbers = document.querySelectorAll('.sub-number');
+        const subCarry = document.querySelector('.sub-carry-value');
         
-        const sourceRect = subAnswer.getBoundingClientRect();
-        const targetRect = targetAnswerCell.getBoundingClientRect();
+        // Animation sequence
+        const animations = [];
         
-        // Create ghost element
-        const ghost = document.createElement('div');
-        ghost.className = 'flying-ghost';
-        ghost.textContent = answer;
-        ghost.style.color = '#4caf50';
-        ghost.style.borderColor = '#4caf50';
-        ghost.style.backgroundColor = '#e8f5e9';
-        ghost.style.left = `${sourceRect.left}px`;
-        ghost.style.top = `${sourceRect.top}px`;
-        ghost.style.width = `${sourceRect.width}px`;
-        ghost.style.height = `${sourceRect.height}px`;
-        ghost.style.display = 'flex';
-        ghost.style.alignItems = 'center';
-        ghost.style.justifyContent = 'center';
-        ghost.style.fontSize = '2rem';
-        ghost.style.fontWeight = 'bold';
-        document.body.appendChild(ghost);
+        // Animate carry if present and visible
+        if (currentColData.carry > 0 && currentColData.carryVisible) {
+            const carryCell = allGridCells[columnIndex]; // Row 0
+            if (carryCell && subCarry) {
+                animations.push(() => 
+                    animateElement(carryCell, subCarry, currentColData.carry, '#ff9800', 'carry')
+                );
+            }
+        }
         
-        // Calculate animation path
-        const deltaX = targetRect.left - sourceRect.left;
-        const deltaY = targetRect.top - sourceRect.top;
+        // Animate first number
+        if (firstNumCell && subNumbers[0]) {
+            animations.push(() => 
+                animateElement(firstNumCell, subNumbers[0], currentColData.digit1, '#2196f3', 'number')
+            );
+        }
         
-        // Animate
-        setTimeout(() => {
-            ghost.style.transition = 'all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
-            ghost.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(1.3)`;
-            ghost.style.opacity = '0.8';
-        }, 50);
+        // Animate second number
+        if (secondNumCell && subNumbers[1]) {
+            animations.push(() => 
+                animateElement(secondNumCell, subNumbers[1], currentColData.digit2, '#2196f3', 'number')
+            );
+        }
         
-        // Clean up
-        setTimeout(() => {
-            ghost.remove();
-            // Update the main grid after animation completes
-            setTimeout(() => {
-                renderMainGrid();
-            }, 100);
-        }, 850);
+        // Execute animations sequentially
+        for (let i = 0; i < animations.length; i++) {
+            await animations[i]();
+            await new Promise(resolve => setTimeout(resolve, 200)); // Pause between animations
+        }
     }
     
-    // Render main problem grid - UPDATED with data attributes
+    // Animate answer from Current Column to Main Problem
+    async function animateAnswerToMain() {
+        const currentColData = currentProblem.columns.find(c => c.column === currentColumn);
+        if (!currentColData || !currentColData.answered) return;
+        
+        // Get answer element from sub-problem
+        const subAnswer = document.querySelector('.sub-answer.correct') || 
+                          document.querySelector('.sub-answer.incorrect');
+        if (!subAnswer) return;
+        
+        // Wait a bit for the answer to be visible
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Get all grid cells
+        const allGridCells = document.querySelectorAll('.grid-cell');
+        const columnIndex = currentColumn === 'ones' ? 3 : 
+                           currentColumn === 'tens' ? 2 : 
+                           currentColumn === 'hundreds' ? 1 : -1;
+        
+        if (columnIndex < 0) return;
+        
+        // Find target answer cell (row 4)
+        const targetAnswerCell = allGridCells[columnIndex + 16];
+        
+        // Animate the result digit to main grid
+        if (targetAnswerCell) {
+            await animateElement(subAnswer, targetAnswerCell, currentColData.result, 
+                               currentColData.correct ? '#4caf50' : '#f44336', 'answer');
+        }
+        
+        // If there's a carry to next column, animate it too
+        if (currentColData.nextCarry > 0) {
+            const nextColumn = getNextColumn();
+            if (nextColumn) {
+                const nextColumnIndex = nextColumn === 'ones' ? 3 : 
+                                      nextColumn === 'tens' ? 2 : 
+                                      nextColumn === 'hundreds' ? 1 : -1;
+                
+                if (nextColumnIndex >= 0) {
+                    const carryTargetCell = allGridCells[nextColumnIndex]; // Row 0 for next column
+                    
+                    // Wait a bit then animate carry
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                    
+                    if (carryTargetCell) {
+                        // Create a temporary element for the carry animation
+                        const tempCarry = document.createElement('div');
+                        tempCarry.textContent = currentColData.nextCarry;
+                        tempCarry.style.opacity = '0';
+                        document.body.appendChild(tempCarry);
+                        
+                        await animateElement(subAnswer, carryTargetCell, currentColData.nextCarry, '#ff9800', 'carry');
+                        
+                        tempCarry.remove();
+                    }
+                }
+            }
+        }
+    }
+    
+    // Highlight source cells in main problem
+    function highlightSourceColumn() {
+        const columnIndex = currentColumn === 'ones' ? 3 : 
+                           currentColumn === 'tens' ? 2 : 
+                           currentColumn === 'hundreds' ? 1 : -1;
+        
+        if (columnIndex < 0) return;
+        
+        const allGridCells = document.querySelectorAll('.grid-cell');
+        
+        // Highlight number cells
+        const firstNumCell = allGridCells[columnIndex + 4];
+        const secondNumCell = allGridCells[columnIndex + 8];
+        
+        [firstNumCell, secondNumCell].forEach(cell => {
+            if (cell) {
+                cell.classList.add('animate-source');
+                setTimeout(() => {
+                    cell.classList.remove('animate-source');
+                }, 1000);
+            }
+        });
+        
+        // Highlight carry if visible
+        const currentColData = currentProblem.columns.find(c => c.column === currentColumn);
+        if (currentColData && currentColData.carry > 0 && currentColData.carryVisible) {
+            const carryCell = allGridCells[columnIndex];
+            if (carryCell) {
+                carryCell.classList.add('animate-source');
+                setTimeout(() => {
+                    carryCell.classList.remove('animate-source');
+                }, 1000);
+            }
+        }
+    }
+    
+    // ===== RENDERING FUNCTIONS =====
+    
+    // Render main problem grid
     function renderMainGrid() {
         problemGrid.innerHTML = '';
         
         const { num1Digits, num2Digits, columns: colData } = currentProblem;
         
-        // Grid structure: 5 rows × 4 columns
-        // Columns: Plus Sign | Hundreds | Tens | Ones
-        // Rows: Carry | Number 1 | Number 2 | Line | Answer
+        // Create 5 rows × 4 columns grid
+        const rows = 5;
+        const cols = 4;
         
-        const gridData = [
-            // Row 0: Carry Row
-            [
-                { value: '', class: 'plus-column' },
-                { value: '', class: 'carry-cell', column: 'hundreds' },
-                { value: '', class: 'carry-cell', column: 'tens' },
-                { value: '', class: 'carry-cell', column: 'ones' }
-            ],
-            // Row 1: First Number Row
-            [
-                { value: '', class: 'plus-column' },
-                { value: num1Digits.hundreds, class: 'number-cell', column: 'hundreds' },
-                { value: num1Digits.tens, class: 'number-cell', column: 'tens' },
-                { value: num1Digits.ones, class: 'number-cell', column: 'ones' }
-            ],
-            // Row 2: Second Number Row  
-            [
-                { value: '+', class: 'plus-column' },
-                { value: num2Digits.hundreds, class: 'number-cell', column: 'hundreds' },
-                { value: num2Digits.tens, class: 'number-cell', column: 'tens' },
-                { value: num2Digits.ones, class: 'number-cell', column: 'ones' }
-            ],
-            // Row 3: Horizontal Line
-            [
-                { value: '', class: 'line' },
-                { value: '', class: 'line' },
-                { value: '', class: 'line' },
-                { value: '', class: 'line' }
-            ],
-            // Row 4: Answer Row
-            [
-                { value: '', class: 'plus-column answer-cell' },
-                { value: '', class: 'answer-cell', column: 'hundreds' },
-                { value: '', class: 'answer-cell', column: 'tens' },
-                { value: '', class: 'answer-cell', column: 'ones' }
-            ]
-        ];
-        
-        // Fill in carries and answers
-        colData.forEach(col => {
-            const colIndex = col.column === 'ones' ? 3 : 
-                           col.column === 'tens' ? 2 : 
-                           col.column === 'hundreds' ? 1 : -1;
-            
-            if (colIndex < 0) return; // Skip thousands for now
-            
-            // Show carries in row 0 (only if they should be visible)
-            if (col.carry > 0 && col.carryVisible) {
-                gridData[0][colIndex].value = col.carry;
-                gridData[0][colIndex].class = 'grid-cell carry-cell active-carry';
-            } else if (col.carry > 0) {
-                // Carry exists but not visible yet
-                gridData[0][colIndex].class = 'grid-cell carry-cell';
-            }
-            
-            // Show answers in row 4
-            if (col.answered) {
-                gridData[4][colIndex].value = col.result;
-                gridData[4][colIndex].class = `grid-cell answer-cell ${col.correct ? 'correct' : 'incorrect'}`;
-            } else {
-                gridData[4][colIndex].value = '_';
-            }
-        });
-        
-        // Highlight current column
-        const currentColIndex = currentColumn === 'ones' ? 3 : 
-                               currentColumn === 'tens' ? 2 : 
-                               currentColumn === 'hundreds' ? 1 : -1;
-        
-        if (currentColIndex >= 0) {
-            gridData[1][currentColIndex].class += ' active-column';
-            gridData[2][currentColIndex].class += ' active-column';
-            gridData[4][currentColIndex].class += ' active-column';
-        }
-        
-        // Create and populate grid
-        gridData.forEach((row, rowIndex) => {
-            row.forEach((cell, colIndex) => {
-                const cellEl = document.createElement('div');
-                cellEl.className = `grid-cell ${cell.class}`;
+        for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < cols; col++) {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell';
                 
-                // Add data-column attribute for easier targeting
-                if (cell.column) {
-                    cellEl.dataset.column = cell.column;
-                    cellEl.dataset.row = rowIndex;
-                }
-                
-                // Handle carries with strikethrough if they've been used
-                if (cell.class.includes('carry-cell') && cell.value !== '') {
-                    const colName = colIndex === 3 ? 'ones' : 
-                                  colIndex === 2 ? 'tens' : 
-                                  'hundreds';
-                    const colDataForThis = currentProblem.columns.find(c => c.column === colName);
+                // Determine cell content based on position
+                if (row === 0) { // Carry row
+                    cell.className += ' carry-cell';
+                    cell.dataset.column = col === 1 ? 'hundreds' : col === 2 ? 'tens' : col === 3 ? 'ones' : '';
                     
-                    if (colDataForThis && colDataForThis.answered) {
-                        // This carry has been used - show strikethrough
-                        const span = document.createElement('span');
-                        span.textContent = cell.value;
-                        span.style.textDecoration = 'line-through';
-                        span.style.opacity = '0.6';
-                        cellEl.appendChild(span);
-                    } else {
-                        // Active carry not yet used
-                        cellEl.textContent = cell.value;
+                    // Add carry value if visible
+                    if (cell.dataset.column) {
+                        const colDataForThis = colData.find(c => c.column === cell.dataset.column);
+                        if (colDataForThis && colDataForThis.carry > 0 && colDataForThis.carryVisible) {
+                            cell.textContent = colDataForThis.carry;
+                            cell.classList.add('active-carry');
+                            
+                            // Add strikethrough if used
+                            if (colDataForThis.answered) {
+                                const span = document.createElement('span');
+                                span.textContent = colDataForThis.carry;
+                                span.style.textDecoration = 'line-through';
+                                span.style.opacity = '0.6';
+                                cell.innerHTML = '';
+                                cell.appendChild(span);
+                            }
+                        }
                     }
-                } else {
-                    cellEl.textContent = cell.value;
+                }
+                else if (row === 1) { // First number row
+                    if (col === 0) {
+                        cell.className += ' plus-column';
+                    } else {
+                        cell.className += ' number-cell';
+                        cell.dataset.column = col === 1 ? 'hundreds' : col === 2 ? 'tens' : 'ones';
+                        cell.textContent = cell.dataset.column === 'hundreds' ? num1Digits.hundreds :
+                                         cell.dataset.column === 'tens' ? num1Digits.tens : num1Digits.ones;
+                    }
+                }
+                else if (row === 2) { // Second number row
+                    if (col === 0) {
+                        cell.className += ' plus-column';
+                        cell.textContent = '+';
+                    } else {
+                        cell.className += ' number-cell';
+                        cell.dataset.column = col === 1 ? 'hundreds' : col === 2 ? 'tens' : 'ones';
+                        cell.textContent = cell.dataset.column === 'hundreds' ? num2Digits.hundreds :
+                                         cell.dataset.column === 'tens' ? num2Digits.tens : num2Digits.ones;
+                    }
+                }
+                else if (row === 3) { // Line row
+                    cell.className += ' line';
+                }
+                else if (row === 4) { // Answer row
+                    if (col === 0) {
+                        cell.className += ' plus-column answer-cell';
+                    } else {
+                        cell.className += ' answer-cell';
+                        cell.dataset.column = col === 1 ? 'hundreds' : col === 2 ? 'tens' : 'ones';
+                        
+                        const colDataForThis = colData.find(c => c.column === cell.dataset.column);
+                        if (colDataForThis && colDataForThis.answered) {
+                            cell.textContent = colDataForThis.result;
+                            cell.classList.add(colDataForThis.correct ? 'correct' : 'incorrect');
+                        } else {
+                            cell.textContent = '_';
+                        }
+                    }
                 }
                 
-                problemGrid.appendChild(cellEl);
-            });
-        });
+                // Highlight current column
+                if ((row === 1 || row === 2 || row === 4) && cell.dataset.column === currentColumn) {
+                    cell.classList.add('active-column');
+                }
+                
+                problemGrid.appendChild(cell);
+            }
+        }
     }
     
-    // Render sub-problem container - UPDATED with animation triggers
-    function renderSubProblem() {
+    // Render sub-problem container
+    async function renderSubProblem() {
         subProblemDiv.innerHTML = '';
         
         const currentColData = currentProblem.columns.find(c => c.column === currentColumn);
         if (!currentColData) {
-            // No more columns to solve
             const completeMsg = document.createElement('div');
             completeMsg.className = 'sub-complete';
             completeMsg.innerHTML = `
                 <h4>🎉 Problem Complete!</h4>
                 <p>${currentProblem.num1} + ${currentProblem.num2} = ${currentProblem.answer}</p>
-                <p>All columns solved correctly!</p>
             `;
             subProblemDiv.appendChild(completeMsg);
             return;
@@ -473,22 +454,22 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Use your existing CSS structure
+        // Create sub-problem structure
         const subContainer = document.createElement('div');
         subContainer.className = 'sub-problem-container-inner';
         
         const subDisplay = document.createElement('div');
         subDisplay.className = 'sub-problem-display';
         
-        // Numbers row with side-by-side layout
+        // Numbers row
         const numbersRow = document.createElement('div');
         numbersRow.className = 'sub-numbers-row';
         
-        // Add carry if present
+        // Create empty placeholders (will be filled by animations)
         if (currentColData.carry > 0 && currentColData.carryVisible) {
             const carryDiv = document.createElement('div');
             carryDiv.className = 'sub-carry-value';
-            carryDiv.textContent = currentColData.carry;
+            carryDiv.textContent = ''; // Will be filled by animation
             numbersRow.appendChild(carryDiv);
             
             const carryPlus = document.createElement('div');
@@ -497,22 +478,19 @@ document.addEventListener('DOMContentLoaded', function() {
             numbersRow.appendChild(carryPlus);
         }
         
-        // First number
         const num1Div = document.createElement('div');
         num1Div.className = 'sub-number';
-        num1Div.textContent = currentColData.digit1;
+        num1Div.textContent = ''; // Will be filled by animation
         numbersRow.appendChild(num1Div);
         
-        // Main plus sign
         const plusDiv = document.createElement('div');
         plusDiv.className = 'sub-plus';
         plusDiv.textContent = '+';
         numbersRow.appendChild(plusDiv);
         
-        // Second number
         const num2Div = document.createElement('div');
         num2Div.className = 'sub-number';
-        num2Div.textContent = currentColData.digit2;
+        num2Div.textContent = ''; // Will be filled by animation
         numbersRow.appendChild(num2Div);
         
         subDisplay.appendChild(numbersRow);
@@ -522,7 +500,7 @@ document.addEventListener('DOMContentLoaded', function() {
         lineDiv.className = 'sub-line';
         subDisplay.appendChild(lineDiv);
         
-        // Answer display
+        // Answer
         const answerDiv = document.createElement('div');
         answerDiv.className = currentColData.answered ? 
             `sub-answer ${currentColData.correct ? 'correct' : 'incorrect'}` : 
@@ -537,13 +515,11 @@ document.addEventListener('DOMContentLoaded', function() {
         instructions.className = 'sub-instructions';
         
         let instructionText = `<p><strong>Step:</strong> Add the ${currentColumn} column</p>`;
-        
         if (currentColData.carry > 0 && currentColData.carryVisible) {
             instructionText += `<p>${currentColData.carry} + ${currentColData.digit1} + ${currentColData.digit2}</p>`;
         } else {
             instructionText += `<p>${currentColData.digit1} + ${currentColData.digit2}</p>`;
         }
-        
         instructionText += `<p>Enter the total sum below:</p>`;
         
         instructions.innerHTML = instructionText;
@@ -551,15 +527,43 @@ document.addEventListener('DOMContentLoaded', function() {
         
         subProblemDiv.appendChild(subContainer);
         
-        // Trigger animations after a short delay to allow DOM to render
-        setTimeout(() => {
-            highlightSourceColumn(currentColumn);
-            animateToCurrentColumn(currentColumn);
-        }, 300);
+        // Start animations after a short delay
+        setTimeout(async () => {
+            highlightSourceColumn();
+            await animateToCurrentColumn();
+            
+            // Fill in the numbers after animations complete
+            setTimeout(() => {
+                const subNumbers = document.querySelectorAll('.sub-number');
+                const subCarry = document.querySelector('.sub-carry-value');
+                
+                if (subNumbers[0]) {
+                    subNumbers[0].textContent = currentColData.digit1;
+                    subNumbers[0].classList.add('animate-drop-in');
+                }
+                if (subNumbers[1]) {
+                    subNumbers[1].textContent = currentColData.digit2;
+                    subNumbers[1].classList.add('animate-drop-in');
+                }
+                if (subCarry && currentColData.carry > 0 && currentColData.carryVisible) {
+                    subCarry.textContent = currentColData.carry;
+                    subCarry.classList.add('animate-drop-in');
+                }
+                
+                // Remove drop-in class after animation
+                setTimeout(() => {
+                    document.querySelectorAll('.animate-drop-in').forEach(el => {
+                        el.classList.remove('animate-drop-in');
+                    });
+                }, 500);
+            }, 300);
+        }, 100);
     }
     
-    // Check sub-answer - UPDATED with animation
-    function checkSubAnswer() {
+    // ===== GAME LOGIC FUNCTIONS =====
+    
+    // Check sub-answer
+    async function checkSubAnswer() {
         const userAnswer = parseInt(subAnswerInput.value);
         
         if (isNaN(userAnswer)) {
@@ -577,7 +581,7 @@ document.addEventListener('DOMContentLoaded', function() {
             currentColData.answered = true;
             currentColData.correct = true;
             
-            // Make the carry for the NEXT column visible
+            // Make carry visible for next column if needed
             if (currentColData.nextCarry > 0) {
                 const nextColumn = getNextColumn();
                 if (nextColumn) {
@@ -588,50 +592,44 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             
-            let feedbackMsg = `✓ Correct! `;
-            if (currentColData.carry > 0 && currentColData.carryVisible) {
-                feedbackMsg += `${currentColData.carry} + `;
-            }
-            feedbackMsg += `${currentColData.digit1} + ${currentColData.digit2} = ${currentColData.sum}`;
-            
-            if (currentColData.sum >= 10) {
-                const nextColumn = getNextColumn();
-                if (nextColumn) {
-                    feedbackMsg += `<br>Write ${currentColData.result} below, carry ${currentColData.nextCarry} to ${nextColumn} column`;
-                }
-            }
-            
-            showSubFeedback(feedbackMsg, 'correct');
+            showSubFeedback(`✓ Correct! ${currentColData.digit1} + ${currentColData.digit2} = ${currentColData.sum}`, 'correct');
             subAnswerInput.disabled = true;
             nextColumnBtn.disabled = false;
             nextColumnBtn.focus();
             
-            // Animate the answer back to main problem
-            setTimeout(() => {
-                animateAnswerToMain(currentColData.result, currentColumn);
-            }, 800);
+            // Update answer in sub-problem
+            const answerDiv = document.querySelector('.sub-answer-placeholder, .sub-answer');
+            if (answerDiv) {
+                answerDiv.textContent = currentColData.sum;
+                answerDiv.className = 'sub-answer correct';
+            }
+            
+            // Animate answer to main problem
+            await animateAnswerToMain();
             
         } else {
             scores.incorrect++;
             currentColData.answered = true;
             currentColData.correct = false;
             
-            let feedbackMsg = `✗ Incorrect. `;
-            if (currentColData.carry > 0 && currentColData.carryVisible) {
-                feedbackMsg += `${currentColData.carry} + `;
-            }
-            feedbackMsg += `${currentColData.digit1} + ${currentColData.digit2} = ${currentColData.sum}`;
-            
-            showSubFeedback(feedbackMsg, 'incorrect');
+            showSubFeedback(`✗ Incorrect. ${currentColData.digit1} + ${currentColData.digit2} = ${currentColData.sum}`, 'incorrect');
             subAnswerInput.disabled = true;
             nextColumnBtn.disabled = false;
             nextColumnBtn.focus();
+            
+            // Show correct answer
+            const answerDiv = document.querySelector('.sub-answer-placeholder, .sub-answer');
+            if (answerDiv) {
+                answerDiv.textContent = currentColData.sum;
+                answerDiv.className = 'sub-answer incorrect';
+            }
         }
         
         updateScoreDisplay();
         
-        // Update the sub-problem display after a delay to show the answer
+        // Update displays after animations
         setTimeout(() => {
+            renderMainGrid();
             renderSubProblem();
         }, 1500);
         
@@ -643,7 +641,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Move to next column - UPDATED
+    // Move to next column
     function nextColumn() {
         const nextCol = getNextColumn();
         if (nextCol) {
@@ -656,7 +654,6 @@ document.addEventListener('DOMContentLoaded', function() {
             subAnswerInput.focus();
             clearSubFeedback();
         } else {
-            // No more columns
             showSubFeedback('All columns completed!', 'correct');
             subAnswerInput.disabled = true;
             nextColumnBtn.disabled = true;
@@ -669,8 +666,7 @@ document.addEventListener('DOMContentLoaded', function() {
         for (let i = currentIndex + 1; i < columns.length; i++) {
             const col = columns[i];
             const colData = currentProblem.columns.find(c => c.column === col);
-            // Skip 0+0 columns
-            if (colData && !colData.answered && !(colData.digit1 === 0 && colData.digit2 === 0 && colData.carry === 0)) {
+            if (colData && !colData.answered) {
                 return col;
             }
         }
@@ -679,22 +675,21 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Check if entire problem is complete
     function isProblemComplete() {
-        return currentProblem.columns.every(col => col.answered || (col.digit1 === 0 && col.digit2 === 0 && col.carry === 0));
+        return currentProblem.columns.every(col => col.answered);
     }
     
-    // Show feedback in main area
+    // ===== UTILITY FUNCTIONS =====
+    
     function showFeedback(message, type) {
         feedbackDiv.textContent = message;
         feedbackDiv.className = `feedback ${type}`;
     }
     
-    // Show feedback in sub-problem area
     function showSubFeedback(message, type) {
         subFeedbackDiv.innerHTML = message;
         subFeedbackDiv.className = `sub-feedback ${type}`;
     }
     
-    // Clear all feedback
     function clearAllFeedback() {
         feedbackDiv.textContent = '';
         feedbackDiv.className = 'feedback';
@@ -702,13 +697,11 @@ document.addEventListener('DOMContentLoaded', function() {
         subFeedbackDiv.className = 'sub-feedback';
     }
     
-    // Clear sub-feedback
     function clearSubFeedback() {
         subFeedbackDiv.textContent = '';
         subFeedbackDiv.className = 'sub-feedback';
     }
     
-    // Update score display
     function updateScoreDisplay() {
         correctCountEl.textContent = scores.correct;
         incorrectCountEl.textContent = scores.incorrect;
@@ -721,7 +714,6 @@ document.addEventListener('DOMContentLoaded', function() {
         saveScores();
     }
     
-    // Load scores from localStorage
     function loadScores() {
         const saved = localStorage.getItem('additionScores');
         if (saved) {
@@ -730,31 +722,24 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Save scores to localStorage
     function saveScores() {
         localStorage.setItem('additionScores', JSON.stringify(scores));
     }
     
-    // Reset scores
     function resetScores() {
         if (confirm('Reset all addition practice scores?')) {
-            scores = {
-                correct: 0,
-                incorrect: 0,
-                total: 0
-            };
+            scores = { correct: 0, incorrect: 0, total: 0 };
             localStorage.removeItem('additionScores');
             updateScoreDisplay();
             generateProblem();
         }
     }
     
-    // Event Listeners
+    // ===== EVENT LISTENERS =====
+    
     submitSubBtn.addEventListener('click', checkSubAnswer);
     subAnswerInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            checkSubAnswer();
-        }
+        if (e.key === 'Enter') checkSubAnswer();
     });
     nextColumnBtn.addEventListener('click', nextColumn);
     newProblemBtn.addEventListener('click', generateProblem);
