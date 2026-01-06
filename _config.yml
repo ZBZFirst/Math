@@ -1,24 +1,22 @@
 title: Math Practice
 description: Practice addition, subtraction, multiplication, and division
-baseurl: "" # leave empty if not using GitHub Pages subdirectory
-url: "" # leave empty or set to your domain
-
-# REMOVE the theme line or set it to null
-theme: null
+baseurl: "/Math"  # Add this since your repo is named "Math"
+url: "https://zbzfirst.github.io"
 
 # Build settings
 markdown: kramdown
+theme: null
 
 # Custom variables for navigation
 math_operations:
   - name: Addition
-    path: Math/addition.html
+    path: /addition/  # Remove "Math/" prefix, baseurl handles it
   - name: Subtraction
-    path: Math/subtraction.html
+    path: /subtraction/
   - name: Multiplication
-    path: Math/multiplication.html
+    path: /multiplication/
   - name: Division
-    path: Math/division.html
+    path: /division/
 
 # Exclude from processing
 exclude:
