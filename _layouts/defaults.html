@@ -3,21 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ page.title }} - {{ site.title }}</title>
+    <title>
+        {% if page.title %}{{ page.title }} - {{ site.title }}{% else %}{{ site.title }}{% endif %}
+    </title>
+    <!-- Add your custom CSS -->
     <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+    <!-- Add operation meta tag for JS -->
     {% if page.operation %}
     <meta name="operation" content="{{ page.operation }}">
+    {% else %}
+    <meta name="operation" content="addition">
     {% endif %}
 </head>
 <body>
     {% include header.html %}
     
-    <main class="container">
+    <main class="page-content" aria-label="Content">
         {{ content }}
     </main>
     
     {% include footer.html %}
     
+    <!-- Add your custom JS -->
     <script src="{{ '/assets/js/math-practice.js' | relative_url }}"></script>
 </body>
 </html>
