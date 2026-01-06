@@ -6,14 +6,12 @@ permalink: /
 ---
 
 <div class="home-container">
-    <!-- Hero Section -->
-    <div class="hero-section">
-        <h1 class="hero-title">Math Practice</h1>
-        <p class="hero-description">Master your math skills with interactive practice problems!</p>
+    <div class="mathintro">
+        <h1 class="mathintro">Math Practice</h1>
+        <p class="math-description">Master your math skills with interactive practice problems!</p>
     </div>
 
-    <!-- Operation Cards -->
-    <div class="operation-cards">
+    <div class="links">
         <a href="/addition" class="operation-card addition-card">
             <div class="card-content">
                 <h3 class="card-title">Addition</h3>
