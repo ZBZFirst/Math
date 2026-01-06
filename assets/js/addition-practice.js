@@ -1,16 +1,11 @@
-// Addition Practice with Simplified Interface
-// Answer row serves as input area
+// Addition Practice with Dual Container System
 
 document.addEventListener('DOMContentLoaded', function() {
     // State management
     let currentProblem = null;
     let currentColumn = 'ones'; // Start with ones column
-    let userAnswers = {
-        ones: '',
-        tens: '',
-        hundreds: '',
-        thousands: ''
-    };
+    let columns = ['ones', 'tens', 'hundreds', 'thousands'];
+    let userAnswers = {};
     let correctAnswers = {};
     let scores = {
         correct: 0,
@@ -20,9 +15,13 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // DOM elements
     const problemGrid = document.getElementById('problemGrid');
-    const submitBtn = document.getElementById('submitAnswer');
+    const subProblemDiv = document.getElementById('subProblem');
+    const subAnswerInput = document.getElementById('subAnswer');
+    const submitSubBtn = document.getElementById('submitSubAnswer');
+    const nextColumnBtn = document.getElementById('nextColumn');
     const newProblemBtn = document.getElementById('newProblem');
     const feedbackDiv = document.getElementById('feedback');
+    const subFeedbackDiv = document.getElementById('subFeedback');
     const correctCountEl = document.getElementById('correctCount');
     const incorrectCountEl = document.getElementById('incorrectCount');
     const totalCountEl = document.getElementById('totalCount');
@@ -39,37 +38,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const getDigits = (num) => {
             const str = num.toString().padStart(3, '0');
             return {
+                thousands: 0, // Will be filled if needed
                 hundreds: parseInt(str[0]),
                 tens: parseInt(str[1]),
                 ones: parseInt(str[2])
             };
         };
         
-        // Calculate answer digits with carries
-        const calculateWithCarries = (digits1, digits2) => {
-            const onesSum = digits1.ones + digits2.ones;
-            const onesResult = onesSum % 10;
-            const tensCarry = Math.floor(onesSum / 10);
-            
-            const tensSum = digits1.tens + digits2.tens + tensCarry;
-            const tensResult = tensSum % 10;
-            const hundredsCarry = Math.floor(tensSum / 10);
-            
-            const hundredsSum = digits1.hundreds + digits2.hundreds + hundredsCarry;
-            const hundredsResult = hundredsSum % 10;
-            const thousandsCarry = Math.floor(hundredsSum / 10);
-            
-            return {
-                ones: { result: onesResult, carry: tensCarry },
-                tens: { result: tensResult, carry: hundredsCarry },
-                hundreds: { result: hundredsResult, carry: thousandsCarry },
-                thousands: { result: thousandsCarry, carry: 0 }
-            };
-        };
-        
         const num1Digits = getDigits(num1);
         const num2Digits = getDigits(num2);
-        const answerData = calculateWithCarries(num1Digits, num2Digits);
         
         currentProblem = {
             num1: num1,
@@ -77,56 +54,86 @@ document.addEventListener('DOMContentLoaded', function() {
             answer: answer,
             num1Digits: num1Digits,
             num2Digits: num2Digits,
-            answerData: answerData
+            columns: []
         };
         
-        // Reset user answers
-        userAnswers = { ones: '', tens: '', hundreds: '', thousands: '' };
+        // Reset state
+        userAnswers = {};
         correctAnswers = {};
         currentColumn = 'ones';
         
-        // Update display
-        renderProblemGrid();
-        clearFeedback();
+        // Calculate column problems
+        calculateColumnProblems();
         
-        // Focus on ones input
-        setTimeout(() => {
-            const onesInput = document.querySelector('.answer-input[data-column="ones"]');
-            if (onesInput) onesInput.focus();
-        }, 100);
+        // Update display
+        renderMainGrid();
+        renderSubProblem();
+        clearAllFeedback();
+        subAnswerInput.value = '';
+        subAnswerInput.disabled = false;
+        nextColumnBtn.disabled = true;
+        subAnswerInput.focus();
     }
     
-    // Render the problem grid with input fields in answer row
-    function renderProblemGrid() {
+    // Calculate problems for each column
+    function calculateColumnProblems() {
+        const { num1Digits, num2Digits } = currentProblem;
+        let carry = 0;
+        
+        columns.forEach(column => {
+            const digit1 = num1Digits[column] || 0;
+            const digit2 = num2Digits[column] || 0;
+            const sum = digit1 + digit2 + carry;
+            const result = sum % 10;
+            const nextCarry = Math.floor(sum / 10);
+            
+            currentProblem.columns.push({
+                column: column,
+                digit1: digit1,
+                digit2: digit2,
+                carry: carry,
+                sum: sum,
+                result: result,
+                nextCarry: nextCarry,
+                answered: false,
+                correct: null
+            });
+            
+            carry = nextCarry;
+        });
+    }
+    
+    // Render main problem grid
+    function renderMainGrid() {
         problemGrid.innerHTML = '';
         
-        const { num1Digits, num2Digits, answerData } = currentProblem;
+        const { num1Digits, num2Digits, columns: colData } = currentProblem;
         
         // Grid structure: 5 rows × 4 columns
         // Columns: Plus Sign | Hundreds | Tens | Ones
-        // Rows: Carry | Number 1 | Number 2 | Line | Answer Input
+        // Rows: Carry | Number 1 | Number 2 | Line | Answer
         
         const gridData = [
             // Row 0: Carry Row
             [
-                { value: '', class: 'plus-column' }, // Empty plus column
-                { value: '', class: 'carry-cell' },  // HP carry
-                { value: '', class: 'carry-cell' },  // TP carry  
-                { value: '', class: 'carry-cell' }   // OP carry
+                { value: '', class: 'plus-column' }, // Thousands carry
+                { value: '', class: 'carry-cell' },  // Hundreds carry
+                { value: '', class: 'carry-cell' },  // Tens carry  
+                { value: '', class: 'carry-cell' }   // Ones carry
             ],
             // Row 1: First Number Row
             [
                 { value: '+', class: 'plus-column' },
-                { value: num1Digits.hundreds, class: 'number-cell' }, // HP
-                { value: num1Digits.tens, class: 'number-cell' },     // TP
-                { value: num1Digits.ones, class: 'number-cell' }      // OP
+                { value: num1Digits.hundreds, class: 'number-cell' }, // Hundreds
+                { value: num1Digits.tens, class: 'number-cell' },     // Tens
+                { value: num1Digits.ones, class: 'number-cell' }      // Ones
             ],
             // Row 2: Second Number Row  
             [
                 { value: '', class: 'plus-column' },
-                { value: num2Digits.hundreds, class: 'number-cell' }, // HP
-                { value: num2Digits.tens, class: 'number-cell' },     // TP
-                { value: num2Digits.ones, class: 'number-cell' }      // OP
+                { value: num2Digits.hundreds, class: 'number-cell' }, // Hundreds
+                { value: num2Digits.tens, class: 'number-cell' },     // Tens
+                { value: num2Digits.ones, class: 'number-cell' }      // Ones
             ],
             // Row 3: Horizontal Line
             [
@@ -135,86 +142,61 @@ document.addEventListener('DOMContentLoaded', function() {
                 { value: '', class: 'line' },
                 { value: '', class: 'line' }
             ],
-            // Row 4: Answer Input Row
+            // Row 4: Answer Row
             [
-                { value: '', class: 'plus-column' },
-                { value: '', class: 'answer-input', column: 'hundreds' }, // HP input
-                { value: '', class: 'answer-input', column: 'tens' },     // TP input
-                { value: '', class: 'answer-input', column: 'ones' }      // OP input
+                { value: '', class: 'plus-column answer-cell', column: 'thousands' },
+                { value: '', class: 'answer-cell', column: 'hundreds' },
+                { value: '', class: 'answer-cell', column: 'tens' },
+                { value: '', class: 'answer-cell', column: 'ones' }
             ]
         ];
         
-        // Show carries based on current answers
-        if (userAnswers.ones !== '') {
-            // If ones is answered, show tens carry if needed
-            if (answerData.ones.carry > 0) {
-                gridData[0][2].value = answerData.ones.carry; // TP carry
-                gridData[0][2].class += ' active-carry';
+        // Fill in carries and answers
+        colData.forEach(col => {
+            const colIndex = col.column === 'ones' ? 3 : 
+                           col.column === 'tens' ? 2 : 
+                           col.column === 'hundreds' ? 1 : 0;
+            
+            // Show carries in row 0
+            if (col.carry > 0 && colIndex > 0) {
+                gridData[0][colIndex].value = col.carry;
+                gridData[0][colIndex].class += ' active-carry';
+                
+                // Strikethrough if used
+                if (col.answered) {
+                    gridData[0][colIndex].class += ' used-carry';
+                }
             }
-        }
-        
-        if (userAnswers.tens !== '') {
-            // If tens is answered, show hundreds carry if needed
-            if (answerData.tens.carry > 0) {
-                gridData[0][1].value = answerData.tens.carry; // HP carry
-                gridData[0][1].class += ' active-carry';
+            
+            // Show answers in row 4
+            if (col.answered) {
+                gridData[4][colIndex].value = col.result;
+                gridData[4][colIndex].class += col.correct ? ' correct' : ' incorrect';
+            } else {
+                gridData[4][colIndex].value = '_';
             }
-        }
-        
-        if (userAnswers.hundreds !== '') {
-            // If hundreds is answered, show thousands if needed
-            if (answerData.hundreds.carry > 0) {
-                gridData[0][0].value = answerData.hundreds.carry; // Thousands in plus column
-                gridData[0][0].class += ' active-carry';
-            }
-        }
+        });
         
         // Create and populate grid
         gridData.forEach((row, rowIndex) => {
             row.forEach((cell, colIndex) => {
                 const cellEl = document.createElement('div');
                 cellEl.className = `grid-cell ${cell.class}`;
-                cellEl.dataset.row = rowIndex;
-                cellEl.dataset.col = colIndex;
                 
-                if (cell.class.includes('answer-input')) {
-                    // Create input field
-                    const input = document.createElement('input');
-                    input.type = 'number';
-                    input.className = 'answer-input-field';
-                    input.dataset.column = cell.column;
-                    input.value = userAnswers[cell.column] || '';
-                    input.placeholder = '_';
-                    input.min = '0';
-                    input.max = '9';
-                    
-                    // Disable if already answered correctly
-                    if (correctAnswers[cell.column]) {
-                        input.disabled = true;
-                        input.classList.add('correct-input');
-                    } else if (cell.column === currentColumn) {
-                        input.classList.add('current-input');
-                    }
-                    
-                    // Add event listeners
-                    input.addEventListener('input', handleAnswerInput);
-                    input.addEventListener('keypress', (e) => {
-                        if (e.key === 'Enter') {
-                            checkAnswer();
-                        }
-                    });
-                    input.addEventListener('focus', () => {
-                        currentColumn = cell.column;
-                        highlightCurrentColumn();
-                    });
-                    
-                    cellEl.appendChild(input);
+                // Add strikethrough for used carries
+                if (cell.class.includes('used-carry')) {
+                    const span = document.createElement('span');
+                    span.textContent = cell.value;
+                    span.style.textDecoration = 'line-through';
+                    span.style.opacity = '0.6';
+                    cellEl.appendChild(span);
                 } else {
-                    // Regular cell
                     cellEl.textContent = cell.value;
-                    
-                    // Highlight active column
-                    if (cell.column === currentColumn) {
+                }
+                
+                // Highlight current column
+                if (cell.column === currentColumn) {
+                    if (rowIndex === 1 || rowIndex === 2 || rowIndex === 4) {
                         cellEl.classList.add('active-column');
                     }
                 }
@@ -222,156 +204,199 @@ document.addEventListener('DOMContentLoaded', function() {
                 problemGrid.appendChild(cellEl);
             });
         });
-        
-        highlightCurrentColumn();
     }
     
-    // Handle answer input
-    function handleAnswerInput(e) {
-        const input = e.target;
-        const column = input.dataset.column;
-        const value = input.value;
+    // Render sub-problem container
+    function renderSubProblem() {
+        subProblemDiv.innerHTML = '';
         
-        // Only allow single digits
-        if (value.length > 1) {
-            input.value = value.slice(0, 1);
+        const currentColData = currentProblem.columns.find(c => c.column === currentColumn);
+        if (!currentColData) return;
+        
+        // Create sub-problem grid (3 rows: carry, numbers, answer)
+        const subGrid = document.createElement('div');
+        subGrid.className = 'sub-problem-grid';
+        
+        // Row 0: Carry (if any)
+        const carryRow = document.createElement('div');
+        carryRow.className = 'sub-row carry-row';
+        const carryCell = document.createElement('div');
+        carryCell.className = 'sub-cell';
+        carryCell.textContent = currentColData.carry > 0 ? currentColData.carry : '';
+        carryRow.appendChild(carryCell);
+        subGrid.appendChild(carryRow);
+        
+        // Row 1: Numbers with plus sign
+        const numbersRow = document.createElement('div');
+        numbersRow.className = 'sub-row numbers-row';
+        
+        const num1Cell = document.createElement('div');
+        num1Cell.className = 'sub-cell';
+        num1Cell.textContent = currentColData.digit1;
+        numbersRow.appendChild(num1Cell);
+        
+        const plusCell = document.createElement('div');
+        plusCell.className = 'sub-cell plus-cell';
+        plusCell.textContent = '+';
+        numbersRow.appendChild(plusCell);
+        
+        const num2Cell = document.createElement('div');
+        num2Cell.className = 'sub-cell';
+        num2Cell.textContent = currentColData.digit2;
+        numbersRow.appendChild(num2Cell);
+        
+        subGrid.appendChild(numbersRow);
+        
+        // Row 2: Line
+        const lineRow = document.createElement('div');
+        lineRow.className = 'sub-row line-row';
+        const lineCell = document.createElement('div');
+        lineCell.className = 'sub-cell line-cell';
+        lineCell.textContent = '';
+        lineRow.appendChild(lineCell);
+        subGrid.appendChild(lineRow);
+        
+        // Row 3: Answer (if answered)
+        const answerRow = document.createElement('div');
+        answerRow.className = 'sub-row answer-row';
+        const answerCell = document.createElement('div');
+        answerCell.className = 'sub-cell answer-cell';
+        
+        if (currentColData.answered) {
+            answerCell.textContent = currentColData.sum;
+            answerCell.classList.add(currentColData.correct ? 'correct' : 'incorrect');
+        } else {
+            answerCell.textContent = '?';
         }
         
-        // Update user answer
-        userAnswers[column] = input.value;
+        answerRow.appendChild(answerCell);
+        subGrid.appendChild(answerRow);
         
-        // Auto-advance to next column if a digit is entered
-        if (input.value !== '' && column !== 'thousands') {
-            const columns = ['ones', 'tens', 'hundreds', 'thousands'];
-            const currentIndex = columns.indexOf(column);
-            if (currentIndex < columns.length - 1) {
-                const nextColumn = columns[currentIndex + 1];
-                const nextInput = document.querySelector(`.answer-input-field[data-column="${nextColumn}"]`);
-                if (nextInput && !correctAnswers[nextColumn]) {
-                    currentColumn = nextColumn;
-                    nextInput.focus();
-                    highlightCurrentColumn();
-                }
-            }
-        }
+        subProblemDiv.appendChild(subGrid);
+        
+        // Update instructions
+        const instructions = document.createElement('div');
+        instructions.className = 'sub-instructions';
+        instructions.innerHTML = `
+            <p><strong>Step:</strong> Add the ${currentColumn} column</p>
+            <p>${currentColData.digit1} + ${currentColData.digit2}${currentColData.carry > 0 ? ' + ' + currentColData.carry + ' (carry)' : ''}</p>
+            <p>Enter the total sum below:</p>
+        `;
+        subProblemDiv.appendChild(instructions);
     }
     
-    // Highlight current column
-    function highlightCurrentColumn() {
-        // Remove all highlights
-        document.querySelectorAll('.grid-cell').forEach(cell => {
-            cell.classList.remove('active-column');
-        });
-        document.querySelectorAll('.answer-input-field').forEach(input => {
-            input.classList.remove('current-input');
-        });
+    // Check sub-answer
+    function checkSubAnswer() {
+        const userAnswer = parseInt(subAnswerInput.value);
         
-        // Add highlight to current column
-        const colIndex = currentColumn === 'hundreds' ? 1 : 
-                        currentColumn === 'tens' ? 2 : 
-                        currentColumn === 'ones' ? 3 : 0;
-        
-        if (colIndex > 0) {
-            // Highlight number cells
-            document.querySelectorAll(`.grid-cell[data-col="${colIndex}"]`).forEach(cell => {
-                if (cell.dataset.row === '1' || cell.dataset.row === '2') {
-                    cell.classList.add('active-column');
-                }
-            });
-            
-            // Highlight input field
-            const currentInput = document.querySelector(`.answer-input-field[data-column="${currentColumn}"]`);
-            if (currentInput) {
-                currentInput.classList.add('current-input');
-            }
-        }
-    }
-    
-    // Check all answers
-    function checkAnswer() {
-        const { answerData } = currentProblem;
-        let allCorrect = true;
-        let anyAnswered = false;
-        
-        // Check each column
-        ['ones', 'tens', 'hundreds', 'thousands'].forEach(column => {
-            const userAnswer = userAnswers[column];
-            const correctAnswer = answerData[column]?.result || 0;
-            
-            if (userAnswer !== '') {
-                anyAnswered = true;
-                if (parseInt(userAnswer) === correctAnswer) {
-                    correctAnswers[column] = true;
-                } else {
-                    allCorrect = false;
-                    correctAnswers[column] = false;
-                }
-            } else if (correctAnswer !== 0) {
-                allCorrect = false;
-            }
-        });
-        
-        if (!anyAnswered) {
-            showFeedback('Please enter at least one digit', 'incorrect');
+        if (isNaN(userAnswer)) {
+            showSubFeedback('Please enter a valid number', 'incorrect');
             return;
         }
         
+        const currentColData = currentProblem.columns.find(c => c.column === currentColumn);
+        if (!currentColData) return;
+        
         scores.total++;
         
-        if (allCorrect) {
+        if (userAnswer === currentColData.sum) {
             scores.correct++;
-            showFeedback('✓ Correct! Well done!', 'correct');
+            currentColData.answered = true;
+            currentColData.correct = true;
             
-            // Disable all inputs
-            document.querySelectorAll('.answer-input-field').forEach(input => {
-                input.disabled = true;
-                input.classList.add('correct-input');
-            });
+            showSubFeedback(`✓ Correct! ${currentColData.digit1} + ${currentColData.digit2}${currentColData.carry > 0 ? ' + ' + currentColData.carry : ''} = ${currentColData.sum}`, 'correct');
+            
+            // If sum >= 10, there's a carry
+            if (currentColData.sum >= 10) {
+                const nextColumn = getNextColumn();
+                if (nextColumn) {
+                    showSubFeedback(`✓ Write ${currentColData.result} below, carry ${currentColData.nextCarry} to ${nextColumn} column`, 'correct');
+                }
+            }
+            
+            subAnswerInput.disabled = true;
+            nextColumnBtn.disabled = false;
+            nextColumnBtn.focus();
             
         } else {
             scores.incorrect++;
+            currentColData.answered = true;
+            currentColData.correct = false;
             
-            // Show which digits are wrong
-            const wrongColumns = [];
-            ['ones', 'tens', 'hundreds', 'thousands'].forEach(column => {
-                if (userAnswers[column] !== '' && !correctAnswers[column]) {
-                    wrongColumns.push(column);
-                }
-            });
+            showSubFeedback(`✗ Incorrect. ${currentColData.digit1} + ${currentColData.digit2}${currentColData.carry > 0 ? ' + ' + currentColData.carry : ''} = ${currentColData.sum}`, 'incorrect');
             
-            if (wrongColumns.length > 0) {
-                showFeedback(`✗ Incorrect in ${wrongColumns.join(', ')} column(s)`, 'incorrect');
-            } else {
-                showFeedback('✗ Incorrect - some columns are missing', 'incorrect');
-            }
-            
-            // Mark incorrect inputs
-            document.querySelectorAll('.answer-input-field').forEach(input => {
-                const column = input.dataset.column;
-                if (userAnswers[column] !== '' && !correctAnswers[column]) {
-                    input.classList.add('incorrect-input');
-                }
-            });
+            subAnswerInput.disabled = true;
+            nextColumnBtn.disabled = false;
+            nextColumnBtn.focus();
         }
         
         updateScoreDisplay();
-        renderProblemGrid(); // Update carries based on answers
-    }
-    
-    // Show feedback
-    function showFeedback(message, type) {
-        feedbackDiv.textContent = message;
-        feedbackDiv.className = `feedback ${type}`;
+        renderMainGrid();
+        renderSubProblem();
         
-        if (!message.includes('✓') && !message.includes('✗')) {
-            setTimeout(clearFeedback, 3000);
+        // Check if problem is complete
+        if (isProblemComplete()) {
+            showFeedback('🎉 Problem solved! Well done!', 'correct');
         }
     }
     
-    // Clear feedback
-    function clearFeedback() {
+    // Move to next column
+    function nextColumn() {
+        const nextCol = getNextColumn();
+        if (nextCol) {
+            currentColumn = nextCol;
+            subAnswerInput.value = '';
+            subAnswerInput.disabled = false;
+            nextColumnBtn.disabled = true;
+            renderMainGrid();
+            renderSubProblem();
+            subAnswerInput.focus();
+            clearSubFeedback();
+        }
+    }
+    
+    // Get next column that hasn't been answered
+    function getNextColumn() {
+        const currentIndex = columns.indexOf(currentColumn);
+        for (let i = currentIndex + 1; i < columns.length; i++) {
+            const col = columns[i];
+            const colData = currentProblem.columns.find(c => c.column === col);
+            if (colData && !colData.answered) {
+                return col;
+            }
+        }
+        return null;
+    }
+    
+    // Check if entire problem is complete
+    function isProblemComplete() {
+        return currentProblem.columns.every(col => col.answered);
+    }
+    
+    // Show feedback in main area
+    function showFeedback(message, type) {
+        feedbackDiv.textContent = message;
+        feedbackDiv.className = `feedback ${type}`;
+    }
+    
+    // Show feedback in sub-problem area
+    function showSubFeedback(message, type) {
+        subFeedbackDiv.textContent = message;
+        subFeedbackDiv.className = `sub-feedback ${type}`;
+    }
+    
+    // Clear all feedback
+    function clearAllFeedback() {
         feedbackDiv.textContent = '';
         feedbackDiv.className = 'feedback';
+        subFeedbackDiv.textContent = '';
+        subFeedbackDiv.className = 'sub-feedback';
+    }
+    
+    // Clear sub-feedback
+    function clearSubFeedback() {
+        subFeedbackDiv.textContent = '';
+        subFeedbackDiv.className = 'sub-feedback';
     }
     
     // Update score display
@@ -416,7 +441,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Event Listeners
-    submitBtn.addEventListener('click', checkAnswer);
+    submitSubBtn.addEventListener('click', checkSubAnswer);
+    subAnswerInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            checkSubAnswer();
+        }
+    });
+    nextColumnBtn.addEventListener('click', nextColumn);
     newProblemBtn.addEventListener('click', generateProblem);
     resetScoresBtn.addEventListener('click', resetScores);
     
