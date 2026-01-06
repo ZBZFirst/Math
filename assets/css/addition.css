@@ -473,6 +473,28 @@
     max-width: 600px;
 }
 
+/* Ensure the sub-problem grid maintains proper spacing */
+.sub-problem {
+    width: 100%;
+}
+
+/* Fix for strikethrough in carry cells */
+.grid-cell.carry-cell span {
+    display: inline-block;
+    padding: 2px;
+}
+
+/* Ensure proper alignment of active column */
+.grid-cell.active-column {
+    z-index: 2;
+    position: relative;
+}
+
+/* Fix for the sub-problem display alignment */
+.sub-problem-display {
+    margin-bottom: 1rem;
+}
+
 .feedback.correct {
     background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
     color: #2e7d32;
