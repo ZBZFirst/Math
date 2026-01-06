@@ -3,11 +3,22 @@ description: Practice addition, subtraction, multiplication, and division
 baseurl: "" # leave empty if not using GitHub Pages subdirectory
 url: "" # leave empty or set to your domain
 
+# REMOVE the theme line or set it to null
+theme: null
+
 # Build settings
 markdown: kramdown
-theme: minima
-plugins:
-  - jekyll-feed
+
+# Custom variables for navigation
+math_operations:
+  - name: Addition
+    path: /addition.html
+  - name: Subtraction
+    path: /subtraction.html
+  - name: Multiplication
+    path: /multiplication.html
+  - name: Division
+    path: /division.html
 
 # Exclude from processing
 exclude:
@@ -18,14 +29,3 @@ exclude:
   - vendor/cache/
   - vendor/gems/
   - vendor/ruby/
-
-# Custom variables
-math_operations:
-  - name: Addition
-    path: /addition.html
-  - name: Subtraction
-    path: /subtraction.html
-  - name: Multiplication
-    path: /multiplication.html
-  - name: Division
-    path: /division.html
