@@ -1,0 +1,332 @@
+/* Addition-specific styles */
+
+.addition-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+/* Problem Grid */
+.problem-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 10px;
+    max-width: 600px;
+    margin: 2rem auto;
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e9ecef;
+}
+
+.grid-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    font-weight: bold;
+    height: 80px;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.grid-cell.active {
+    background: #e3f2fd;
+    border-color: #2196f3;
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.2);
+    transform: scale(1.05);
+}
+
+.grid-cell.correct {
+    background: #e8f5e9;
+    border-color: #4caf50;
+    color: #2e7d32;
+}
+
+.grid-cell.incorrect {
+    background: #ffebee;
+    border-color: #f44336;
+    color: #c62828;
+}
+
+.grid-cell.placeholder {
+    background: #f5f5f5;
+    border-style: dashed;
+    color: #9e9e9e;
+}
+
+.grid-cell.carry {
+    background: #fff3e0;
+    border-color: #ff9800;
+    color: #ef6c00;
+    font-size: 1.8rem;
+}
+
+.grid-cell.operator {
+    background: #e8eaf6;
+    border-color: #3f51b5;
+    color: #303f9f;
+    font-size: 3rem;
+}
+
+.grid-cell.line {
+    grid-column: span 4;
+    height: 4px;
+    background: #424242;
+    border: none;
+    border-radius: 2px;
+    margin: 10px 0;
+}
+
+/* Step Instructions */
+.step-instructions {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    margin: 2rem auto;
+    max-width: 800px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e0e0e0;
+}
+
+.step-instructions h3 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+#stepList {
+    padding-left: 1.5rem;
+    color: #555;
+    line-height: 1.8;
+}
+
+#stepList li {
+    margin-bottom: 0.5rem;
+    padding: 0.25rem 0;
+}
+
+#stepList li.active {
+    background: #e3f2fd;
+    padding: 0.5rem;
+    border-radius: 4px;
+    font-weight: bold;
+    color: #1565c0;
+    margin-left: -0.5rem;
+    padding-left: 0.5rem;
+}
+
+#stepList li.completed {
+    color: #4caf50;
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+
+/* User Input Area */
+.user-input-area {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    margin: 2rem auto;
+    max-width: 800px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.current-step {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f0f7ff;
+    border-radius: 8px;
+    border-left: 4px solid #2196f3;
+}
+
+.step-label {
+    font-weight: bold;
+    color: #1565c0;
+    font-size: 1.2rem;
+}
+
+.step-description {
+    color: #2c3e50;
+    font-size: 1.1rem;
+    flex-grow: 1;
+}
+
+.input-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+}
+
+#stepAnswer {
+    padding: 1rem 1.5rem;
+    font-size: 2rem;
+    width: 200px;
+    text-align: center;
+    border: 3px solid #4a6491;
+    border-radius: 8px;
+    transition: all 0.3s;
+}
+
+#stepAnswer:focus {
+    outline: none;
+    border-color: #2196f3;
+    box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.2);
+    transform: scale(1.02);
+}
+
+.input-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.input-buttons button {
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    min-width: 140px;
+}
+
+#submitStep {
+    background: linear-gradient(135deg, #4a6491 0%, #2c3e50 100%);
+    color: white;
+}
+
+#nextStep {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    color: white;
+}
+
+#showAnswer {
+    background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+    color: white;
+}
+
+#newProblem {
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+    color: white;
+}
+
+.input-buttons button:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.input-buttons button:active:not(:disabled) {
+    transform: translateY(-1px);
+}
+
+.input-buttons button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Feedback */
+.user-input-area .feedback {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 1.3rem;
+    font-weight: bold;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.user-input-area .feedback.correct {
+    background: rgba(76, 175, 80, 0.1);
+    color: #2e7d32;
+    border: 2px solid rgba(76, 175, 80, 0.3);
+}
+
+.user-input-area .feedback.incorrect {
+    background: rgba(244, 67, 54, 0.1);
+    color: #c62828;
+    border: 2px solid rgba(244, 67, 54, 0.3);
+}
+
+/* Score Stats enhancements */
+.addition-container .score-stats {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.addition-container .stat.problems {
+    border-left: 4px solid #9b59b6;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .problem-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 5px;
+        padding: 1rem;
+    }
+    
+    .grid-cell {
+        height: 60px;
+        font-size: 2rem;
+    }
+    
+    .grid-cell.operator {
+        font-size: 2.2rem;
+    }
+    
+    .grid-cell.carry {
+        font-size: 1.4rem;
+    }
+    
+    .input-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .input-buttons button {
+        width: 100%;
+    }
+    
+    #stepAnswer {
+        width: 100%;
+        max-width: 200px;
+    }
+}
+
+@media (max-width: 480px) {
+    .problem-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 3px;
+    }
+    
+    .grid-cell {
+        height: 50px;
+        font-size: 1.6rem;
+    }
+    
+    .current-step {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}
