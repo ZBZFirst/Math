@@ -26,7 +26,7 @@ permalink: /
                     {% when 'Subtraction' %}
                         <div class="card-icon">−</div>
                         <h3 class="card-title">Subtraction</h3>
-                        <p class="practice">Practice subtracting numbers</p>
+                        <p class="card-description">Practice subtracting numbers</p>
                         <div class="card-example">15 - 8 = 7</div>
                     {% when 'Multiplication' %}
                         <div class="card-icon">×</div>
