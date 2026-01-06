@@ -6,9 +6,7 @@
     <title>
         {% if page.title %}{{ page.title }} - {{ site.title }}{% else %}{{ site.title }}{% endif %}
     </title>
-    <!-- Add your custom CSS -->
     <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
-    <!-- Add operation meta tag for JS -->
     {% if page.operation %}
     <meta name="operation" content="{{ page.operation }}">
     {% else %}
@@ -19,12 +17,17 @@
     {% include header.html %}
     
     <main class="page-content" aria-label="Content">
-        {{ content }}
+        {% if page.show_containers %}
+            {% include containers.html %}
+        {% else %}
+            {{ content }}
+        {% endif %}
     </main>
     
     {% include footer.html %}
     
-    <!-- Add your custom JS -->
+    {% if page.show_containers %}
     <script src="{{ '/assets/js/math-practice.js' | relative_url }}"></script>
+    {% endif %}
 </body>
 </html>
