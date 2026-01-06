@@ -8,13 +8,12 @@
     <title>
         {% if page.title %}{{ page.title }} - {{ site.title }}{% else %}{{ site.title }}{% endif %}
     </title>
-    <!-- Link to your CSS -->
-    <link rel="stylesheet" href="https://zbzfirst.github.io/Math/assets/css/style.css">
+    <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/style.css">
     {% if page.operation %}
     <meta name="operation" content="{{ page.operation }}">
     {% endif %}
 </head>
-<body data-page="{{ page.url }}">
+<body>
     {% include header.html %}
     
     <main class="page-content">
@@ -24,7 +23,7 @@
     {% include footer.html %}
     
     {% if page.operation %}
-    <script src="{{ '/assets/js/math-practice.js' | relative_url }}"></script>
+    <script src="{{ site.baseurl }}/assets/js/math-practice.js"></script>
     {% endif %}
 </body>
 </html>
