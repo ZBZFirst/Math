@@ -14,7 +14,7 @@ permalink: /
 
     <!-- Operation Cards -->
     <div class="operation-cards">
-        <a href="/addition.html" class="operation-card addition-card">
+        <a href="/addition" class="operation-card addition-card">
             <div class="card-content">
                 <div class="card-icon">+</div>
                 <h3 class="card-title">Addition</h3>
@@ -22,7 +22,7 @@ permalink: /
             <div class="card-action">Start Practicing →</div>
         </a>
         
-        <a href="/subtraction.html" class="operation-card subtraction-card">
+        <a href="/subtraction" class="operation-card subtraction-card">
             <div class="card-content">
                 <div class="card-icon">−</div>
                 <h3 class="card-title">Subtraction</h3>
@@ -30,7 +30,7 @@ permalink: /
             <div class="card-action">Start Practicing →</div>
         </a>
         
-        <a href="/multiplication.html" class="operation-card multiplication-card">
+        <a href="/multiplication" class="operation-card multiplication-card">
             <div class="card-content">
                 <div class="card-icon">×</div>
                 <h3 class="card-title">Multiplication</h3>
@@ -38,7 +38,7 @@ permalink: /
             <div class="card-action">Start Practicing →</div>
         </a>
         
-        <a href="/division.html" class="operation-card division-card">
+        <a href="/division" class="operation-card division-card">
             <div class="card-content">
                 <div class="card-icon">÷</div>
                 <h3 class="card-title">Division</h3>
