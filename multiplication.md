@@ -2,8 +2,6 @@
 layout: default
 title: Multiplication Practice
 description: Practice multiplication problems
-permalink: /multiplication.html
+permalink: /multiplication/
 operation: multiplication
 ---
-
-{% include containers.html %}
