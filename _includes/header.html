@@ -1,14 +1,12 @@
+<!-- _includes/header.html -->
 <header class="site-header">
     <nav class="main-navigation">
         <ul>
-            {% for operation in site.math_operations %}
-            <li>
-                <a href="{{ operation.path | relative_url }}" 
-                   {% if page.url == operation.path %}class="active"{% endif %}>
-                    {{ operation.name }}
-                </a>
-            </li>
-            {% endfor %}
+            <li><a href="{{ site.baseurl }}/">Home</a></li>
+            <li><a href="{{ site.baseurl }}/addition/">Addition</a></li>
+            <li><a href="{{ site.baseurl }}/subtraction/">Subtraction</a></li>
+            <li><a href="{{ site.baseurl }}/multiplication/">Multiplication</a></li>
+            <li><a href="{{ site.baseurl }}/division/">Division</a></li>
         </ul>
     </nav>
 </header>
