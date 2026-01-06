@@ -1,34 +1,32 @@
-// Addition Practice with Traditional Columnar Layout
-// Layout: Plus Column | Hundreds | Tens | Ones
+// Addition Practice with Simplified Interface
+// Answer row serves as input area
 
 document.addEventListener('DOMContentLoaded', function() {
     // State management
     let currentProblem = null;
-    let currentStep = 0;
-    let steps = [];
-    let scores = {
-        correctSteps: 0,
-        incorrectSteps: 0,
-        totalSteps: 0,
-        problemsSolved: 0
+    let currentColumn = 'ones'; // Start with ones column
+    let userAnswers = {
+        ones: '',
+        tens: '',
+        hundreds: '',
+        thousands: ''
     };
-    let carries = {}; // Track carries by column
+    let correctAnswers = {};
+    let scores = {
+        correct: 0,
+        incorrect: 0,
+        total: 0
+    };
     
     // DOM elements
     const problemGrid = document.getElementById('problemGrid');
-    const stepList = document.getElementById('stepList');
-    const stepDescription = document.getElementById('stepDescription');
-    const stepAnswerInput = document.getElementById('stepAnswer');
-    const submitStepBtn = document.getElementById('submitStep');
-    const nextStepBtn = document.getElementById('nextStep');
-    const showAnswerBtn = document.getElementById('showAnswer');
+    const submitBtn = document.getElementById('submitAnswer');
     const newProblemBtn = document.getElementById('newProblem');
     const feedbackDiv = document.getElementById('feedback');
-    const correctStepsEl = document.getElementById('correctSteps');
-    const incorrectStepsEl = document.getElementById('incorrectSteps');
-    const totalStepsEl = document.getElementById('totalSteps');
+    const correctCountEl = document.getElementById('correctCount');
+    const incorrectCountEl = document.getElementById('incorrectCount');
+    const totalCountEl = document.getElementById('totalCount');
     const accuracyRateEl = document.getElementById('accuracyRate');
-    const problemsSolvedEl = document.getElementById('problemsSolved');
     const resetScoresBtn = document.getElementById('resetScores');
     
     // Generate a new addition problem (0-399)
@@ -47,108 +45,66 @@ document.addEventListener('DOMContentLoaded', function() {
             };
         };
         
+        // Calculate answer digits with carries
+        const calculateWithCarries = (digits1, digits2) => {
+            const onesSum = digits1.ones + digits2.ones;
+            const onesResult = onesSum % 10;
+            const tensCarry = Math.floor(onesSum / 10);
+            
+            const tensSum = digits1.tens + digits2.tens + tensCarry;
+            const tensResult = tensSum % 10;
+            const hundredsCarry = Math.floor(tensSum / 10);
+            
+            const hundredsSum = digits1.hundreds + digits2.hundreds + hundredsCarry;
+            const hundredsResult = hundredsSum % 10;
+            const thousandsCarry = Math.floor(hundredsSum / 10);
+            
+            return {
+                ones: { result: onesResult, carry: tensCarry },
+                tens: { result: tensResult, carry: hundredsCarry },
+                hundreds: { result: hundredsResult, carry: thousandsCarry },
+                thousands: { result: thousandsCarry, carry: 0 }
+            };
+        };
+        
+        const num1Digits = getDigits(num1);
+        const num2Digits = getDigits(num2);
+        const answerData = calculateWithCarries(num1Digits, num2Digits);
+        
         currentProblem = {
             num1: num1,
             num2: num2,
             answer: answer,
-            num1Digits: getDigits(num1),
-            num2Digits: getDigits(num2),
-            answerDigits: getDigits(answer)
+            num1Digits: num1Digits,
+            num2Digits: num2Digits,
+            answerData: answerData
         };
         
-        // Reset steps and carries
-        currentStep = 0;
-        steps = generateSteps(currentProblem);
-        carries = {}; // Clear carries
+        // Reset user answers
+        userAnswers = { ones: '', tens: '', hundreds: '', thousands: '' };
+        correctAnswers = {};
+        currentColumn = 'ones';
         
         // Update display
         renderProblemGrid();
-        renderStepList();
-        updateStepDisplay();
         clearFeedback();
-        stepAnswerInput.value = '';
-        stepAnswerInput.focus();
         
-        // Disable next step button initially
-        nextStepBtn.disabled = true;
-        showAnswerBtn.disabled = false;
+        // Focus on ones input
+        setTimeout(() => {
+            const onesInput = document.querySelector('.answer-input[data-column="ones"]');
+            if (onesInput) onesInput.focus();
+        }, 100);
     }
     
-    // Generate step-by-step instructions
-    function generateSteps(problem) {
-        const steps = [];
-        const columns = ['ones', 'tens', 'hundreds'];
-        let carry = 0;
-        let stepNumber = 1;
-        
-        // Process ones column first, then tens, then hundreds
-        columns.forEach(column => {
-            const digit1 = problem.num1Digits[column];
-            const digit2 = problem.num2Digits[column];
-            const columnSum = digit1 + digit2 + carry;
-            const columnResult = columnSum % 10;
-            const nextCarry = Math.floor(columnSum / 10);
-            
-            steps.push({
-                step: stepNumber++,
-                column: column,
-                digit1: digit1,
-                digit2: digit2,
-                carry: carry, // Carry FROM previous column (to use)
-                sum: columnSum,
-                result: columnResult,
-                nextCarry: nextCarry, // Carry TO next column (to show)
-                columnIndex: columns.indexOf(column), // 0=ones, 1=tens, 2=hundreds
-                description: `Add ${column} column: ${digit1} + ${digit2}${carry > 0 ? ' + ' + carry + ' (carry)' : ''} = ${columnSum}`,
-                completed: false,
-                correct: null,
-                carryUsed: false // Track if carry was used
-            });
-            
-            // Store the next carry for the following column
-            if (nextCarry > 0) {
-                const nextColumn = columns[columns.indexOf(column) + 1] || 'thousands';
-                carries[nextColumn] = {
-                    value: nextCarry,
-                    from: column,
-                    used: false
-                };
-            }
-            
-            carry = nextCarry;
-        });
-        
-        // Final step if there's a carry to thousands place
-        if (carry > 0) {
-            steps.push({
-                step: stepNumber,
-                column: 'thousands',
-                digit1: 0,
-                digit2: 0,
-                carry: carry,
-                sum: carry,
-                result: carry,
-                nextCarry: 0,
-                columnIndex: 3,
-                description: `Write final carry: ${carry} (thousands place)`,
-                completed: false,
-                correct: null,
-                carryUsed: false
-            });
-        }
-        
-        return steps;
-    }
-    
-    // Render the problem grid according to CSV layout
+    // Render the problem grid with input fields in answer row
     function renderProblemGrid() {
         problemGrid.innerHTML = '';
         
-        const { num1Digits, num2Digits } = currentProblem;
+        const { num1Digits, num2Digits, answerData } = currentProblem;
         
         // Grid structure: 5 rows × 4 columns
         // Columns: Plus Sign | Hundreds | Tens | Ones
-        // Rows: Carry | Number 1 | Number 2 | Line | Answer
+        // Rows: Carry | Number 1 | Number 2 | Line | Answer Input
         
         const gridData = [
             // Row 0: Carry Row
@@ -179,306 +135,227 @@ document.addEventListener('DOMContentLoaded', function() {
                 { value: '', class: 'line' },
                 { value: '', class: 'line' }
             ],
-            // Row 4: Answer Row
+            // Row 4: Answer Input Row
             [
                 { value: '', class: 'plus-column' },
-                { value: '_', class: 'answer-cell' }, // HP answer
-                { value: '_', class: 'answer-cell' }, // TP answer
-                { value: '_', class: 'answer-cell' }  // OP answer
+                { value: '', class: 'answer-input', column: 'hundreds' }, // HP input
+                { value: '', class: 'answer-input', column: 'tens' },     // TP input
+                { value: '', class: 'answer-input', column: 'ones' }      // OP input
             ]
         ];
         
-        // Show all active carries (not used yet)
-        Object.keys(carries).forEach(column => {
-            const carry = carries[column];
-            if (!carry.used) {
-                const colIndex = column === 'hundreds' ? 1 : 
-                               column === 'tens' ? 2 : 
-                               column === 'ones' ? 3 : 0;
-                
-                if (colIndex > 0) {
-                    gridData[0][colIndex].value = carry.value;
-                    gridData[0][colIndex].class += ' active-carry';
-                    
-                    // If this carry is from the current step's column, highlight it
-                    if (currentStep > 0 && currentStep <= steps.length) {
-                        const stepData = steps[currentStep - 1];
-                        if (stepData.column === carry.from) {
-                            gridData[0][colIndex].class += ' just-generated';
-                        }
-                    }
-                }
-            } else {
-                // Show used carries as strikethrough
-                const colIndex = column === 'hundreds' ? 1 : 
-                               column === 'tens' ? 2 : 
-                               column === 'ones' ? 3 : 0;
-                
-                if (colIndex > 0) {
-                    gridData[0][colIndex].value = carry.value;
-                    gridData[0][colIndex].class += ' used-carry';
-                }
+        // Show carries based on current answers
+        if (userAnswers.ones !== '') {
+            // If ones is answered, show tens carry if needed
+            if (answerData.ones.carry > 0) {
+                gridData[0][2].value = answerData.ones.carry; // TP carry
+                gridData[0][2].class += ' active-carry';
             }
-        });
+        }
         
-        // Fill in completed answers
-        const completedSteps = steps.filter(step => step.completed);
-        completedSteps.forEach(step => {
-            const answerCol = step.column === 'hundreds' ? 1 : 
-                            step.column === 'tens' ? 2 : 
-                            step.column === 'ones' ? 3 : 
-                            step.column === 'thousands' ? 0 : -1;
-            
-            if (answerCol > 0) {
-                gridData[4][answerCol].value = step.result;
-                gridData[4][answerCol].class += step.correct ? ' correct' : ' incorrect';
-                
-                // Mark the carry as used for this step
-                if (step.carry > 0) {
-                    const carryFrom = step.column === 'tens' ? 'ones' : 
-                                    step.column === 'hundreds' ? 'tens' : 
-                                    step.column === 'thousands' ? 'hundreds' : null;
-                    
-                    if (carryFrom && carries[step.column]) {
-                        carries[step.column].used = true;
-                    }
-                }
-            } else if (answerCol === 0 && step.column === 'thousands') {
-                // Handle thousands place (left of hundreds)
-                gridData[0][0].value = step.result; // Show in plus column? Or need extra column
-                gridData[0][0].class += step.correct ? ' correct' : ' incorrect';
+        if (userAnswers.tens !== '') {
+            // If tens is answered, show hundreds carry if needed
+            if (answerData.tens.carry > 0) {
+                gridData[0][1].value = answerData.tens.carry; // HP carry
+                gridData[0][1].class += ' active-carry';
             }
-        });
+        }
+        
+        if (userAnswers.hundreds !== '') {
+            // If hundreds is answered, show thousands if needed
+            if (answerData.hundreds.carry > 0) {
+                gridData[0][0].value = answerData.hundreds.carry; // Thousands in plus column
+                gridData[0][0].class += ' active-carry';
+            }
+        }
         
         // Create and populate grid
         gridData.forEach((row, rowIndex) => {
             row.forEach((cell, colIndex) => {
                 const cellEl = document.createElement('div');
                 cellEl.className = `grid-cell ${cell.class}`;
-                
-                // Add strikethrough for used carries
-                if (cell.class.includes('used-carry')) {
-                    const span = document.createElement('span');
-                    span.textContent = cell.value;
-                    span.style.textDecoration = 'line-through';
-                    span.style.opacity = '0.6';
-                    cellEl.appendChild(span);
-                } else {
-                    cellEl.textContent = cell.value;
-                }
-                
                 cellEl.dataset.row = rowIndex;
                 cellEl.dataset.col = colIndex;
                 
-                // Highlight active column
-                if (currentStep > 0 && currentStep <= steps.length) {
-                    const stepData = steps[currentStep - 1];
-                    const activeCol = stepData.column === 'hundreds' ? 1 : 
-                                    stepData.column === 'tens' ? 2 : 
-                                    stepData.column === 'ones' ? 3 : 0;
+                if (cell.class.includes('answer-input')) {
+                    // Create input field
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.className = 'answer-input-field';
+                    input.dataset.column = cell.column;
+                    input.value = userAnswers[cell.column] || '';
+                    input.placeholder = '_';
+                    input.min = '0';
+                    input.max = '9';
                     
-                    if (colIndex === activeCol) {
-                        if (rowIndex === 1 || rowIndex === 2) {
-                            cellEl.classList.add('active-column');
-                        }
+                    // Disable if already answered correctly
+                    if (correctAnswers[cell.column]) {
+                        input.disabled = true;
+                        input.classList.add('correct-input');
+                    } else if (cell.column === currentColumn) {
+                        input.classList.add('current-input');
                     }
                     
-                    // Highlight the carry that should be used
-                    if (stepData.carry > 0) {
-                        const carryCol = stepData.column === 'tens' ? 3 : 
-                                       stepData.column === 'hundreds' ? 2 : 
-                                       stepData.column === 'thousands' ? 1 : 0;
-                        
-                        if (colIndex === carryCol && rowIndex === 0) {
-                            cellEl.classList.add('carry-to-use');
+                    // Add event listeners
+                    input.addEventListener('input', handleAnswerInput);
+                    input.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            checkAnswer();
                         }
+                    });
+                    input.addEventListener('focus', () => {
+                        currentColumn = cell.column;
+                        highlightCurrentColumn();
+                    });
+                    
+                    cellEl.appendChild(input);
+                } else {
+                    // Regular cell
+                    cellEl.textContent = cell.value;
+                    
+                    // Highlight active column
+                    if (cell.column === currentColumn) {
+                        cellEl.classList.add('active-column');
                     }
                 }
                 
                 problemGrid.appendChild(cellEl);
             });
         });
-    }
-    
-    // Render the step list
-    function renderStepList() {
-        stepList.innerHTML = '';
         
-        steps.forEach((step, index) => {
-            const li = document.createElement('li');
-            li.textContent = `${step.step}. ${step.description}`;
-            
-            if (step.completed) {
-                li.classList.add('completed');
-                if (step.correct !== null) {
-                    li.innerHTML += step.correct ? ' ✓' : ' ✗';
-                }
-            } else if (index === currentStep) {
-                li.classList.add('active');
-            }
-            
-            stepList.appendChild(li);
-        });
+        highlightCurrentColumn();
     }
     
-    // Update step display
-    function updateStepDisplay() {
-        if (currentStep < steps.length) {
-            const stepData = steps[currentStep];
-            stepDescription.textContent = stepData.description;
-            document.querySelector('.step-label').textContent = `Step ${stepData.step}:`;
-            stepAnswerInput.placeholder = `Enter sum for ${stepData.column} column`;
-            stepAnswerInput.disabled = false;
-            
-            // Highlight which carry to use
-            if (stepData.carry > 0) {
-                const carryFrom = stepData.column === 'tens' ? 'ones' : 
-                                stepData.column === 'hundreds' ? 'tens' : 
-                                stepData.column === 'thousands' ? 'hundreds' : null;
-                
-                if (carryFrom) {
-                    stepDescription.textContent += ` (use carry ${stepData.carry} from ${carryFrom} column)`;
-                }
-            }
-        } else {
-            stepDescription.textContent = 'All steps completed! Great job!';
-            document.querySelector('.step-label').textContent = 'Complete!';
-            stepAnswerInput.placeholder = 'Problem solved!';
-            stepAnswerInput.disabled = true;
+    // Handle answer input
+    function handleAnswerInput(e) {
+        const input = e.target;
+        const column = input.dataset.column;
+        const value = input.value;
+        
+        // Only allow single digits
+        if (value.length > 1) {
+            input.value = value.slice(0, 1);
         }
         
-        renderProblemGrid();
+        // Update user answer
+        userAnswers[column] = input.value;
+        
+        // Auto-advance to next column if a digit is entered
+        if (input.value !== '' && column !== 'thousands') {
+            const columns = ['ones', 'tens', 'hundreds', 'thousands'];
+            const currentIndex = columns.indexOf(column);
+            if (currentIndex < columns.length - 1) {
+                const nextColumn = columns[currentIndex + 1];
+                const nextInput = document.querySelector(`.answer-input-field[data-column="${nextColumn}"]`);
+                if (nextInput && !correctAnswers[nextColumn]) {
+                    currentColumn = nextColumn;
+                    nextInput.focus();
+                    highlightCurrentColumn();
+                }
+            }
+        }
     }
     
-    // Check step answer
-    function checkStepAnswer() {
-        if (currentStep >= steps.length) return;
+    // Highlight current column
+    function highlightCurrentColumn() {
+        // Remove all highlights
+        document.querySelectorAll('.grid-cell').forEach(cell => {
+            cell.classList.remove('active-column');
+        });
+        document.querySelectorAll('.answer-input-field').forEach(input => {
+            input.classList.remove('current-input');
+        });
         
-        const stepData = steps[currentStep];
-        const userAnswer = parseInt(stepAnswerInput.value);
+        // Add highlight to current column
+        const colIndex = currentColumn === 'hundreds' ? 1 : 
+                        currentColumn === 'tens' ? 2 : 
+                        currentColumn === 'ones' ? 3 : 0;
         
-        if (isNaN(userAnswer)) {
-            showFeedback('Please enter a valid number', 'incorrect');
+        if (colIndex > 0) {
+            // Highlight number cells
+            document.querySelectorAll(`.grid-cell[data-col="${colIndex}"]`).forEach(cell => {
+                if (cell.dataset.row === '1' || cell.dataset.row === '2') {
+                    cell.classList.add('active-column');
+                }
+            });
+            
+            // Highlight input field
+            const currentInput = document.querySelector(`.answer-input-field[data-column="${currentColumn}"]`);
+            if (currentInput) {
+                currentInput.classList.add('current-input');
+            }
+        }
+    }
+    
+    // Check all answers
+    function checkAnswer() {
+        const { answerData } = currentProblem;
+        let allCorrect = true;
+        let anyAnswered = false;
+        
+        // Check each column
+        ['ones', 'tens', 'hundreds', 'thousands'].forEach(column => {
+            const userAnswer = userAnswers[column];
+            const correctAnswer = answerData[column]?.result || 0;
+            
+            if (userAnswer !== '') {
+                anyAnswered = true;
+                if (parseInt(userAnswer) === correctAnswer) {
+                    correctAnswers[column] = true;
+                } else {
+                    allCorrect = false;
+                    correctAnswers[column] = false;
+                }
+            } else if (correctAnswer !== 0) {
+                allCorrect = false;
+            }
+        });
+        
+        if (!anyAnswered) {
+            showFeedback('Please enter at least one digit', 'incorrect');
             return;
         }
         
-        scores.totalSteps++;
+        scores.total++;
         
-        if (userAnswer === stepData.sum) {
-            scores.correctSteps++;
+        if (allCorrect) {
+            scores.correct++;
+            showFeedback('✓ Correct! Well done!', 'correct');
             
-            // Mark step as completed
-            stepData.completed = true;
-            stepData.correct = true;
-            
-            // Mark the carry as used
-            if (stepData.carry > 0) {
-                const carryFrom = stepData.column === 'tens' ? 'ones' : 
-                                stepData.column === 'hundreds' ? 'tens' : 
-                                stepData.column === 'thousands' ? 'hundreds' : null;
-                
-                if (carryFrom && carries[stepData.column]) {
-                    carries[stepData.column].used = true;
-                }
-            }
-            
-            // Show success message
-            let feedbackMsg = `✓ Correct! ${stepData.digit1} + ${stepData.digit2}`;
-            if (stepData.carry > 0) {
-                feedbackMsg += ` + ${stepData.carry} (carry)`;
-            }
-            feedbackMsg += ` = ${stepData.sum}`;
-            
-            if (stepData.nextCarry > 0) {
-                const nextColumn = stepData.column === 'ones' ? 'tens' : 
-                                 stepData.column === 'tens' ? 'hundreds' : 'thousands';
-                feedbackMsg += `. Write ${stepData.result} below, carry ${stepData.nextCarry} to ${nextColumn} column.`;
-            } else {
-                feedbackMsg += `. Write ${stepData.result} below.`;
-            }
-            
-            showFeedback(feedbackMsg, 'correct');
-            nextStepBtn.disabled = false;
+            // Disable all inputs
+            document.querySelectorAll('.answer-input-field').forEach(input => {
+                input.disabled = true;
+                input.classList.add('correct-input');
+            });
             
         } else {
-            scores.incorrectSteps++;
+            scores.incorrect++;
             
-            // Mark step as completed (but incorrect)
-            stepData.completed = true;
-            stepData.correct = false;
-            
-            // Still mark carry as used even if wrong
-            if (stepData.carry > 0 && carries[stepData.column]) {
-                carries[stepData.column].used = true;
-            }
-            
-            // Show correct answer
-            let feedbackMsg = `✗ Incorrect. ${stepData.digit1} + ${stepData.digit2}`;
-            if (stepData.carry > 0) {
-                feedbackMsg += ` + ${stepData.carry} (carry)`;
-            }
-            feedbackMsg += ` = ${stepData.sum}`;
-            
-            showFeedback(feedbackMsg, 'incorrect');
-            nextStepBtn.disabled = false;
-        }
-        
-        updateScoreDisplay();
-        renderStepList();
-        renderProblemGrid();
-        
-        // Auto-focus on next step button
-        setTimeout(() => nextStepBtn.focus(), 500);
-    }
-    
-    // Move to next step
-    function nextStep() {
-        if (currentStep < steps.length) {
-            currentStep++;
-            
-            if (currentStep === steps.length) {
-                // Problem completed
-                scores.problemsSolved++;
-                showFeedback('🎉 Problem solved! Well done!', 'correct');
-                nextStepBtn.disabled = true;
-                showAnswerBtn.disabled = true;
-                stepAnswerInput.value = '';
-            } else {
-                stepAnswerInput.value = '';
-                stepAnswerInput.focus();
-                nextStepBtn.disabled = true;
-            }
-            
-            updateStepDisplay();
-            updateScoreDisplay();
-        }
-    }
-    
-    // Show full answer
-    function showAnswer() {
-        steps.forEach(step => {
-            if (!step.completed) {
-                step.completed = true;
-                step.correct = false;
-                
-                // Mark associated carries as used
-                if (step.carry > 0 && carries[step.column]) {
-                    carries[step.column].used = true;
+            // Show which digits are wrong
+            const wrongColumns = [];
+            ['ones', 'tens', 'hundreds', 'thousands'].forEach(column => {
+                if (userAnswers[column] !== '' && !correctAnswers[column]) {
+                    wrongColumns.push(column);
                 }
+            });
+            
+            if (wrongColumns.length > 0) {
+                showFeedback(`✗ Incorrect in ${wrongColumns.join(', ')} column(s)`, 'incorrect');
+            } else {
+                showFeedback('✗ Incorrect - some columns are missing', 'incorrect');
             }
-        });
+            
+            // Mark incorrect inputs
+            document.querySelectorAll('.answer-input-field').forEach(input => {
+                const column = input.dataset.column;
+                if (userAnswers[column] !== '' && !correctAnswers[column]) {
+                    input.classList.add('incorrect-input');
+                }
+            });
+        }
         
-        currentStep = steps.length;
-        scores.problemsSolved++;
-        
-        showFeedback(`Answer: ${currentProblem.num1} + ${currentProblem.num2} = ${currentProblem.answer}`, 'incorrect');
-        updateStepDisplay();
         updateScoreDisplay();
-        renderStepList();
-        renderProblemGrid();
-        nextStepBtn.disabled = true;
-        showAnswerBtn.disabled = true;
-        stepAnswerInput.disabled = true;
+        renderProblemGrid(); // Update carries based on answers
     }
     
     // Show feedback
@@ -486,8 +363,8 @@ document.addEventListener('DOMContentLoaded', function() {
         feedbackDiv.textContent = message;
         feedbackDiv.className = `feedback ${type}`;
         
-        if (!message.includes('🎉') && !message.includes('Answer:')) {
-            setTimeout(clearFeedback, 4000);
+        if (!message.includes('✓') && !message.includes('✗')) {
+            setTimeout(clearFeedback, 3000);
         }
     }
     
@@ -499,13 +376,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Update score display
     function updateScoreDisplay() {
-        correctStepsEl.textContent = scores.correctSteps;
-        incorrectStepsEl.textContent = scores.incorrectSteps;
-        totalStepsEl.textContent = scores.totalSteps;
-        problemsSolvedEl.textContent = scores.problemsSolved;
+        correctCountEl.textContent = scores.correct;
+        incorrectCountEl.textContent = scores.incorrect;
+        totalCountEl.textContent = scores.total;
         
-        const accuracy = scores.totalSteps > 0 ? 
-            Math.round((scores.correctSteps / scores.totalSteps) * 100) : 0;
+        const accuracy = scores.total > 0 ? 
+            Math.round((scores.correct / scores.total) * 100) : 0;
         accuracyRateEl.textContent = `${accuracy}%`;
         
         saveScores();
@@ -529,10 +405,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function resetScores() {
         if (confirm('Reset all addition practice scores?')) {
             scores = {
-                correctSteps: 0,
-                incorrectSteps: 0,
-                totalSteps: 0,
-                problemsSolved: 0
+                correct: 0,
+                incorrect: 0,
+                total: 0
             };
             localStorage.removeItem('additionScores');
             updateScoreDisplay();
@@ -541,10 +416,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Event Listeners
-    submitStepBtn.addEventListener('click', checkStepAnswer);
-    stepAnswerInput.addEventListener('keypress', (e) => e.key === 'Enter' && checkStepAnswer());
-    nextStepBtn.addEventListener('click', nextStep);
-    showAnswerBtn.addEventListener('click', showAnswer);
+    submitBtn.addEventListener('click', checkAnswer);
     newProblemBtn.addEventListener('click', generateProblem);
     resetScoresBtn.addEventListener('click', resetScores);
     
