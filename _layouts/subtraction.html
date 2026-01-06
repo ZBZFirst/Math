@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subtraction Practice - Column Method</title>
+    <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/style.css">
+    <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/subtraction.css">
+    <meta name="operation" content="subtraction">
+</head>
+<body>
+    {% include header.html %}
+    
+    <main class="page-content">
+        <div class="subtraction-container">
+            <!-- Title Container -->
+            <div class="container title-container">
+                <h1 class="page-title">Subtraction Practice</h1>
+                <p class="page-description">Learn subtraction with borrowing using the column method</p>
+            </div>
+
+            <!-- Main Workspace -->
+            <div class="dual-container">
+                <!-- Left: Main Problem Container -->
+                <div class="main-problem-container">
+                    <h3>Main Problem</h3>
+                    <div class="problem-grid" id="problemGrid">
+                        <!-- Will be filled by JavaScript -->
+                    </div>
+                </div>
+                
+                <!-- Right: Sub-Problem Container -->
+                <div class="sub-problem-container">
+                    <h3>Current Column</h3>
+                    <div class="sub-problem" id="subProblem">
+                        <!-- Will be filled by JavaScript -->
+                    </div>
+                    
+                    <div class="sub-input-container">
+                        <input type="number" id="subAnswer" placeholder="Enter difference">
+                        <div class="sub-buttons">
+                            <button id="submitSubAnswer">Submit</button>
+                            <button id="nextColumn">Next Column</button>
+                        </div>
+                    </div>
+                    
+                    <div class="sub-feedback" id="subFeedback"></div>
+                </div>
+            </div>
+            
+            <!-- Simple Controls -->
+            <div class="simple-controls">
+                <button id="newProblem">New Problem</button>
+            </div>
+            
+            <div class="feedback" id="feedback"></div>
+
+            <!-- Progress Container -->
+            <div class="container ratio-container">
+                <div class="score-display">
+                    <h3>Your Progress</h3>
+                    <div class="score-stats">
+                        <div class="stat correct">
+                            <span class="stat-label">Correct:</span>
+                            <span class="stat-value" id="correctCount">0</span>
+                        </div>
+                        <div class="stat incorrect">
+                            <span class="stat-label">Incorrect:</span>
+                            <span class="stat-value" id="incorrectCount">0</span>
+                        </div>
+                        <div class="stat total">
+                            <span class="stat-label">Total:</span>
+                            <span class="stat-value" id="totalCount">0</span>
+                        </div>
+                        <div class="stat accuracy">
+                            <span class="stat-label">Accuracy:</span>
+                            <span class="stat-value" id="accuracyRate">0%</span>
+                        </div>
+                    </div>
+                    <button id="resetScores">Reset Scores</button>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    {% include footer.html %}
+    
+    <script src="{{ site.baseurl }}/assets/js/subtraction-practice.js"></script>
+</body>
+</html>
