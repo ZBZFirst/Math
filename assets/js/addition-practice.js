@@ -31,7 +31,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const resetScoresBtn = document.getElementById('resetScores');
     
     // ===== CORE FUNCTIONS =====
-    
     function generateProblem() {
         const num1 = Math.floor(Math.random() * 400);
         const num2 = Math.floor(Math.random() * 400);
@@ -87,8 +86,10 @@ document.addEventListener('DOMContentLoaded', function() {
         clearAllFeedback();
         subAnswerInput.value = '';
         subAnswerInput.disabled = false;
-        nextColumnBtn.disabled = true;
         subAnswerInput.focus();
+        
+        // Update the main action button to "Submit Answer"
+        updateMainButton();
     }
     
     function calculateColumnProblems() {
@@ -564,7 +565,39 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // ===== GAME LOGIC FUNCTIONS =====
+
+    function updateMainButton() {
+        const mainActionBtn = document.getElementById('mainActionBtn');
+        
+        if (isProblemComplete()) {
+            mainActionBtn.textContent = 'New Problem';
+            mainActionBtn.style.background = 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)';
+            mainActionBtn.onclick = function() {
+                generateProblem();
+                updateMainButton();
+            };
+        } else {
+            const currentColData = currentProblem.columns.find(c => c.column === currentColumn);
+            if (currentColData && currentColData.answered) {
+                mainActionBtn.textContent = 'Next Column';
+                mainActionBtn.style.background = 'linear-gradient(135deg, #4caf50 0%, #388e3c 100%)';
+                mainActionBtn.onclick = function() {
+                    nextColumn();
+                    updateMainButton();
+                };
+            } else {
+                mainActionBtn.textContent = 'Submit Answer';
+                mainActionBtn.style.background = 'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)';
+                mainActionBtn.onclick = function() {
+                    checkSubAnswer();
+                    // Update button after checking answer
+                    setTimeout(updateMainButton, 500);
+                };
+            }
+        }
+    }
     
+    // Modify checkSubAnswer to remove button state changes:
     async function checkSubAnswer() {
         const userAnswer = parseInt(subAnswerInput.value);
         
@@ -596,8 +629,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             showSubFeedback(`✓ Correct! ${currentColData.digit1} + ${currentColData.digit2} = ${currentColData.sum}`, 'correct');
             subAnswerInput.disabled = true;
-            nextColumnBtn.disabled = false;
-            nextColumnBtn.focus();
             
             // Update answer in sub-problem immediately
             const answerDiv = document.querySelector('.sub-answer-placeholder, .sub-answer');
@@ -617,8 +648,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             showSubFeedback(`✗ Incorrect. ${currentColData.digit1} + ${currentColData.digit2} = ${currentColData.sum}`, 'incorrect');
             subAnswerInput.disabled = true;
-            nextColumnBtn.disabled = false;
-            nextColumnBtn.focus();
             
             // Show correct answer
             const answerDiv = document.querySelector('.sub-answer-placeholder, .sub-answer');
@@ -633,30 +662,29 @@ document.addEventListener('DOMContentLoaded', function() {
         // Only update main grid (sub-problem will update on next column)
         setTimeout(() => {
             renderMainGrid();
+            updateMainButton(); // Update button after rendering
         }, 1000);
         
         if (isProblemComplete()) {
             setTimeout(() => {
                 showFeedback('🎉 Problem solved! Well done!', 'correct');
+                updateMainButton();
             }, 1500);
         }
     }
     
+    // Modify nextColumn function:
     function nextColumn() {
         const nextCol = getNextColumn();
         if (nextCol) {
             currentColumn = nextCol;
             subAnswerInput.value = '';
             subAnswerInput.disabled = false;
-            nextColumnBtn.disabled = true;
             renderMainGrid();
             renderSubProblem();
             subAnswerInput.focus();
             clearSubFeedback();
-        } else {
-            showSubFeedback('All columns completed!', 'correct');
-            subAnswerInput.disabled = true;
-            nextColumnBtn.disabled = true;
+            updateMainButton();
         }
     }
     
@@ -735,12 +763,18 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // ===== EVENT LISTENERS =====
     
-    submitSubBtn.addEventListener('click', checkSubAnswer);
+    // ===== EVENT LISTENERS =====
+    
+    // Enter key in subAnswer input
     subAnswerInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') checkSubAnswer();
+        if (e.key === 'Enter') {
+            const currentColData = currentProblem.columns.find(c => c.column === currentColumn);
+            if (currentColData && !currentColData.answered) {
+                checkSubAnswer();
+            }
+        }
     });
-    nextColumnBtn.addEventListener('click', nextColumn);
-    newProblemBtn.addEventListener('click', generateProblem);
+    
     resetScoresBtn.addEventListener('click', resetScores);
     
     // Initialize
