@@ -41,15 +41,32 @@ document.addEventListener('DOMContentLoaded', function() {
         let currentNumber = 0;
         
         function updateDisplay() {
-            currentNumberEl.textContent = currentNumber;
-            // Update the hidden input for compatibility with existing code
-            subAnswerInput.value = currentNumber;
+            const oldValue = parseInt(currentNumberEl.textContent) || 0;
+            const newValue = currentNumber;
             
-            // Optional: Add animation feedback
-            currentNumberEl.classList.add('animate-drop-in');
-            setTimeout(() => {
-                currentNumberEl.classList.remove('animate-drop-in');
-            }, 300);
+            currentNumberEl.textContent = newValue;
+            // Update the hidden input for compatibility with existing code
+            subAnswerInput.value = newValue;
+            
+            // Only animate if the number actually changed
+            if (oldValue !== newValue) {
+                // Create a temporary element for the animation
+                const tempSpan = document.createElement('span');
+                tempSpan.textContent = newValue;
+                tempSpan.className = 'animate-drop-in';
+                tempSpan.style.display = 'inline-block';
+                
+                // Replace content with animated version
+                currentNumberEl.innerHTML = '';
+                currentNumberEl.appendChild(tempSpan);
+                
+                // Clean up after animation
+                setTimeout(() => {
+                    tempSpan.classList.remove('animate-drop-in');
+                    // Restore normal text
+                    currentNumberEl.textContent = newValue;
+                }, 300);
+            }
         }
         
         // Handle all number buttons
