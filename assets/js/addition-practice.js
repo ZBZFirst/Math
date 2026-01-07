@@ -522,20 +522,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         subContainer.appendChild(subDisplay);
         
-        // Instructions
-        const instructions = document.createElement('div');
-        instructions.className = 'sub-instructions';
-        
-        let instructionText = `<p><strong>Step:</strong> Add the ${currentColumn} column</p>`;
-        if (currentColData.carry > 0 && currentColData.carryVisible) {
-            instructionText += `<p>${currentColData.carry} + ${currentColData.digit1} + ${currentColData.digit2}</p>`;
-        } else {
-            instructionText += `<p>${currentColData.digit1} + ${currentColData.digit2}</p>`;
-        }
-        instructionText += `<p>Enter the total sum below:</p>`;
-        
-        instructions.innerHTML = instructionText;
-        subContainer.appendChild(instructions);
+        // REMOVED: Instructions section completely
         
         subProblemDiv.appendChild(subContainer);
         
