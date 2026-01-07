@@ -1,31 +1,49 @@
-/* Addition-specific styles - Dual Container System FIXED */
+/* Addition-specific styles - Optimized for All Screens */
 
 .addition-container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 1rem;
+    padding: 0.5rem;
+    overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
-/* Dual Container Layout */
+/* Dual Container Layout - Better for small screens */
 .dual-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-    margin: 2rem auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin: 1rem auto;
     max-width: 1200px;
 }
 
-@media (max-width: 1024px) {
+@media (min-width: 1024px) {
     .dual-container {
-        grid-template-columns: 1fr;
-        gap: 3rem;
+        flex-direction: row;
+        gap: 2rem;
+    }
+}
+
+/* Make both containers take full width on mobile, equal width on desktop */
+.main-problem-container,
+.sub-problem-container {
+    flex: 1;
+    min-width: 0; /* Prevents flex items from overflowing */
+    max-height: 500px;
+    overflow-y: auto; /* Allow internal scrolling if needed */
+}
+
+@media (min-width: 1024px) {
+    .main-problem-container,
+    .sub-problem-container {
+        flex: 1;
+        max-width: 50%;
     }
 }
 
 /* Main Problem Container */
 .main-problem-container {
     background: white;
-    padding: 1.5rem;
+    padding: 1rem;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     border: 2px solid #e0e0e0;
@@ -33,20 +51,46 @@
 
 .main-problem-container h3 {
     color: #2c3e50;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     text-align: center;
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     border-bottom: 2px solid #2196f3;
     padding-bottom: 0.5rem;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
 }
 
-/* Main Problem Grid */
+/* Responsive Main Problem Grid */
 .problem-grid {
     display: grid;
-    grid-template-columns: 60px 80px 80px 80px;
-    grid-template-rows: repeat(5, 60px);
+    grid-template-columns: 40px repeat(3, minmax(50px, 1fr));
+    grid-template-rows: repeat(5, 45px);
     gap: 2px;
     margin: 0 auto;
+    max-width: 400px;
+}
+
+@media (min-width: 480px) {
+    .problem-grid {
+        grid-template-columns: 50px repeat(3, minmax(60px, 1fr));
+        grid-template-rows: repeat(5, 50px);
+    }
+}
+
+@media (min-width: 768px) {
+    .problem-grid {
+        grid-template-columns: 60px repeat(3, minmax(70px, 1fr));
+        grid-template-rows: repeat(5, 60px);
+    }
+}
+
+@media (min-width: 1024px) {
+    .problem-grid {
+        grid-template-columns: 60px repeat(3, 80px);
+        grid-template-rows: repeat(5, 60px);
+    }
 }
 
 .grid-cell {
@@ -57,6 +101,19 @@
     border: 1px solid #ddd;
     position: relative;
     background: #f9f9f9;
+    font-size: 1.4rem;
+}
+
+@media (min-width: 480px) {
+    .grid-cell {
+        font-size: 1.6rem;
+    }
+}
+
+@media (min-width: 768px) {
+    .grid-cell {
+        font-size: 1.8rem;
+    }
 }
 
 /* Plus Column */
@@ -86,14 +143,6 @@
     font-weight: bold;
     border-radius: 4px;
     animation: pulse 2s infinite;
-}
-
-.grid-cell.used-carry {
-    background: #f5f5f5;
-    border: 1px dashed #9e9e9e;
-    color: #757575;
-    text-decoration: line-through;
-    opacity: 0.7;
 }
 
 @keyframes pulse {
@@ -158,7 +207,7 @@
 /* Sub-Problem Container */
 .sub-problem-container {
     background: white;
-    padding: 1.5rem;
+    padding: 1rem;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     border: 2px solid #e0e0e0;
@@ -168,11 +217,15 @@
 
 .sub-problem-container h3 {
     color: #2c3e50;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     text-align: center;
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     border-bottom: 2px solid #ff9800;
     padding-bottom: 0.5rem;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
 }
 
 /* Sub-Problem Display (side-by-side) */
@@ -180,7 +233,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1.5rem;
+    gap: 1rem;
+    padding: 0.5rem;
 }
 
 .sub-problem-display {
@@ -189,7 +243,7 @@
     align-items: center;
     gap: 0.5rem;
     width: 100%;
-    max-width: 300px;
+    max-width: 280px;
 }
 
 /* Side-by-side numbers row */
@@ -203,48 +257,48 @@
 }
 
 .sub-carry-value {
-    font-size: 1.8rem;
+    font-size: 1.5rem;
     font-weight: bold;
     color: #ef6c00;
     background: #fff3e0;
-    padding: 0.5rem 1rem;
+    padding: 0.3rem 0.8rem;
     border-radius: 6px;
     border: 2px solid #ff9800;
     animation: pulse 2s infinite;
 }
 
 .sub-number {
-    font-size: 2.5rem;
+    font-size: 2rem;
     font-weight: bold;
     color: #1565c0;
     background: #e3f2fd;
-    padding: 0.5rem 1rem;
+    padding: 0.3rem 0.8rem;
     border-radius: 6px;
     border: 2px solid #2196f3;
-    min-width: 60px;
+    min-width: 50px;
     text-align: center;
 }
 
 .sub-plus {
-    font-size: 2rem;
+    font-size: 1.8rem;
     font-weight: bold;
     color: #666;
-    margin: 0 0.5rem;
+    margin: 0 0.3rem;
 }
 
 .sub-line {
-    width: 100%;
+    width: 80%;
     height: 2px;
     background: #333;
     margin: 0.5rem 0;
 }
 
 .sub-answer, .sub-answer-placeholder {
-    font-size: 2.5rem;
+    font-size: 2rem;
     font-weight: bold;
-    padding: 0.5rem 1rem;
+    padding: 0.3rem 0.8rem;
     border-radius: 6px;
-    min-width: 60px;
+    min-width: 50px;
     text-align: center;
     margin-top: 0.5rem;
 }
@@ -271,39 +325,40 @@
 /* Sub-Problem Complete Message */
 .sub-complete {
     text-align: center;
-    padding: 2rem;
+    padding: 1.5rem;
     background: #e8f5e9;
     border-radius: 10px;
     border: 2px solid #4caf50;
+    margin: 1rem 0;
 }
 
 .sub-complete h4 {
     color: #2e7d32;
     margin-bottom: 1rem;
-    font-size: 1.8rem;
+    font-size: 1.5rem;
 }
 
 .sub-complete p {
     color: #2e7d32;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     margin: 0.5rem 0;
 }
 
 /* Sub-Problem Instructions */
 .sub-instructions {
     margin-top: 1rem;
-    padding: 1rem;
+    padding: 0.8rem;
     background: #f0f7ff;
     border-radius: 8px;
     border-left: 4px solid #2196f3;
     text-align: center;
     width: 100%;
-    max-width: 300px;
+    max-width: 280px;
 }
 
 .sub-instructions strong {
     color: #1565c0;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     display: block;
     margin-bottom: 0.5rem;
 }
@@ -323,12 +378,14 @@
     gap: 1rem;
     align-items: center;
     width: 100%;
+    padding: 0 0.5rem;
 }
 
 #subAnswer {
-    padding: 1rem 1.5rem;
-    font-size: 2.5rem;
-    width: 200px;
+    padding: 0.8rem;
+    font-size: 1.8rem;
+    width: 100%;
+    max-width: 200px;
     text-align: center;
     border: 3px solid #4a6491;
     border-radius: 10px;
@@ -351,15 +408,8 @@
     background: #e9ecef;
 }
 
-.sub-buttons {
-    display: flex;
-    gap: 1rem;
-    width: 100%;
-    justify-content: center;
-    max-width: 300px;
-}
-
-.sub-buttons button {
+/* Combined Action Button */
+.combined-action-btn {
     padding: 1rem 1.5rem;
     font-size: 1.1rem;
     font-weight: 600;
@@ -367,30 +417,24 @@
     border: none;
     cursor: pointer;
     transition: all 0.3s;
-    flex: 1;
-    min-width: 120px;
-}
-
-#submitSubAnswer {
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+    display: block;
     background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
     color: white;
 }
 
-#nextColumn {
-    background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
-    color: white;
-}
-
-.sub-buttons button:hover:not(:disabled) {
+.combined-action-btn:hover:not(:disabled) {
     transform: translateY(-3px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
 }
 
-.sub-buttons button:active:not(:disabled) {
+.combined-action-btn:active:not(:disabled) {
     transform: translateY(-1px);
 }
 
-.sub-buttons button:disabled {
+.combined-action-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
     transform: none !important;
@@ -398,17 +442,19 @@
 
 /* Sub-Feedback */
 .sub-feedback {
-    margin-top: 1.5rem;
-    padding: 1rem;
+    margin-top: 1rem;
+    padding: 0.8rem;
     border-radius: 8px;
     text-align: center;
-    font-size: 1.2rem;
+    font-size: 1rem;
     font-weight: bold;
-    min-height: 80px;
+    min-height: 60px;
     display: flex;
     align-items: center;
     justify-content: center;
     line-height: 1.5;
+    width: 100%;
+    max-width: 300px;
 }
 
 .sub-feedback.correct {
@@ -423,76 +469,20 @@
     border: 2px solid #e57373;
 }
 
-/* Simple Controls */
-.simple-controls {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    margin: 2rem auto;
-    max-width: 400px;
-}
-
-.simple-controls button {
-    padding: 1rem 2rem;
-    font-size: 1.2rem;
-    font-weight: 600;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    transition: all 0.3s;
-    min-width: 200px;
-}
-
-#newProblem {
-    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
-    color: white;
-}
-
-.simple-controls button:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-}
-
-.simple-controls button:active {
-    transform: translateY(-1px);
-}
-
 /* Main Feedback */
 .feedback {
-    margin: 1.5rem auto;
-    padding: 1rem;
+    margin: 1rem auto;
+    padding: 0.8rem;
     border-radius: 8px;
     text-align: center;
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     font-weight: bold;
-    min-height: 60px;
+    min-height: 50px;
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
-    max-width: 600px;
-}
-
-/* Ensure the sub-problem grid maintains proper spacing */
-.sub-problem {
-    width: 100%;
-}
-
-/* Fix for strikethrough in carry cells */
-.grid-cell.carry-cell span {
-    display: inline-block;
-    padding: 2px;
-}
-
-/* Ensure proper alignment of active column */
-.grid-cell.active-column {
-    z-index: 2;
-    position: relative;
-}
-
-/* Fix for the sub-problem display alignment */
-.sub-problem-display {
-    margin-bottom: 1rem;
+    max-width: 500px;
 }
 
 .feedback.correct {
@@ -507,110 +497,139 @@
     border: 2px solid #e57373;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
+/* Score Display - More compact */
+.score-display {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    margin: 1rem auto;
+    max-width: 400px;
+    padding: 0 0.5rem;
+}
+
+.score-item {
+    background: #f8f9fa;
+    padding: 0.5rem;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid #dee2e6;
+}
+
+.score-value {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.score-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 0.3rem;
+}
+
+/* Remove old button styles */
+.sub-buttons,
+.simple-controls {
+    display: none; /* Hide old buttons if they exist in HTML */
+}
+
+/* Reset Scores Button */
+#resetScores {
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: linear-gradient(135deg, #9e9e9e 0%, #757575 100%);
+    color: white;
+    margin: 0.5rem auto;
+    display: block;
+    max-width: 200px;
+}
+
+#resetScores:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Media queries for very small screens */
+@media (max-width: 360px) {
     .problem-grid {
-        grid-template-columns: 50px 70px 70px 70px;
-        grid-template-rows: repeat(5, 50px);
+        grid-template-columns: 35px repeat(3, minmax(45px, 1fr));
+        grid-template-rows: repeat(5, 40px);
+    }
+    
+    .grid-cell {
+        font-size: 1.2rem;
     }
     
     .sub-number, .sub-answer, .sub-answer-placeholder {
-        font-size: 2rem;
-        min-width: 50px;
-        padding: 0.4rem 0.8rem;
+        font-size: 1.6rem;
+        min-width: 40px;
+        padding: 0.2rem 0.6rem;
     }
     
     .sub-carry-value {
-        font-size: 1.5rem;
-        padding: 0.4rem 0.8rem;
-    }
-    
-    .sub-plus {
-        font-size: 1.8rem;
+        font-size: 1.2rem;
+        padding: 0.2rem 0.6rem;
     }
     
     #subAnswer {
+        font-size: 1.6rem;
+        padding: 0.6rem;
+        max-width: 180px;
+    }
+    
+    .combined-action-btn {
+        padding: 0.8rem;
+        font-size: 1rem;
+        max-width: 250px;
+    }
+    
+    .sub-instructions,
+    .sub-feedback {
+        max-width: 250px;
+    }
+}
+
+/* Ensure no horizontal scrolling on mobile */
+@media (max-width: 1024px) {
+    .addition-container {
+        padding: 0.5rem;
+    }
+    
+    .main-problem-container,
+    .sub-problem-container {
+        padding: 0.8rem;
+    }
+}
+
+/* Prevent body scrolling when containers have internal scroll */
+body {
+    overflow-x: hidden;
+    min-height: 100vh;
+    background: #f5f7fa;
+}
+
+/* Animation optimizations for mobile */
+.flying-ghost {
+    font-size: 1.5rem;
+    padding: 0.3rem 0.8rem;
+}
+
+@media (min-width: 768px) {
+    .flying-ghost {
         font-size: 2rem;
-        width: 160px;
-    }
-    
-    .sub-buttons {
-        flex-direction: column;
-        align-items: center;
-    }
-    
-    .sub-buttons button {
-        width: 100%;
-        max-width: 200px;
-    }
-    
-    .simple-controls button {
-        width: 100%;
-        max-width: 300px;
-    }
-}
-
-@media (max-width: 480px) {
-    .problem-grid {
-        grid-template-columns: 40px 60px 60px 60px;
-        grid-template-rows: repeat(5, 45px);
-    }
-    
-    .sub-number, .sub-answer, .sub-answer-placeholder {
-        font-size: 1.8rem;
-        min-width: 45px;
-        padding: 0.3rem 0.6rem;
-    }
-    
-    .sub-carry-value {
-        font-size: 1.3rem;
-        padding: 0.3rem 0.6rem;
-    }
-    
-    #subAnswer {
-        font-size: 1.8rem;
-        width: 140px;
-    }
-}
-
-/* ===== NEW ANIMATIONS ===== */
-
-/* Fly from Main to Current */
-@keyframes flyToCurrent {
-    0% {
-        transform: scale(1) translate(0, 0);
-        opacity: 1;
-    }
-    50% {
-        transform: scale(1.2) translate(var(--fly-x, 0), var(--fly-y, 0));
-        opacity: 0.8;
-    }
-    100% {
-        transform: scale(1) translate(0, 0);
-        opacity: 1;
-    }
-}
-
-/* Fly from Current to Main */
-@keyframes flyToMain {
-    0% {
-        transform: scale(1) translate(0, 0);
-        opacity: 1;
-    }
-    50% {
-        transform: scale(1.2) translate(var(--fly-x, 0), var(--fly-y, 0));
-        opacity: 0.8;
-    }
-    100% {
-        transform: scale(1) translate(0, 0);
-        opacity: 1;
+        padding: 0.5rem 1rem;
     }
 }
 
 /* Drop into place */
 @keyframes dropIn {
     0% {
-        transform: translateY(-30px);
+        transform: translateY(-20px);
         opacity: 0;
     }
     100% {
@@ -632,28 +651,41 @@
     z-index: 10;
 }
 
-.animate-to-current {
-    animation: flyToCurrent 1s ease forwards;
-}
-
-.animate-to-main {
-    animation: flyToMain 1s ease forwards;
-}
-
 .animate-drop-in {
     animation: dropIn 0.5s ease forwards;
 }
 
-/* Ghost element for flying animation */
-.flying-ghost {
-    position: absolute;
-    font-size: 2rem;
-    font-weight: bold;
-    background: white;
-    border: 2px solid #2196f3;
-    border-radius: 8px;
-    padding: 0.5rem 1rem;
-    z-index: 1000;
-    pointer-events: none;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+/* Ensure proper alignment of active column */
+.grid-cell.active-column {
+    z-index: 2;
+    position: relative;
+}
+
+/* Fix for strikethrough in carry cells */
+.grid-cell.carry-cell span {
+    display: inline-block;
+    padding: 2px;
+}
+
+/* Scrollbar styling for containers */
+.main-problem-container::-webkit-scrollbar,
+.sub-problem-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.main-problem-container::-webkit-scrollbar-track,
+.sub-problem-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.main-problem-container::-webkit-scrollbar-thumb,
+.sub-problem-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+}
+
+.main-problem-container::-webkit-scrollbar-thumb:hover,
+.sub-problem-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
 }
