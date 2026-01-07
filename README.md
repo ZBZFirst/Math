@@ -10,3 +10,5 @@ It provides the following items
 
 This is supposed to be intuitive to a 2nd grader and difficult for a 1st grader.
 While also being accessible to other parents who are looking for something to make their kids do instead of Roblox.
+
+https://buymeacoffee.com/paulcas
