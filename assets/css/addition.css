@@ -631,48 +631,58 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Media queries for very small screens */
-@media (max-width: 360px) {
-    .problem-grid {
-        grid-template-columns: 35px repeat(3, minmax(45px, 1fr));
-        grid-template-rows: repeat(5, 40px);
+/* Ensure no horizontal scrolling on mobile */
+@media (max-width: 1024px) {
+    .addition-container {
+        padding: 0.5rem;
     }
     
-    .grid-cell {
-        font-size: 1.2rem;
+    .main-problem-container,
+    .sub-problem-container {
+        padding: 0.8rem;
+        height: auto; /* ADD THIS - Remove fixed height */
+        min-height: 400px; /* ADD THIS - Set minimum instead of fixed */
     }
     
-    .sub-number, .sub-answer, .sub-answer-placeholder {
-        font-size: 1.6rem;
-        min-width: 40px;
-        padding: 0.2rem 0.6rem;
+    .page-title {
+        font-size: 1.5rem;
     }
     
-    .sub-carry-value {
-        font-size: 1.2rem;
-        padding: 0.2rem 0.6rem;
+    .page-description {
+        font-size: 1rem;
+    }
+}
+
+/* For tablets and smaller */
+@media (max-width: 768px) {
+    .score-stats {
+        gap: 0.8rem;
     }
     
+    .stat {
+        min-width: 130px;
+    }
+    
+    /* ADD: Better touch targets for mobile */
     #subAnswer {
-        font-size: 1.6rem;
-        padding: 0.6rem;
-        max-width: 180px;
+        font-size: 1.8rem; /* Larger for touch */
+        padding: 1rem; /* More padding for easier tapping */
     }
     
     .combined-action-btn {
-        padding: 0.8rem;
-        font-size: 1rem;
-        max-width: 250px;
+        font-size: 1.2rem;
+        padding: 1.2rem;
     }
     
-    /* Adjust stats for very small screens */
-    .stat {
-        min-width: 120px;
-        padding: 0.8rem;
+    /* ADD: Reduce grid size for tablets */
+    .problem-grid {
+        grid-template-columns: 35px repeat(3, minmax(50px, 1fr));
+        grid-template-rows: repeat(5, 45px);
+        gap: 1px;
     }
     
-    .stat-value {
-        font-size: 1.5rem;
+    .grid-cell {
+        font-size: 1.4rem;
     }
 }
 
@@ -686,59 +696,94 @@
         width: 100%;
         max-width: 280px;
     }
-}
-
-@media (max-width: 768px) {
-    .score-stats {
-        gap: 0.8rem;
+    
+    /* ADD: Even better mobile adjustments */
+    .dual-container {
+        gap: 1rem; /* Reduce gap between containers */
     }
     
-    .stat {
-        min-width: 130px;
-    }
-}
-
-/* Ensure no horizontal scrolling on mobile */
-@media (max-width: 1024px) {
-    .addition-container {
+    .main-problem-container h3,
+    .sub-problem-container h3 {
+        font-size: 1.1rem;
         padding: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* Media queries for very small screens */
+@media (max-width: 360px) {
+    .problem-grid {
+        grid-template-columns: 30px repeat(3, minmax(40px, 1fr)); /* Even smaller */
+        grid-template-rows: repeat(5, 35px); /* Even smaller */
     }
     
+    .grid-cell {
+        font-size: 1.1rem; /* Smaller font */
+    }
+    
+    .sub-number, .sub-answer, .sub-answer-placeholder {
+        font-size: 1.4rem; /* Smaller */
+        min-width: 35px; /* Smaller */
+        padding: 0.2rem 0.5rem; /* Less padding */
+    }
+    
+    .sub-carry-value {
+        font-size: 1.1rem; /* Smaller */
+        padding: 0.2rem 0.5rem; /* Less padding */
+    }
+    
+    #subAnswer {
+        font-size: 1.4rem; /* Smaller but still readable */
+        padding: 0.8rem; /* Keep good touch area */
+        max-width: 160px; /* Smaller */
+    }
+    
+    .combined-action-btn {
+        padding: 0.8rem;
+        font-size: 1rem;
+        max-width: 220px; /* Smaller */
+    }
+    
+    /* Adjust stats for very small screens */
+    .stat {
+        min-width: 110px; /* Smaller */
+        padding: 0.6rem; /* Less padding */
+    }
+    
+    .stat-value {
+        font-size: 1.3rem; /* Smaller */
+    }
+    
+    /* ADD: Container padding adjustments */
     .main-problem-container,
     .sub-problem-container {
-        padding: 0.8rem;
+        padding: 0.5rem; /* Less padding */
+        min-height: 350px; /* Smaller minimum height */
     }
     
+    /* ADD: Title adjustments */
     .page-title {
-        font-size: 1.5rem;
+        font-size: 1.3rem; /* Smaller */
+        margin-bottom: 0.3rem;
     }
     
     .page-description {
-        font-size: 1rem;
+        font-size: 0.9rem; /* Smaller */
+        line-height: 1.2;
     }
 }
 
-/* Prevent body scrolling when containers have internal scroll */
-body {
-    overflow-x: hidden;
-    min-height: 100vh;
-    background: #f5f7fa;
-}
-
-/* Animation optimizations for mobile */
-.flying-ghost {
-    font-size: 1.5rem;
-    padding: 0.3rem 0.8rem;
-}
-
-@media (min-width: 768px) {
-    .flying-ghost {
-        font-size: 2rem;
-        padding: 0.5rem 1rem;
+/* ADD: Prevent text zoom on mobile input focus */
+@media (max-width: 768px) {
+    #subAnswer {
+        font-size: 16px; /* Prevent iOS zoom */
+    }
+    
+    input, select, textarea {
+        font-size: 16px; /* Prevent iOS zoom on all inputs */
     }
 }
 
-/* Drop into place */
 @keyframes dropIn {
     0% {
         transform: translateY(-20px);
