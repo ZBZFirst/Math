@@ -39,11 +39,12 @@
                     </div>
                     
                     <div class="sub-input-container">
-                        <input type="number" id="subAnswer" placeholder="Enter sum">
-                        <div class="sub-buttons">
-                            <button id="submitSubAnswer">Submit</button>
-                            <button id="nextColumn">Next Column</button>
-                        </div>
+                        <input type="number" id="subAnswer" placeholder="?" min="0" max="99">
+                        
+                        <!-- Single combined action button -->
+                        <button id="mainActionBtn" class="combined-action-btn">
+                            Submit Answer
+                        </button>
                     </div>
                     
                     <div class="sub-feedback" id="subFeedback"></div>
