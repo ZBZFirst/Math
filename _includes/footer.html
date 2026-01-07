@@ -2,7 +2,127 @@
     <div class="footer-content">
         <p>Math Practice &copy; {{ "now" | date: "%Y" }}</p>
         <div class="debug-info">
-            <p>CSS Mode: <span class="debug-breakpoint"></span></p>
+            <p>View: <span id="viewMode">Detecting...</span></p>
+            <p>Screen: <span id="screenSize">Detecting...</span></p>
+            <p>Active Query: <span id="activeQuery">Detecting...</span></p>
         </div>
     </div>
 </footer>
+
+<style>
+/* Debug info styling - ensure it's visible */
+.debug-info {
+    margin-top: 10px;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-family: monospace;
+    display: block !important; /* Force display */
+    visibility: visible !important; /* Force visibility */
+    opacity: 1 !important; /* Force opacity */
+}
+
+.debug-info p {
+    margin: 3px 0;
+    color: #666;
+}
+
+#viewMode, #screenSize, #activeQuery {
+    font-weight: bold;
+    color: #2196f3;
+}
+
+/* Color coding for different views */
+.mobile-view #viewMode { color: #ff9800; }
+.tablet-view #viewMode { color: #9c27b0; }
+.desktop-view #viewMode { color: #4caf50; }
+</style>
+
+<script>
+// Self-contained script that runs after footer loads
+(function() {
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initDebug);
+    } else {
+        initDebug();
+    }
+    
+    function initDebug() {
+        console.log('Debug script initialized');
+        
+        function updateViewInfo() {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            const pixelRatio = window.devicePixelRatio || 1;
+            
+            let viewType = 'Desktop';
+            let sizeLabel = 'Large';
+            let activeBreakpoint = '≥1024px';
+            
+            // Your exact CSS breakpoints
+            if (width < 360) {
+                viewType = 'Mobile';
+                sizeLabel = 'X-Small';
+                activeBreakpoint = '<360px';
+            } else if (width < 480) {
+                viewType = 'Mobile';
+                sizeLabel = 'Small';
+                activeBreakpoint = '360-479px';
+            } else if (width < 768) {
+                viewType = 'Mobile';
+                sizeLabel = 'Medium';
+                activeBreakpoint = '480-767px';
+            } else if (width < 1024) {
+                viewType = 'Tablet';
+                sizeLabel = 'Medium';
+                activeBreakpoint = '768-1023px';
+            } else {
+                viewType = 'Desktop';
+                sizeLabel = 'Large';
+                activeBreakpoint = '≥1024px';
+            }
+            
+            // Update the display
+            const viewModeElement = document.getElementById('viewMode');
+            const screenSizeElement = document.getElementById('screenSize');
+            const activeQueryElement = document.getElementById('activeQuery');
+            
+            if (viewModeElement) {
+                viewModeElement.textContent = `${viewType} (${sizeLabel})`;
+            }
+            
+            if (screenSizeElement) {
+                screenSizeElement.textContent = `${width}×${height}px @${pixelRatio}x`;
+            }
+            
+            if (activeQueryElement) {
+                activeQueryElement.textContent = activeBreakpoint;
+            }
+            
+            // Add class to body for CSS targeting
+            document.body.className = document.body.className.replace(/\b(mobile|tablet|desktop)-view\b/g, '');
+            document.body.classList.add(`${viewType.toLowerCase()}-view`);
+            
+            // Log for debugging
+            console.log(`View: ${viewType} ${sizeLabel}, Screen: ${width}×${height}, Active: ${activeBreakpoint}`);
+        }
+        
+        // Initial update
+        setTimeout(updateViewInfo, 100); // Small delay to ensure elements exist
+        
+        // Update on resize (with debouncing)
+        let resizeTimeout;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(updateViewInfo, 250);
+        });
+        
+        // Also update when orientation changes (for mobile)
+        window.addEventListener('orientationchange', function() {
+            setTimeout(updateViewInfo, 500);
+        });
+    }
+})();
+</script>
