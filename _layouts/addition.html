@@ -41,6 +41,30 @@
                     <div class="sub-input-container">
                         <input type="number" id="subAnswer" placeholder="?" min="0" max="99">
                         
+                        <!-- MOBILE NUMBER PAD (hidden on desktop) -->
+                        <div class="mobile-number-pad">
+                            <div class="number-display" id="mobileNumberDisplay">0</div>
+                            
+                            <div class="number-controls">
+                                <button type="button" class="number-btn decrement">-1</button>
+                                <button type="button" class="number-btn clear">C</button>
+                                <button type="button" class="number-btn increment">+1</button>
+                            </div>
+                            
+                            <div class="digit-buttons">
+                                <button type="button" class="digit-btn" data-digit="7">7</button>
+                                <button type="button" class="digit-btn" data-digit="8">8</button>
+                                <button type="button" class="digit-btn" data-digit="9">9</button>
+                                <button type="button" class="digit-btn" data-digit="4">4</button>
+                                <button type="button" class="digit-btn" data-digit="5">5</button>
+                                <button type="button" class="digit-btn" data-digit="6">6</button>
+                                <button type="button" class="digit-btn" data-digit="1">1</button>
+                                <button type="button" class="digit-btn" data-digit="2">2</button>
+                                <button type="button" class="digit-btn" data-digit="3">3</button>
+                                <button type="button" class="digit-btn zero" data-digit="0">0</button>
+                            </div>
+                        </div>
+                        
                         <!-- Single combined action button -->
                         <button id="mainActionBtn" class="combined-action-btn">
                             Submit Answer
