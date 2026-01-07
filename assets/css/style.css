@@ -609,7 +609,8 @@ body > main {
 @media (max-width: 480px) {
     /* Header mobile */
     .main-navigation ul {
-        flex-direction: column;
+        flex-direction: row;
+        flex-wrap: wrap;
         align-items: center;
         gap: 0.5rem;
     }
