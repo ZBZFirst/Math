@@ -1,4 +1,5 @@
 // Addition Practice with Dual Container System - ANIMATED VERSION (FIXED) 
+// WITH MOBILE NUMBER PAD SUPPORT
 
 document.addEventListener('DOMContentLoaded', function() {
     // State management
@@ -19,9 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const problemGrid = document.getElementById('problemGrid');
     const subProblemDiv = document.getElementById('subProblem');
     const subAnswerInput = document.getElementById('subAnswer');
-    const submitSubBtn = document.getElementById('submitSubAnswer');
-    const nextColumnBtn = document.getElementById('nextColumn');
-    const newProblemBtn = document.getElementById('newProblem');
+    const mainActionBtn = document.getElementById('mainActionBtn');
     const feedbackDiv = document.getElementById('feedback');
     const subFeedbackDiv = document.getElementById('subFeedback');
     const correctCountEl = document.getElementById('correctCount');
@@ -29,6 +28,100 @@ document.addEventListener('DOMContentLoaded', function() {
     const totalCountEl = document.getElementById('totalCount');
     const accuracyRateEl = document.getElementById('accuracyRate');
     const resetScoresBtn = document.getElementById('resetScores');
+    
+    // ===== MOBILE NUMBER PAD FUNCTIONS =====
+    
+    function initMobileNumberPad() {
+        // Only initialize on mobile screens (or if mobile number pad exists)
+        const mobileNumberPad = document.querySelector('.mobile-number-pad');
+        if (!mobileNumberPad) return;
+        
+        const numberDisplay = document.getElementById('mobileNumberDisplay');
+        const subAnswerInput = document.getElementById('subAnswer');
+        
+        let currentNumber = 0;
+        
+        function updateDisplay() {
+            if (numberDisplay) {
+                numberDisplay.textContent = currentNumber;
+            }
+            // Update the hidden input for compatibility with existing code
+            if (subAnswerInput) {
+                subAnswerInput.value = currentNumber;
+            }
+        }
+        
+        // Increment button
+        const incrementBtn = mobileNumberPad.querySelector('.number-btn.increment');
+        if (incrementBtn) {
+            incrementBtn.addEventListener('click', () => {
+                if (currentNumber < 99) {
+                    currentNumber++;
+                    updateDisplay();
+                }
+            });
+        }
+        
+        // Decrement button
+        const decrementBtn = mobileNumberPad.querySelector('.number-btn.decrement');
+        if (decrementBtn) {
+            decrementBtn.addEventListener('click', () => {
+                if (currentNumber > 0) {
+                    currentNumber--;
+                    updateDisplay();
+                }
+            });
+        }
+        
+        // Clear button
+        const clearBtn = mobileNumberPad.querySelector('.number-btn.clear');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                currentNumber = 0;
+                updateDisplay();
+            });
+        }
+        
+        // Digit buttons (0-9)
+        const digitBtns = mobileNumberPad.querySelectorAll('.digit-btn');
+        digitBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const digit = parseInt(btn.getAttribute('data-digit'));
+                const newNumber = currentNumber * 10 + digit;
+                
+                if (newNumber <= 99) {
+                    currentNumber = newNumber;
+                    updateDisplay();
+                }
+            });
+        });
+        
+        // Reset function to call when starting new problem
+        function resetNumberPad() {
+            currentNumber = 0;
+            updateDisplay();
+        }
+        
+        // Make reset function available globally
+        window.resetMobileNumberPad = resetNumberPad;
+        
+        // Initialize
+        updateDisplay();
+        
+        console.log('Mobile number pad initialized');
+    }
+    
+    // Function to get current answer from appropriate source
+    function getCurrentAnswer() {
+        const subAnswerInput = document.getElementById('subAnswer');
+        if (window.innerWidth <= 768 && document.querySelector('.mobile-number-pad')) {
+            // Mobile: get from number pad (already synced to input)
+            return subAnswerInput ? parseInt(subAnswerInput.value) || 0 : 0;
+        } else {
+            // Desktop: get from input field directly
+            return subAnswerInput ? parseInt(subAnswerInput.value) || 0 : 0;
+        }
+    }
     
     // ===== CORE FUNCTIONS =====
     function generateProblem() {
@@ -86,7 +179,16 @@ document.addEventListener('DOMContentLoaded', function() {
         clearAllFeedback();
         subAnswerInput.value = '';
         subAnswerInput.disabled = false;
-        subAnswerInput.focus();
+        
+        // Reset mobile number pad if it exists
+        if (typeof window.resetMobileNumberPad === 'function') {
+            window.resetMobileNumberPad();
+        }
+        
+        // Focus on input (desktop) or ensure mobile number pad is visible
+        if (window.innerWidth > 768) {
+            subAnswerInput.focus();
+        }
         
         // Update the main action button to "Submit Answer"
         updateMainButton();
@@ -522,8 +624,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         subContainer.appendChild(subDisplay);
         
-        // REMOVED: Instructions section completely
-        
         subProblemDiv.appendChild(subContainer);
         
         // If column hasn't been answered yet, animate values from main to current
@@ -584,9 +684,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Modify checkSubAnswer to remove button state changes:
+    // Modified checkSubAnswer to use getCurrentAnswer()
     async function checkSubAnswer() {
-        const userAnswer = parseInt(subAnswerInput.value);
+        const userAnswer = getCurrentAnswer();
         
         if (isNaN(userAnswer)) {
             showSubFeedback('Please enter a valid number', 'incorrect');
@@ -660,7 +760,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Modify nextColumn function:
+    // Modified nextColumn function:
     function nextColumn() {
         const nextCol = getNextColumn();
         if (nextCol) {
@@ -669,7 +769,17 @@ document.addEventListener('DOMContentLoaded', function() {
             subAnswerInput.disabled = false;
             renderMainGrid();
             renderSubProblem();
-            subAnswerInput.focus();
+            
+            // Reset mobile number pad if it exists
+            if (typeof window.resetMobileNumberPad === 'function') {
+                window.resetMobileNumberPad();
+            }
+            
+            // Focus on input (desktop) or ensure mobile number pad is visible
+            if (window.innerWidth > 768) {
+                subAnswerInput.focus();
+            }
+            
             clearSubFeedback();
             updateMainButton();
         }
@@ -750,11 +860,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // ===== EVENT LISTENERS =====
     
-    // ===== EVENT LISTENERS =====
-    
-    // Enter key in subAnswer input
+    // Enter key in subAnswer input (desktop only)
     subAnswerInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
+        if (e.key === 'Enter' && window.innerWidth > 768) {
             const currentColData = currentProblem.columns.find(c => c.column === currentColumn);
             if (currentColData && !currentColData.answered) {
                 checkSubAnswer();
@@ -764,7 +872,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     resetScoresBtn.addEventListener('click', resetScores);
     
-    // Initialize
+    // Initialize mobile number pad and game
+    initMobileNumberPad();
     loadScores();
     generateProblem();
+    
+    // Re-initialize mobile number pad on resize (in case user rotates device)
+    window.addEventListener('resize', function() {
+        // Debounce to avoid too many calls
+        clearTimeout(this.resizeTimer);
+        this.resizeTimer = setTimeout(initMobileNumberPad, 250);
+    });
 });
