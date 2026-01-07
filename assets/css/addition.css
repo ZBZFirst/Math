@@ -420,24 +420,26 @@
     gap: 0.8rem;
     width: 100%;
     justify-content: center;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
 }
 
 /* Base button style */
 .number-btn {
-    padding: 1rem 1.5rem;
+    padding: 0.8rem 0.5rem; /* Reduce padding, especially horizontal */
     font-size: 1.2rem;
     font-weight: bold;
     border: none;
     border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s;
-    min-width: 80px;
+    flex: 1; /* Make buttons grow/shrink equally */
+    min-width: 0; /* Allow shrinking below content size */
     display: flex;
     align-items: center;
     justify-content: center;
     user-select: none;
     color: white;
+    white-space: nowrap; /* Prevent text wrapping inside button */
 }
 
 .number-btn:active {
