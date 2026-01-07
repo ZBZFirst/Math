@@ -653,123 +653,155 @@
     }
 }
 
-/* For tablets and smaller */
+/* ==================== MOBILE UI FIXES ==================== */
+
+/* For all mobile devices */
 @media (max-width: 768px) {
-    .score-stats {
-        gap: 0.8rem;
+    /* Reduce overall spacing */
+    .addition-container {
+        padding: 0.25rem;
     }
     
-    .stat {
-        min-width: 130px;
+    .dual-container {
+        gap: 0.75rem;
+        margin: 0.5rem auto;
     }
     
-    /* ADD: Better touch targets for mobile */
-    #subAnswer {
-        font-size: 1.8rem; /* Larger for touch */
-        padding: 1rem; /* More padding for easier tapping */
+    /* Make containers much shorter to fit both */
+    .main-problem-container,
+    .sub-problem-container {
+        height: auto;
+        min-height: 280px !important; /* Reduced from 400px */
+        max-height: 300px; /* Limit maximum height */
+        flex: 0 0 auto; /* Don't grow, use auto height */
     }
     
-    .combined-action-btn {
-        font-size: 1.2rem;
-        padding: 1.2rem;
-    }
-    
-    /* ADD: Reduce grid size for tablets */
+    /* Make problem grid smaller */
     .problem-grid {
-        grid-template-columns: 35px repeat(3, minmax(50px, 1fr));
-        grid-template-rows: repeat(5, 45px);
+        grid-template-columns: 30px repeat(3, minmax(45px, 1fr));
+        grid-template-rows: repeat(5, 40px);
         gap: 1px;
+        max-width: 350px;
     }
     
     .grid-cell {
-        font-size: 1.4rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .score-stats {
-        flex-direction: column;
-        align-items: center;
+        font-size: 1.3rem;
     }
     
-    .stat {
-        width: 100%;
-        max-width: 280px;
+    /* Reduce padding in containers */
+    .main-problem-container,
+    .sub-problem-container {
+        padding: 0.5rem;
     }
     
-    /* ADD: Even better mobile adjustments */
-    .dual-container {
-        gap: 1rem; /* Reduce gap between containers */
-    }
-    
+    /* Make headers smaller and less sticky */
     .main-problem-container h3,
     .sub-problem-container h3 {
-        font-size: 1.1rem;
-        padding: 0.5rem;
+        font-size: 1rem;
+        padding: 0.3rem;
         margin-bottom: 0.5rem;
-    }
-}
-
-/* Media queries for very small screens */
-@media (max-width: 360px) {
-    .problem-grid {
-        grid-template-columns: 30px repeat(3, minmax(40px, 1fr)); /* Even smaller */
-        grid-template-rows: repeat(5, 35px); /* Even smaller */
+        position: static; /* Remove sticky on mobile */
+        border-bottom-width: 1px;
     }
     
-    .grid-cell {
-        font-size: 1.1rem; /* Smaller font */
-    }
-    
+    /* Reduce sub-problem element sizes */
     .sub-number, .sub-answer, .sub-answer-placeholder {
-        font-size: 1.4rem; /* Smaller */
-        min-width: 35px; /* Smaller */
-        padding: 0.2rem 0.5rem; /* Less padding */
+        font-size: 1.6rem;
+        min-width: 35px;
+        padding: 0.2rem 0.5rem;
     }
     
     .sub-carry-value {
-        font-size: 1.1rem; /* Smaller */
-        padding: 0.2rem 0.5rem; /* Less padding */
+        font-size: 1.2rem;
+        padding: 0.2rem 0.5rem;
+    }
+    
+    /* Adjust input area */
+    .sub-input-container {
+        margin-top: 0.5rem;
+        gap: 0.5rem;
+        padding: 0;
     }
     
     #subAnswer {
-        font-size: 1.4rem; /* Smaller but still readable */
-        padding: 0.8rem; /* Keep good touch area */
-        max-width: 160px; /* Smaller */
+        font-size: 1.6rem;
+        padding: 0.6rem;
+        max-width: 150px;
     }
     
     .combined-action-btn {
         padding: 0.8rem;
         font-size: 1rem;
-        max-width: 220px; /* Smaller */
+        max-width: 180px;
     }
     
-    /* Adjust stats for very small screens */
-    .stat {
-        min-width: 110px; /* Smaller */
-        padding: 0.6rem; /* Less padding */
+    /* Reduce feedback areas */
+    .sub-feedback {
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+        min-height: 40px;
+        font-size: 0.9rem;
+        max-width: 200px;
     }
     
-    .stat-value {
-        font-size: 1.3rem; /* Smaller */
+    .feedback {
+        margin: 0.5rem auto;
+        padding: 0.5rem;
+        min-height: 40px;
+        font-size: 0.9rem;
     }
-    
-    /* ADD: Container padding adjustments */
+}
+
+/* Specifically for 360-479px range (your problematic range) */
+@media (min-width: 360px) and (max-width: 479px) {
+    /* Even more compact for this specific range */
     .main-problem-container,
     .sub-problem-container {
-        padding: 0.5rem; /* Less padding */
-        min-height: 350px; /* Smaller minimum height */
+        min-height: 260px !important; /* Even shorter */
+        max-height: 280px;
     }
     
-    /* ADD: Title adjustments */
+    .problem-grid {
+        grid-template-columns: 28px repeat(3, minmax(42px, 1fr));
+        grid-template-rows: repeat(5, 38px);
+    }
+    
+    .grid-cell {
+        font-size: 1.2rem;
+    }
+    
+    /* Title adjustments */
     .page-title {
-        font-size: 1.3rem; /* Smaller */
-        margin-bottom: 0.3rem;
+        font-size: 1.4rem;
+        margin-bottom: 0.2rem;
     }
     
     .page-description {
-        font-size: 0.9rem; /* Smaller */
-        line-height: 1.2;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Make sure both containers fit in viewport when keyboard is NOT open */
+    .dual-container {
+        min-height: calc(100vh - 250px); /* Reserve space for header/footer */
+    }
+}
+
+/* For very small screens (< 360px) */
+@media (max-width: 359px) {
+    .main-problem-container,
+    .sub-problem-container {
+        min-height: 240px !important;
+        max-height: 260px;
+    }
+    
+    .problem-grid {
+        grid-template-columns: 25px repeat(3, minmax(38px, 1fr));
+        grid-template-rows: repeat(5, 35px);
+    }
+    
+    .grid-cell {
+        font-size: 1.1rem;
     }
 }
 
