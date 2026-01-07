@@ -361,7 +361,7 @@
     margin: 0.5rem 0;
 }
 
-/* Sub-Input Container - UPDATED FOR DESKTOP */
+/* ===== SIMPLE NUMBER CONTROLS FOR ALL SCREENS ===== */
 .sub-input-container {
     margin-top: 1rem;
     display: flex;
@@ -372,32 +372,108 @@
     padding: 0 0.5rem;
 }
 
-/* DESKTOP: Regular input field */
+/* Hide regular input field (we use our own display) */
 #subAnswer {
-    padding: 0.8rem;
-    font-size: 1.8rem;
+    display: none !important;
+}
+
+/* Simple number controls container */
+.simple-number-controls {
     width: 100%;
-    max-width: 200px;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem;
+}
+
+/* Number display */
+.number-display {
+    width: 100%;
     text-align: center;
-    border: 3px solid #4a6491;
-    border-radius: 10px;
+    margin-bottom: 0.5rem;
+}
+
+#currentNumber {
+    display: inline-block;
+    font-size: 3rem;
     font-weight: bold;
-    background: #f8f9fa;
-    transition: all 0.3s;
+    color: #1565c0;
+    background: #e3f2fd;
+    padding: 0.5rem 2rem;
+    border-radius: 12px;
+    border: 3px solid #2196f3;
+    min-width: 120px;
+    min-height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
 }
 
-#subAnswer:focus {
-    outline: none;
-    border-color: #2196f3;
-    box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.3);
-    background: white;
-    transform: scale(1.02);
+/* Number buttons container */
+.number-buttons {
+    display: flex;
+    gap: 0.8rem;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
-#subAnswer:disabled {
+/* Base button style */
+.number-btn {
+    padding: 1rem 1.5rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    color: white;
+}
+
+.number-btn:active {
+    transform: scale(0.95);
+}
+
+/* Specific button colors */
+.number-btn.decrement {
+    background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+}
+
+.number-btn.decrement:hover:not(:disabled) {
+    background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%);
+    box-shadow: 0 4px 8px rgba(244, 67, 54, 0.3);
+}
+
+.number-btn.increment {
+    background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+}
+
+.number-btn.increment:hover:not(:disabled) {
+    background: linear-gradient(135deg, #388e3c 0%, #2e7d32 100%);
+    box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+}
+
+.number-btn.clear {
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+}
+
+.number-btn.clear:hover:not(:disabled) {
+    background: linear-gradient(135deg, #f57c00 0%, #ef6c00 100%);
+    box-shadow: 0 4px 8px rgba(255, 152, 0, 0.3);
+}
+
+.number-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-    background: #e9ecef;
+    transform: none !important;
 }
 
 /* Combined Action Button */
@@ -672,9 +748,17 @@
         padding: 0.2rem 0.6rem;
     }
     
-    /* MOBILE: Hide regular input, show number pad */
-    #subAnswer {
-        display: none; /* Hide on mobile */
+    /* Number display adjustments */
+    #currentNumber {
+        font-size: 2.5rem;
+        padding: 0.4rem 1.5rem;
+        min-height: 60px;
+    }
+    
+    .number-btn {
+        padding: 0.9rem 1.2rem;
+        font-size: 1rem;
+        min-width: 70px;
     }
     
     .combined-action-btn {
@@ -713,110 +797,6 @@
         position: static; /* Remove sticky on mobile */
     }
     
-    /* MOBILE NUMBER PAD */
-    .mobile-number-pad {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
-        margin-top: 0.5rem;
-    }
-    
-    .number-display {
-        font-size: 2.5rem;
-        font-weight: bold;
-        color: #1565c0;
-        background: #e3f2fd;
-        padding: 0.5rem 1.5rem;
-        border-radius: 10px;
-        border: 3px solid #2196f3;
-        margin-bottom: 0.75rem;
-        min-width: 100px;
-        text-align: center;
-        min-height: 60px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .number-controls {
-        display: flex;
-        gap: 0.5rem;
-        margin-bottom: 0.75rem;
-    }
-    
-    .number-btn {
-        width: 50px;
-        height: 50px;
-        font-size: 1.5rem;
-        font-weight: bold;
-        border: none;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
-        color: white;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s;
-        user-select: none;
-    }
-    
-    .number-btn:active {
-        transform: scale(0.95);
-        background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
-    }
-    
-    .number-btn.clear {
-        background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
-    }
-    
-    .number-btn.clear:active {
-        background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%);
-    }
-    
-    .digit-buttons {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 0.4rem;
-        width: 100%;
-        max-width: 280px;
-        margin-top: 0.5rem;
-    }
-    
-    .digit-btn {
-        width: 100%;
-        height: 45px;
-        font-size: 1.3rem;
-        font-weight: bold;
-        border: none;
-        border-radius: 8px;
-        background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
-        color: white;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s;
-        user-select: none;
-    }
-    
-    .digit-btn:active {
-        transform: scale(0.95);
-        background: linear-gradient(135deg, #388e3c 0%, #2e7d32 100%);
-    }
-    
-    .digit-btn.zero {
-        grid-column: span 2;
-    }
-    
-    /* Update combined button */
-    .combined-action-btn {
-        margin-top: 0.75rem;
-        width: 100%;
-        max-width: 280px;
-    }
-    
     /* Score stats - stack vertically */
     .score-stats {
         flex-direction: column;
@@ -847,29 +827,6 @@
         font-size: 1.2rem;
     }
     
-    /* Smaller number pad */
-    .number-display {
-        font-size: 2.2rem;
-        padding: 0.4rem 1.2rem;
-        min-height: 55px;
-    }
-    
-    .number-btn {
-        width: 45px;
-        height: 45px;
-        font-size: 1.3rem;
-    }
-    
-    .digit-btn {
-        height: 40px;
-        font-size: 1.2rem;
-    }
-    
-    .digit-buttons {
-        max-width: 250px;
-        gap: 0.3rem;
-    }
-    
     /* Adjust sub-problem elements */
     .sub-number, .sub-answer, .sub-answer-placeholder {
         font-size: 1.5rem;
@@ -880,6 +837,29 @@
     .sub-carry-value {
         font-size: 1.2rem;
         padding: 0.2rem 0.5rem;
+    }
+    
+    /* Smaller controls */
+    #currentNumber {
+        font-size: 2.2rem;
+        padding: 0.4rem 1.2rem;
+        min-height: 55px;
+    }
+    
+    .number-buttons {
+        gap: 0.5rem;
+    }
+    
+    .number-btn {
+        padding: 0.8rem 1rem;
+        font-size: 0.9rem;
+        min-width: 60px;
+    }
+    
+    .combined-action-btn {
+        padding: 0.8rem;
+        font-size: 0.9rem;
+        max-width: 250px;
     }
 }
 
@@ -895,20 +875,27 @@
         font-size: 1.1rem;
     }
     
-    /* Even smaller number pad */
-    .digit-buttons {
-        grid-template-columns: repeat(4, 1fr);
-        max-width: 220px;
-    }
-    
-    .digit-btn.zero {
-        grid-column: span 2;
-    }
-    
-    .number-display {
+    /* Even smaller controls */
+    #currentNumber {
         font-size: 2rem;
         padding: 0.3rem 1rem;
         min-height: 50px;
+    }
+    
+    .number-buttons {
+        gap: 0.3rem;
+    }
+    
+    .number-btn {
+        padding: 0.7rem 0.8rem;
+        font-size: 0.85rem;
+        min-width: 55px;
+    }
+    
+    .combined-action-btn {
+        padding: 0.7rem;
+        font-size: 0.85rem;
+        max-width: 220px;
     }
     
     .sub-problem-display {
@@ -916,31 +903,9 @@
     }
 }
 
-/* Desktop Only: Show regular input */
-@media (min-width: 769px) {
-    .mobile-number-pad {
-        display: none !important;
-    }
-    
-    #subAnswer {
-        display: block !important;
-    }
-}
-
-/* Mobile Only: Show number pad */
-@media (max-width: 768px) {
-    .mobile-number-pad {
-        display: flex;
-    }
-    
-    #subAnswer {
-        display: none;
-    }
-    
-    /* Hide input label if present */
-    .sub-input-container label {
-        display: none;
-    }
+/* Remove old mobile number pad styles */
+.mobile-number-pad {
+    display: none !important;
 }
 
 /* Animation classes */
