@@ -1,4 +1,4 @@
-// Addition Practice with Dual Container System - ANIMATED VERSION (FIXED)
+// Addition Practice with Dual Container System - ANIMATED VERSION (FIXED) 
 
 document.addEventListener('DOMContentLoaded', function() {
     // State management
