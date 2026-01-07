@@ -236,7 +236,7 @@
     border: 2px solid #e0e0e0;
     display: flex;
     flex-direction: column;
-    align-items: center; /* Add this to center children horizontally */
+    align-items: center;
 }
 
 .sub-problem-container h3 {
@@ -252,15 +252,7 @@
     z-index: 10;
 }
 
-/* Sub-Problem Display (side-by-side) */
-.sub-problem-container-inner {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5rem; /* Increased gap since instructions removed */
-    padding: 0.5rem;
-}
-
+/* Sub-Problem Display */
 .sub-problem-display {
     display: flex;
     flex-direction: column;
@@ -268,7 +260,7 @@
     gap: 0.5rem;
     width: 100%;
     max-width: 280px;
-    margin-top: 1rem; /* Added margin since instructions removed */
+    margin-top: 1rem;
 }
 
 /* Side-by-side numbers row */
@@ -369,12 +361,7 @@
     margin: 0.5rem 0;
 }
 
-/* REMOVED: Sub-Problem Instructions section */
-.sub-instructions {
-    display: none; /* Completely hide instructions */
-}
-
-/* Sub-Input Container */
+/* Sub-Input Container - UPDATED FOR DESKTOP */
 .sub-input-container {
     margin-top: 1rem;
     display: flex;
@@ -385,6 +372,7 @@
     padding: 0 0.5rem;
 }
 
+/* DESKTOP: Regular input field */
 #subAnswer {
     padding: 0.8rem;
     font-size: 1.8rem;
@@ -503,10 +491,10 @@
 
 /* Simple Controls - Hide the old New Problem button */
 .simple-controls {
-    display: none; /* Hide since we have the combined button */
+    display: none;
 }
 
-/* Ratio Container - Fixed score display */
+/* Ratio Container */
 .container.ratio-container {
     margin-top: 2rem;
     padding: 1.5rem;
@@ -528,7 +516,7 @@
     display: inline-block;
 }
 
-/* Score Stats - Responsive layout */
+/* Score Stats */
 .score-stats {
     display: flex;
     flex-wrap: wrap;
@@ -537,7 +525,6 @@
     margin-bottom: 1.5rem;
 }
 
-/* Individual stat items */
 .stat {
     background: #f8f9fa;
     padding: 1rem;
@@ -605,11 +592,6 @@
     color: #6a1b9a;
 }
 
-/* Remove old button styles */
-.sub-buttons {
-    display: none;
-}
-
 /* Reset Scores Button */
 #resetScores {
     padding: 0.8rem 1.5rem;
@@ -631,82 +613,266 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Ensure no horizontal scrolling on mobile */
-@media (max-width: 1024px) {
-    .addition-container {
-        padding: 0.5rem;
-    }
-    
-    .main-problem-container,
-    .sub-problem-container {
-        padding: 0.8rem;
-        height: auto; /* ADD THIS - Remove fixed height */
-        min-height: 400px; /* ADD THIS - Set minimum instead of fixed */
-    }
-    
-    .page-title {
-        font-size: 1.5rem;
-    }
-    
-    .page-description {
-        font-size: 1rem;
-    }
-}
-
-/* ==================== MOBILE UI FIXES ==================== */
-
-/* For all mobile devices */
-@media (max-width: 768px) {
-    /* Reduce overall spacing */
+/* ==================== MOBILE OPTIMIZATIONS ==================== */
+/* Tablet and Below (≤1023px) */
+@media (max-width: 1023px) {
     .addition-container {
         padding: 0.25rem;
     }
     
+    .container.title-container {
+        margin-bottom: 1rem;
+        padding: 0.75rem;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+        margin-bottom: 0.3rem;
+    }
+    
+    .page-description {
+        font-size: 0.95rem;
+        line-height: 1.3;
+    }
+    
     .dual-container {
-        gap: 0.75rem;
+        gap: 1rem;
         margin: 0.5rem auto;
     }
     
-    /* Make containers much shorter to fit both */
+    /* Make containers compact */
     .main-problem-container,
     .sub-problem-container {
         height: auto;
-        min-height: 280px !important; /* Reduced from 400px */
-        max-height: 300px; /* Limit maximum height */
-        flex: 0 0 auto; /* Don't grow, use auto height */
+        min-height: 320px;
+        padding: 0.75rem;
     }
     
-    /* Make problem grid smaller */
+    /* Reduce grid size */
     .problem-grid {
-        grid-template-columns: 30px repeat(3, minmax(45px, 1fr));
+        grid-template-columns: 35px repeat(3, minmax(45px, 1fr));
         grid-template-rows: repeat(5, 40px);
         gap: 1px;
-        max-width: 350px;
+        max-width: 320px;
     }
     
     .grid-cell {
         font-size: 1.3rem;
     }
     
-    /* Reduce padding in containers */
+    /* Sub-problem adjustments */
+    .sub-number, .sub-answer, .sub-answer-placeholder {
+        font-size: 1.6rem;
+        min-width: 40px;
+        padding: 0.2rem 0.6rem;
+    }
+    
+    .sub-carry-value {
+        font-size: 1.3rem;
+        padding: 0.2rem 0.6rem;
+    }
+    
+    /* MOBILE: Hide regular input, show number pad */
+    #subAnswer {
+        display: none; /* Hide on mobile */
+    }
+    
+    .combined-action-btn {
+        padding: 0.9rem;
+        font-size: 1rem;
+        max-width: 250px;
+    }
+    
+    /* Score display adjustments */
+    .container.ratio-container {
+        margin-top: 1.5rem;
+        padding: 1rem;
+    }
+    
+    .score-stats {
+        gap: 0.75rem;
+    }
+    
+    .stat {
+        min-width: 110px;
+        padding: 0.75rem;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+    }
+}
+
+/* Mobile (≤768px) */
+@media (max-width: 768px) {
+    .main-problem-container h3,
+    .sub-problem-container h3 {
+        font-size: 1.1rem;
+        padding-bottom: 0.3rem;
+        margin-bottom: 0.75rem;
+        position: static; /* Remove sticky on mobile */
+    }
+    
+    /* MOBILE NUMBER PAD */
+    .mobile-number-pad {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+    
+    .number-display {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #1565c0;
+        background: #e3f2fd;
+        padding: 0.5rem 1.5rem;
+        border-radius: 10px;
+        border: 3px solid #2196f3;
+        margin-bottom: 0.75rem;
+        min-width: 100px;
+        text-align: center;
+        min-height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .number-controls {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .number-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        border: none;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        user-select: none;
+    }
+    
+    .number-btn:active {
+        transform: scale(0.95);
+        background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+    }
+    
+    .number-btn.clear {
+        background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+    }
+    
+    .number-btn.clear:active {
+        background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%);
+    }
+    
+    .digit-buttons {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 0.4rem;
+        width: 100%;
+        max-width: 280px;
+        margin-top: 0.5rem;
+    }
+    
+    .digit-btn {
+        width: 100%;
+        height: 45px;
+        font-size: 1.3rem;
+        font-weight: bold;
+        border: none;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        user-select: none;
+    }
+    
+    .digit-btn:active {
+        transform: scale(0.95);
+        background: linear-gradient(135deg, #388e3c 0%, #2e7d32 100%);
+    }
+    
+    .digit-btn.zero {
+        grid-column: span 2;
+    }
+    
+    /* Update combined button */
+    .combined-action-btn {
+        margin-top: 0.75rem;
+        width: 100%;
+        max-width: 280px;
+    }
+    
+    /* Score stats - stack vertically */
+    .score-stats {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .stat {
+        width: 100%;
+        max-width: 280px;
+    }
+}
+
+/* Small Mobile (≤480px) */
+@media (max-width: 480px) {
     .main-problem-container,
     .sub-problem-container {
+        min-height: 280px;
         padding: 0.5rem;
     }
     
-    /* Make headers smaller and less sticky */
-    .main-problem-container h3,
-    .sub-problem-container h3 {
-        font-size: 1rem;
-        padding: 0.3rem;
-        margin-bottom: 0.5rem;
-        position: static; /* Remove sticky on mobile */
-        border-bottom-width: 1px;
+    .problem-grid {
+        grid-template-columns: 30px repeat(3, minmax(40px, 1fr));
+        grid-template-rows: repeat(5, 35px);
+        max-width: 280px;
     }
     
-    /* Reduce sub-problem element sizes */
+    .grid-cell {
+        font-size: 1.2rem;
+    }
+    
+    /* Smaller number pad */
+    .number-display {
+        font-size: 2.2rem;
+        padding: 0.4rem 1.2rem;
+        min-height: 55px;
+    }
+    
+    .number-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 1.3rem;
+    }
+    
+    .digit-btn {
+        height: 40px;
+        font-size: 1.2rem;
+    }
+    
+    .digit-buttons {
+        max-width: 250px;
+        gap: 0.3rem;
+    }
+    
+    /* Adjust sub-problem elements */
     .sub-number, .sub-answer, .sub-answer-placeholder {
-        font-size: 1.6rem;
+        font-size: 1.5rem;
         min-width: 35px;
         padding: 0.2rem 0.5rem;
     }
@@ -715,107 +881,69 @@
         font-size: 1.2rem;
         padding: 0.2rem 0.5rem;
     }
-    
-    /* Adjust input area */
-    .sub-input-container {
-        margin-top: 0.5rem;
-        gap: 0.5rem;
-        padding: 0;
-    }
-    
-    #subAnswer {
-        font-size: 1.6rem;
-        padding: 0.6rem;
-        max-width: 150px;
-    }
-    
-    .combined-action-btn {
-        padding: 0.8rem;
-        font-size: 1rem;
-        max-width: 180px;
-    }
-    
-    /* Reduce feedback areas */
-    .sub-feedback {
-        margin-top: 0.5rem;
-        padding: 0.5rem;
-        min-height: 40px;
-        font-size: 0.9rem;
-        max-width: 200px;
-    }
-    
-    .feedback {
-        margin: 0.5rem auto;
-        padding: 0.5rem;
-        min-height: 40px;
-        font-size: 0.9rem;
-    }
 }
 
-/* Specifically for 360-479px range (your problematic range) */
-@media (min-width: 360px) and (max-width: 479px) {
-    /* Even more compact for this specific range */
-    .main-problem-container,
-    .sub-problem-container {
-        min-height: 260px !important; /* Even shorter */
-        max-height: 280px;
-    }
-    
+/* Extra Small Mobile (≤360px) */
+@media (max-width: 360px) {
     .problem-grid {
-        grid-template-columns: 28px repeat(3, minmax(42px, 1fr));
-        grid-template-rows: repeat(5, 38px);
-    }
-    
-    .grid-cell {
-        font-size: 1.2rem;
-    }
-    
-    /* Title adjustments */
-    .page-title {
-        font-size: 1.4rem;
-        margin-bottom: 0.2rem;
-    }
-    
-    .page-description {
-        font-size: 0.9rem;
-        margin-bottom: 0.5rem;
-    }
-    
-    /* Make sure both containers fit in viewport when keyboard is NOT open */
-    .dual-container {
-        min-height: calc(100vh - 250px); /* Reserve space for header/footer */
-    }
-}
-
-/* For very small screens (< 360px) */
-@media (max-width: 359px) {
-    .main-problem-container,
-    .sub-problem-container {
-        min-height: 240px !important;
-        max-height: 260px;
-    }
-    
-    .problem-grid {
-        grid-template-columns: 25px repeat(3, minmax(38px, 1fr));
-        grid-template-rows: repeat(5, 35px);
+        grid-template-columns: 28px repeat(3, minmax(35px, 1fr));
+        grid-template-rows: repeat(5, 32px);
+        max-width: 240px;
     }
     
     .grid-cell {
         font-size: 1.1rem;
     }
-}
-
-/* ADD: Prevent text zoom on mobile input focus */
-@media (max-width: 768px) {
-    #subAnswer {
-        font-size: 16px; /* Prevent iOS zoom */
+    
+    /* Even smaller number pad */
+    .digit-buttons {
+        grid-template-columns: repeat(4, 1fr);
+        max-width: 220px;
     }
     
-    input, select, textarea {
-        font-size: 16px; /* Prevent iOS zoom on all inputs */
+    .digit-btn.zero {
+        grid-column: span 2;
+    }
+    
+    .number-display {
+        font-size: 2rem;
+        padding: 0.3rem 1rem;
+        min-height: 50px;
+    }
+    
+    .sub-problem-display {
+        max-width: 220px;
     }
 }
 
+/* Desktop Only: Show regular input */
+@media (min-width: 769px) {
+    .mobile-number-pad {
+        display: none !important;
+    }
+    
+    #subAnswer {
+        display: block !important;
+    }
+}
+
+/* Mobile Only: Show number pad */
+@media (max-width: 768px) {
+    .mobile-number-pad {
+        display: flex;
+    }
+    
+    #subAnswer {
+        display: none;
+    }
+    
+    /* Hide input label if present */
+    .sub-input-container label {
+        display: none;
+    }
+}
+
+/* Animation classes */
 @keyframes dropIn {
     0% {
         transform: translateY(-20px);
@@ -827,14 +955,12 @@
     }
 }
 
-/* Highlight pulse for source */
 @keyframes sourcePulse {
     0% { box-shadow: 0 0 0 0 rgba(33, 150, 243, 0.7); }
     70% { box-shadow: 0 0 0 10px rgba(33, 150, 243, 0); }
     100% { box-shadow: 0 0 0 0 rgba(33, 150, 243, 0); }
 }
 
-/* Animation classes */
 .animate-source {
     animation: sourcePulse 1s ease;
     z-index: 10;
@@ -844,19 +970,7 @@
     animation: dropIn 0.5s ease forwards;
 }
 
-/* Ensure proper alignment of active column */
-.grid-cell.active-column {
-    z-index: 2;
-    position: relative;
-}
-
-/* Fix for strikethrough in carry cells */
-.grid-cell.carry-cell span {
-    display: inline-block;
-    padding: 2px;
-}
-
-/* Scrollbar styling for containers */
+/* Scrollbar styling */
 .main-problem-container::-webkit-scrollbar,
 .sub-problem-container::-webkit-scrollbar {
     width: 6px;
@@ -877,33 +991,4 @@
 .main-problem-container::-webkit-scrollbar-thumb:hover,
 .sub-problem-container::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
-}
-
-/* Create hidden elements that show at different breakpoints */
-.debug-breakpoint::after {
-    content: 'Desktop (≥1024px)';
-}
-
-@media (max-width: 1023px) {
-    .debug-breakpoint::after {
-        content: 'Tablet (768-1023px)';
-    }
-}
-
-@media (max-width: 767px) {
-    .debug-breakpoint::after {
-        content: 'Mobile (480-767px)';
-    }
-}
-
-@media (max-width: 479px) {
-    .debug-breakpoint::after {
-        content: 'Mobile (360-479px)';
-    }
-}
-
-@media (max-width: 359px) {
-    .debug-breakpoint::after {
-        content: 'Mobile (<360px)';
-    }
 }
