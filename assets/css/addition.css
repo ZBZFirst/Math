@@ -846,3 +846,32 @@
 .sub-problem-container::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
 }
+
+/* Create hidden elements that show at different breakpoints */
+.debug-breakpoint::after {
+    content: 'Desktop (≥1024px)';
+}
+
+@media (max-width: 1023px) {
+    .debug-breakpoint::after {
+        content: 'Tablet (768-1023px)';
+    }
+}
+
+@media (max-width: 767px) {
+    .debug-breakpoint::after {
+        content: 'Mobile (480-767px)';
+    }
+}
+
+@media (max-width: 479px) {
+    .debug-breakpoint::after {
+        content: 'Mobile (360-479px)';
+    }
+}
+
+@media (max-width: 359px) {
+    .debug-breakpoint::after {
+        content: 'Mobile (<360px)';
+    }
+}
