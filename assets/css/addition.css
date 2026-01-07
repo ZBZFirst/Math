@@ -50,9 +50,11 @@
 .sub-problem-container {
     flex: 1;
     min-width: 0; /* Prevents flex items from overflowing */
-    height: 550px;
     display: flex;
-    flex-direction: column; /* Allow internal scrolling if needed */
+    flex-direction: column;
+    min-height: 400px; /* Minimum height for consistency */
+    max-height: 650px; /* Maximum height to prevent getting too tall */
+    overflow-y: auto; /* Allow scrolling if content exceeds */
 }
 
 @media (min-width: 1024px) {
