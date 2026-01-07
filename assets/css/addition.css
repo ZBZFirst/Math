@@ -50,7 +50,7 @@
 .sub-problem-container {
     flex: 1;
     min-width: 0; /* Prevents flex items from overflowing */
-    height: 500px;
+    height: 550px;
     display: flex;
     flex-direction: column; /* Allow internal scrolling if needed */
 }
