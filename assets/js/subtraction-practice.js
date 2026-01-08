@@ -1,28 +1,77 @@
-// Subtraction Practice with Borrowing Decision Process - FIXED VERSION
+// Subtraction Practice with Borrowing Decision Process - SIMPLIFIED WORKING VERSION
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Subtraction Practice: Initializing...');
+    console.log('Subtraction Practice: Script loaded successfully');
     
-    // Check for required elements
-    const requiredElements = ['problemGrid', 'stage1', 'stage2', 'stage3', 'stage4', 
-                             'stage1TopDigit', 'stage1BottomDigit', 'comparisonHint',
-                             'currentColumnDisplay', 'leftColumnDisplay', 'zeroWarning',
-                             'stage2Question', 'allColumnsDisplay', 'sourceOptions',
-                             'subProblemDisplay', 'currentNumber', 'submitComputation',
-                             'newProblem', 'resetScores', 'subFeedback'];
+    // Initialize immediately
+    initialize();
     
-    requiredElements.forEach(id => {
-        if (!document.getElementById(id)) {
-            console.error(`Missing required element: #${id}`);
+    function initialize() {
+        console.log('Initializing subtraction practice...');
+        
+        // First, set up ALL event listeners
+        setupAllEventListeners();
+        
+        // Initialize number controls
+        initNumberControls();
+        
+        // Load scores
+        loadScores();
+        
+        // Generate first problem
+        generateSubtractionProblem();
+        
+        console.log('Initialization complete');
+    }
+    
+    // ===== EVENT LISTENER SETUP =====
+    
+    function setupAllEventListeners() {
+        console.log('Setting up event listeners...');
+        
+        // New Problem button
+        const newProblemBtn = document.getElementById('newProblem');
+        if (newProblemBtn) {
+            console.log('Found newProblem button');
+            newProblemBtn.addEventListener('click', generateSubtractionProblem);
+        } else {
+            console.error('Missing newProblem button');
         }
-    });
+        
+        // Reset Scores button
+        const resetScoresBtn = document.getElementById('resetScores');
+        if (resetScoresBtn) {
+            console.log('Found resetScores button');
+            resetScoresBtn.addEventListener('click', resetScores);
+        }
+        
+        // Submit Computation button
+        const submitComputationBtn = document.getElementById('submitComputation');
+        if (submitComputationBtn) {
+            console.log('Found submitComputation button');
+            submitComputationBtn.addEventListener('click', checkComputation);
+        }
+        
+        // Show All Steps button
+        const showAllStepsBtn = document.getElementById('showAllSteps');
+        if (showAllStepsBtn) {
+            showAllStepsBtn.addEventListener('click', function() {
+                const stages = document.querySelectorAll('.decision-stage');
+                stages.forEach(stage => {
+                    stage.style.display = stage.style.display === 'none' ? 'block' : 'none';
+                });
+            });
+        }
+        
+        console.log('Event listeners setup complete');
+    }
     
-    // State management
+    // ===== STATE MANAGEMENT =====
+    
     let currentProblem = null;
     let currentColumn = 'ones';
     let columns = ['ones', 'tens', 'hundreds'];
     let currentStage = 1;
     
-    // Scores tracking
     let scores = {
         total: 0,
         correct: 0,
@@ -35,7 +84,6 @@ document.addEventListener('DOMContentLoaded', function() {
         computations: { correct: 0, total: 0 }
     };
     
-    // Borrowing decision state
     let borrowingDecision = {
         stage1: { userAnswer: null, correctAnswer: null },
         stage2: { userAnswer: null, correctAnswer: null },
@@ -43,77 +91,6 @@ document.addEventListener('DOMContentLoaded', function() {
         selectedSource: null,
         borrowingChain: []
     };
-    
-    // DOM elements (with null checks)
-    const problemGrid = document.getElementById('problemGrid');
-    const subFeedbackDiv = document.getElementById('subFeedback');
-    const newProblemBtn = document.getElementById('newProblem');
-    const resetScoresBtn = document.getElementById('resetScores');
-    
-    // Stage elements
-    const stage1 = document.getElementById('stage1');
-    const stage2 = document.getElementById('stage2');
-    const stage3 = document.getElementById('stage3');
-    const stage4 = document.getElementById('stage4');
-    
-    // Stage 1 elements
-    const stage1TopDigit = document.getElementById('stage1TopDigit');
-    const stage1BottomDigit = document.getElementById('stage1BottomDigit');
-    const comparisonHint = document.getElementById('comparisonHint');
-    
-    // Stage 2 elements
-    const currentColumnDisplay = document.getElementById('currentColumnDisplay');
-    const leftColumnDisplay = document.getElementById('leftColumnDisplay');
-    const zeroWarning = document.getElementById('zeroWarning');
-    const stage2Question = document.getElementById('stage2Question');
-    
-    // Stage 3 elements
-    const allColumnsDisplay = document.getElementById('allColumnsDisplay');
-    const sourceOptions = document.getElementById('sourceOptions');
-    
-    // Stage 4 elements
-    const subProblemDisplay = document.getElementById('subProblemDisplay');
-    const currentNumberEl = document.getElementById('currentNumber');
-    const submitComputationBtn = document.getElementById('submitComputation');
-    
-    // Score display elements
-    const correctCountEl = document.getElementById('correctCount');
-    const incorrectCountEl = document.getElementById('incorrectCount');
-    const totalCountEl = document.getElementById('totalCount');
-    const accuracyRateEl = document.getElementById('accuracyRate');
-    const step1CorrectEl = document.getElementById('step1Correct');
-    const step2CorrectEl = document.getElementById('step2Correct');
-    const step3CorrectEl = document.getElementById('step3Correct');
-    const computationCorrectEl = document.getElementById('computationCorrect');
-    
-    // ===== INITIALIZATION =====
-    
-    function initialize() {
-        console.log('Initializing subtraction practice...');
-        
-        // Initialize number controls
-        initNumberControls();
-        
-        // Load saved scores
-        loadScores();
-        
-        // Generate first problem
-        generateSubtractionProblem();
-        
-        // Set up event listeners
-        if (newProblemBtn) {
-            newProblemBtn.addEventListener('click', generateSubtractionProblem);
-        }
-        
-        if (resetScoresBtn) {
-            resetScoresBtn.addEventListener('click', resetScores);
-        }
-        
-        // Setup stage 1 button handlers
-        setupStage1ButtonHandlers();
-        
-        console.log('Initialization complete');
-    }
     
     // ===== PROBLEM GENERATION =====
     
@@ -124,8 +101,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Generate random 3-digit numbers ensuring num1 ≥ num2
         do {
-            num1 = Math.floor(Math.random() * 900) + 100; // 100-999
-            num2 = Math.floor(Math.random() * 900) + 100;
+            num1 = Math.floor(Math.random() * 400) + 100; // 100-499
+            num2 = Math.floor(Math.random() * 400) + 100;
         } while (num1 < num2);
         
         const answer = num1 - num2;
@@ -149,22 +126,16 @@ document.addEventListener('DOMContentLoaded', function() {
             answer: answer,
             num1Digits: num1Digits,
             num2Digits: num2Digits,
-            currentState: {
-                hundreds: { top: num1Digits.hundreds, bottom: num2Digits.hundreds },
-                tens: { top: num1Digits.tens, bottom: num2Digits.tens },
-                ones: { top: num1Digits.ones, bottom: num2Digits.ones }
-            },
-            columns: [],
-            completedColumns: 0
+            columns: []
         };
         
-        // Initialize columns array
+        // Initialize columns
         ['ones', 'tens', 'hundreds'].forEach(column => {
             currentProblem.columns.push({
                 column: column,
-                topOriginal: currentProblem.currentState[column].top,
-                bottom: currentProblem.currentState[column].bottom,
-                topCurrent: currentProblem.currentState[column].top,
+                topOriginal: num1Digits[column],
+                bottom: num2Digits[column],
+                topCurrent: num1Digits[column],
                 needsBorrow: null,
                 borrowed: false,
                 answer: null,
@@ -190,21 +161,25 @@ document.addEventListener('DOMContentLoaded', function() {
         clearFeedback();
         updateScoreDisplay();
         
-        console.log('New problem generated:', currentProblem);
+        console.log('New problem:', `${num1} - ${num2} = ${answer}`);
     }
     
     // ===== STAGE MANAGEMENT =====
     
     function setupStage1() {
-        console.log('Setting up stage 1');
+        console.log('Setting up Stage 1');
         const colData = getCurrentColumnData();
         if (!colData) return;
         
         // Update display
+        const stage1TopDigit = document.getElementById('stage1TopDigit');
+        const stage1BottomDigit = document.getElementById('stage1BottomDigit');
+        const comparisonHint = document.getElementById('comparisonHint');
+        
         if (stage1TopDigit) stage1TopDigit.textContent = colData.topCurrent;
         if (stage1BottomDigit) stage1BottomDigit.textContent = colData.bottom;
         
-        // Show comparison hint
+        // Determine if borrowing is needed
         const needsBorrow = colData.topCurrent < colData.bottom;
         if (comparisonHint) {
             comparisonHint.textContent = needsBorrow ? 
@@ -213,33 +188,42 @@ document.addEventListener('DOMContentLoaded', function() {
             comparisonHint.className = needsBorrow ? 'comparison-hint needs-borrow' : 'comparison-hint no-borrow';
         }
         
-        // Set correct answer for validation
+        // Store correct answer
         borrowingDecision.stage1.correctAnswer = needsBorrow;
         
-        // Show stage 1
+        // Show this stage
         showStage(1);
+        
+        // Setup button handlers for THIS stage only
+        setupStage1Buttons();
     }
     
-    function setupStage1ButtonHandlers() {
-        // Setup Yes/No buttons for stage 1
-        const stage1YesBtn = document.querySelector('#stage1 .btn-yes');
-        const stage1NoBtn = document.querySelector('#stage1 .btn-no');
+    function setupStage1Buttons() {
+        console.log('Setting up Stage 1 buttons');
         
-        if (stage1YesBtn) {
-            stage1YesBtn.onclick = function() {
+        // Remove any existing event listeners
+        const yesBtn = document.querySelector('#stage1 .btn-yes');
+        const noBtn = document.querySelector('#stage1 .btn-no');
+        
+        if (yesBtn) {
+            yesBtn.onclick = null; // Remove old listener
+            yesBtn.addEventListener('click', function() {
+                console.log('Stage 1: Yes clicked');
                 handleStage1Decision(true);
-            };
+            });
         }
         
-        if (stage1NoBtn) {
-            stage1NoBtn.onclick = function() {
+        if (noBtn) {
+            noBtn.onclick = null; // Remove old listener
+            noBtn.addEventListener('click', function() {
+                console.log('Stage 1: No clicked');
                 handleStage1Decision(false);
-            };
+            });
         }
     }
     
     function setupStage2() {
-        console.log('Setting up stage 2');
+        console.log('Setting up Stage 2');
         const colData = getCurrentColumnData();
         if (!colData) return;
         
@@ -247,6 +231,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const leftColData = leftColumn ? getColumnData(leftColumn) : null;
         
         // Update display
+        const currentColumnDisplay = document.getElementById('currentColumnDisplay');
+        const leftColumnDisplay = document.getElementById('leftColumnDisplay');
+        const stage2Question = document.getElementById('stage2Question');
+        const zeroWarning = document.getElementById('zeroWarning');
+        
         if (currentColumnDisplay) {
             currentColumnDisplay.textContent = `${capitalize(currentColumn)}: ${colData.topCurrent} - ${colData.bottom}`;
         }
@@ -254,12 +243,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (leftColumnDisplay && leftColData) {
             leftColumnDisplay.textContent = `${capitalize(leftColumn)}: ${leftColData.topCurrent} - ${leftColData.bottom}`;
             
-            // Update question text
             if (stage2Question) {
                 stage2Question.textContent = `Is there enough to borrow from the ${leftColumn} column?`;
             }
             
-            // Show/hide zero warning
             if (zeroWarning) {
                 if (leftColData.topCurrent === 0) {
                     zeroWarning.style.display = 'block';
@@ -269,116 +256,124 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             
-            // Set correct answer: enough if top ≥ 1
             borrowingDecision.stage2.correctAnswer = leftColData.topCurrent >= 1;
         }
         
-        // Setup stage 2 button handlers
-        const stage2YesBtn = document.querySelector('#stage2 .btn-yes');
-        const stage2NoBtn = document.querySelector('#stage2 .btn-no');
+        // Setup button handlers for this stage
+        setupStage2Buttons();
         
-        if (stage2YesBtn) {
-            stage2YesBtn.onclick = function() {
-                handleStage2Decision(true);
-            };
-        }
-        
-        if (stage2NoBtn) {
-            stage2NoBtn.onclick = function() {
-                handleStage2Decision(false);
-            };
-        }
-        
-        // Show stage 2
+        // Show this stage
         showStage(2);
     }
     
+    function setupStage2Buttons() {
+        console.log('Setting up Stage 2 buttons');
+        
+        const yesBtn = document.querySelector('#stage2 .btn-yes');
+        const noBtn = document.querySelector('#stage2 .btn-no');
+        
+        if (yesBtn) {
+            yesBtn.onclick = null;
+            yesBtn.addEventListener('click', function() {
+                console.log('Stage 2: Yes clicked');
+                handleStage2Decision(true);
+            });
+        }
+        
+        if (noBtn) {
+            noBtn.onclick = null;
+            noBtn.addEventListener('click', function() {
+                console.log('Stage 2: No clicked');
+                handleStage2Decision(false);
+            });
+        }
+    }
+    
     function setupStage3() {
-        console.log('Setting up stage 3');
+        console.log('Setting up Stage 3');
         const colData = getCurrentColumnData();
         if (!colData) return;
         
         // Display all columns
-        let columnsHtml = '';
-        for (const col of columns) {
-            const data = getColumnData(col);
-            columnsHtml += `<div class="context-column ${col === currentColumn ? 'current' : ''}">
-                <span class="column-name">${capitalize(col)}:</span>
-                <span class="column-digits">${data.topCurrent} - ${data.bottom}</span>
-            </div>`;
-        }
-        
+        const allColumnsDisplay = document.getElementById('allColumnsDisplay');
         if (allColumnsDisplay) {
+            let columnsHtml = '';
+            for (const col of columns) {
+                const data = getColumnData(col);
+                columnsHtml += `<div class="context-column ${col === currentColumn ? 'current' : ''}">
+                    <span class="column-name">${capitalize(col)}:</span>
+                    <span class="column-digits">${data.topCurrent} - ${data.bottom}</span>
+                </div>`;
+            }
             allColumnsDisplay.innerHTML = columnsHtml;
         }
         
-        // Find available sources
-        const availableSources = findAvailableSources();
-        
-        // Create source options
-        let optionsHtml = '';
-        
-        if (availableSources.length > 0) {
-            availableSources.forEach(source => {
-                const sourceData = getColumnData(source);
-                optionsHtml += `
-                <button class="source-option" data-source="${source}">
-                    ${capitalize(source)} column (${sourceData.topCurrent} - ${sourceData.bottom})
-                </button>`;
-            });
-        } else {
-            optionsHtml = '<div class="no-sources">No columns available for borrowing</div>';
-        }
-        
+        // Find and display available sources
+        const sourceOptions = document.getElementById('sourceOptions');
         if (sourceOptions) {
+            const availableSources = findAvailableSources();
+            let optionsHtml = '';
+            
+            if (availableSources.length > 0) {
+                availableSources.forEach(source => {
+                    const sourceData = getColumnData(source);
+                    optionsHtml += `
+                    <button class="source-option" data-source="${source}">
+                        ${capitalize(source)} column (${sourceData.topCurrent} - ${sourceData.bottom})
+                    </button>`;
+                });
+            } else {
+                optionsHtml = '<div class="no-sources">No columns available for borrowing</div>';
+            }
+            
             sourceOptions.innerHTML = optionsHtml;
             
-            // Add event listeners
+            // Setup source option buttons
             document.querySelectorAll('.source-option').forEach(btn => {
                 btn.onclick = function() {
+                    console.log('Stage 3: Source selected:', this.dataset.source);
                     handleStage3Decision(this.dataset.source);
                 };
             });
         }
         
-        // Show stage 3
+        // Show this stage
         showStage(3);
     }
     
     function setupStage4() {
-        console.log('Setting up stage 4');
+        console.log('Setting up Stage 4');
         const colData = getCurrentColumnData();
         if (!colData) return;
         
-        // Display the actual subtraction to compute
-        let displayHtml = '';
-        
-        if (colData.borrowed) {
-            // Show with borrowing indicator
-            displayHtml = `
-            <div class="sub-problem-with-borrow">
-                <div class="borrow-indicator">1</div>
+        // Display the subtraction problem
+        const subProblemDisplay = document.getElementById('subProblemDisplay');
+        if (subProblemDisplay) {
+            let displayHtml = '';
+            
+            if (colData.borrowed) {
+                displayHtml = `
+                <div class="sub-problem-with-borrow">
+                    <div class="borrow-indicator">1</div>
+                    <div class="subtraction-display">
+                        <div class="top-digit">${colData.topCurrent}</div>
+                        <div class="operator">-</div>
+                        <div class="bottom-digit">${colData.bottom}</div>
+                    </div>
+                </div>
+                <div class="equals-line">=</div>
+                <div class="answer-placeholder">?</div>`;
+            } else {
+                displayHtml = `
                 <div class="subtraction-display">
                     <div class="top-digit">${colData.topCurrent}</div>
                     <div class="operator">-</div>
                     <div class="bottom-digit">${colData.bottom}</div>
                 </div>
-            </div>
-            <div class="equals-line">=</div>
-            <div class="answer-placeholder">?</div>`;
-        } else {
-            // Simple subtraction
-            displayHtml = `
-            <div class="subtraction-display">
-                <div class="top-digit">${colData.topCurrent}</div>
-                <div class="operator">-</div>
-                <div class="bottom-digit">${colData.bottom}</div>
-            </div>
-            <div class="equals-line">=</div>
-            <div class="answer-placeholder">?</div>`;
-        }
-        
-        if (subProblemDisplay) {
+                <div class="equals-line">=</div>
+                <div class="answer-placeholder">?</div>`;
+            }
+            
             subProblemDisplay.innerHTML = displayHtml;
         }
         
@@ -387,21 +382,23 @@ document.addEventListener('DOMContentLoaded', function() {
             window.resetNumberControls();
         }
         
-        // Show stage 4
+        // Show this stage
         showStage(4);
     }
     
     function showStage(stageNumber) {
         console.log(`Showing stage ${stageNumber}`);
+        
         // Hide all stages
-        [stage1, stage2, stage3, stage4].forEach(stage => {
+        for (let i = 1; i <= 4; i++) {
+            const stage = document.getElementById(`stage${i}`);
             if (stage) {
                 stage.classList.remove('active');
                 stage.style.display = 'none';
             }
-        });
+        }
         
-        // Show requested stage
+        // Show the requested stage
         const stageToShow = document.getElementById(`stage${stageNumber}`);
         if (stageToShow) {
             stageToShow.classList.add('active');
@@ -411,28 +408,33 @@ document.addEventListener('DOMContentLoaded', function() {
         currentStage = stageNumber;
     }
     
-    // ===== DECISION HANDLERS (SIMPLIFIED) =====
+    // ===== DECISION HANDLERS =====
     
     function handleStage1Decision(userAnswer) {
         console.log(`Stage 1 decision: ${userAnswer ? 'Yes' : 'No'}`);
         const correctAnswer = borrowingDecision.stage1.correctAnswer;
         const colData = getCurrentColumnData();
         
+        if (!colData) return;
+        
         // Track decision
         scores.borrowingDecisions.stage1.total++;
         borrowingDecision.stage1.userAnswer = userAnswer;
         
         if (userAnswer === correctAnswer) {
-            // Correct decision
             scores.borrowingDecisions.stage1.correct++;
             
             if (correctAnswer) {
                 showFeedback("✓ Correct! We need to borrow because the top digit is smaller.", 'correct');
-                setTimeout(() => setupStage2(), 1000);
+                setTimeout(() => {
+                    setupStage2();
+                }, 1000);
             } else {
                 showFeedback("✓ Correct! No borrowing needed.", 'correct');
                 colData.needsBorrow = false;
-                setTimeout(() => setupStage4(), 1000);
+                setTimeout(() => {
+                    setupStage4();
+                }, 1000);
             }
         } else {
             showFeedback("✗ Incorrect. " + 
@@ -441,7 +443,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     `No borrowing needed because ${colData.topCurrent} ≥ ${colData.bottom}`), 
                 'incorrect');
             
-            // Still proceed with correct info
             colData.needsBorrow = correctAnswer;
             setTimeout(() => {
                 if (correctAnswer) {
@@ -459,7 +460,6 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log(`Stage 2 decision: ${userAnswer ? 'Yes' : 'No'}`);
         const correctAnswer = borrowingDecision.stage2.correctAnswer;
         const leftColumn = getLeftColumn(currentColumn);
-        const leftColData = leftColumn ? getColumnData(leftColumn) : null;
         
         // Track decision
         scores.borrowingDecisions.stage2.total++;
@@ -473,13 +473,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 executeSimpleBorrow(leftColumn);
             } else {
                 showFeedback("✓ Right! Not enough in the " + leftColumn + " column.", 'correct');
-                setTimeout(() => setupStage3(), 1000);
+                setTimeout(() => {
+                    setupStage3();
+                }, 1000);
             }
         } else {
             showFeedback("✗ Incorrect. " + 
                 (correctAnswer ? 
-                    `We CAN borrow from ${leftColumn} because it has ${leftColData.topCurrent}` :
-                    `We CAN'T borrow from ${leftColumn} because it has ${leftColData.topCurrent}`), 
+                    `We CAN borrow from ${leftColumn}` :
+                    `We CAN'T borrow from ${leftColumn}`), 
                 'incorrect');
             
             setTimeout(() => {
@@ -496,6 +498,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function handleStage3Decision(selectedSource) {
         console.log(`Stage 3 decision: ${selectedSource}`);
+        
+        // Track decision
         scores.borrowingDecisions.stage3.total++;
         borrowingDecision.stage3.userAnswer = selectedSource;
         
@@ -509,11 +513,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             showFeedback("✓ Good choice! We'll borrow from the " + selectedSource + " column.", 'correct');
             
-            // Create borrowing chain
-            const chain = createBorrowingChain(selectedSource);
-            borrowingDecision.borrowingChain = chain;
-            
             // Execute chain borrowing
+            const chain = createBorrowingChain(selectedSource);
             executeChainBorrowing(chain);
         } else {
             showFeedback("✗ Can't borrow from that column. Choose a column with at least 1.", 'incorrect');
@@ -522,11 +523,11 @@ document.addEventListener('DOMContentLoaded', function() {
         updateScoreDisplay();
     }
     
-    // ===== SIMPLIFIED BORROWING FUNCTIONS =====
+    // ===== BORROWING EXECUTION =====
     
     function executeSimpleBorrow(sourceColumn) {
-        console.log(`Executing simple borrow from ${sourceColumn}`);
-        const targetColumn = currentColumn;
+        console.log(`Borrowing from ${sourceColumn} to ${currentColumn}`);
+        
         const targetData = getCurrentColumnData();
         const sourceData = getColumnData(sourceColumn);
         
@@ -542,41 +543,40 @@ document.addEventListener('DOMContentLoaded', function() {
         
         showFeedback("✓ Borrowed 1 from " + sourceColumn + " column.", 'correct');
         renderMainGrid();
-        setTimeout(() => setupStage4(), 1000);
+        setTimeout(() => {
+            setupStage4();
+        }, 1000);
     }
     
     function executeChainBorrowing(chain) {
         console.log('Executing chain borrowing:', chain);
-        if (chain.length < 2) {
-            showFeedback("Error: Invalid borrowing chain", 'error');
-            return;
-        }
         
-        // Simple implementation without animation for now
-        chain.forEach((col, index) => {
-            if (index < chain.length - 1) {
-                const from = col;
-                const to = chain[index + 1];
-                const fromData = getColumnData(from);
-                const toData = getColumnData(to);
-                
-                fromData.topCurrent -= 1;
-                toData.topCurrent += 10;
-            }
-        });
+        // Simple implementation: update all digits at once
+        for (let i = 0; i < chain.length - 1; i++) {
+            const from = chain[i];
+            const to = chain[i + 1];
+            const fromData = getColumnData(from);
+            const toData = getColumnData(to);
+            
+            fromData.topCurrent -= 1;
+            toData.topCurrent += 10;
+        }
         
         const targetData = getCurrentColumnData();
         targetData.borrowed = true;
         
         showFeedback("✓ Chain borrowing complete!", 'correct');
         renderMainGrid();
-        setTimeout(() => setupStage4(), 1000);
+        setTimeout(() => {
+            setupStage4();
+        }, 1000);
     }
     
     function createBorrowingChain(sourceColumn) {
         const chain = [sourceColumn];
         let current = sourceColumn;
         
+        // Build chain from source to target
         while (current !== currentColumn) {
             const next = getRightColumn(current);
             if (next) {
@@ -594,23 +594,26 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function initNumberControls() {
         console.log('Initializing number controls');
+        
         let currentNumber = 0;
         
         function updateDisplay() {
+            const currentNumberEl = document.getElementById('currentNumber');
             if (currentNumberEl) {
                 currentNumberEl.textContent = currentNumber;
             }
         }
         
-        // Handle number buttons
+        // Setup number buttons
         document.querySelectorAll('.number-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (btn.classList.contains('clear')) {
+            btn.addEventListener('click', function() {
+                if (this.classList.contains('clear')) {
                     currentNumber = 0;
-                } else if (btn.classList.contains('increment') || btn.classList.contains('decrement')) {
-                    const change = parseInt(btn.getAttribute('data-change'));
+                } else {
+                    const change = parseInt(this.getAttribute('data-change'));
                     const newValue = currentNumber + change;
                     
+                    // Limit to reasonable range
                     if (newValue >= 0 && newValue <= 99) {
                         currentNumber = newValue;
                     }
@@ -620,12 +623,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
         
-        // Submit computation
-        if (submitComputationBtn) {
-            submitComputationBtn.addEventListener('click', checkComputation);
-        }
-        
-        // Reset function
+        // Create reset function
         window.resetNumberControls = function() {
             currentNumber = 0;
             updateDisplay();
@@ -636,6 +634,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function checkComputation() {
         console.log('Checking computation');
+        
+        const currentNumberEl = document.getElementById('currentNumber');
         const userAnswer = currentNumberEl ? parseInt(currentNumberEl.textContent) || 0 : 0;
         const colData = getCurrentColumnData();
         
@@ -655,11 +655,13 @@ document.addEventListener('DOMContentLoaded', function() {
             showFeedback(`✓ Perfect! ${colData.topCurrent} - ${colData.bottom} = ${correctAnswer}`, 'correct');
             
             // Move to next column or complete problem
-            if (moveToNextColumn()) {
-                setupStage1();
-            } else {
-                completeProblem();
-            }
+            setTimeout(() => {
+                if (moveToNextColumn()) {
+                    setupStage1();
+                } else {
+                    completeProblem();
+                }
+            }, 1000);
             
         } else {
             showFeedback(`✗ Incorrect. ${colData.topCurrent} - ${colData.bottom} = ${correctAnswer}`, 'incorrect');
@@ -721,6 +723,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentColumn = nextCol;
                 currentStage = 1;
                 
+                // Reset decision state
                 borrowingDecision = {
                     stage1: { userAnswer: null, correctAnswer: null },
                     stage2: { userAnswer: null, correctAnswer: null },
@@ -740,6 +743,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Problem complete!');
         showFeedback("🎉 Problem Complete! Well done!", 'correct');
         
+        const subProblemDisplay = document.getElementById('subProblemDisplay');
         if (subProblemDisplay) {
             subProblemDisplay.innerHTML = `
             <div class="completion-screen">
@@ -750,27 +754,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 <button id="nextProblem" class="combined-action-btn">Next Problem</button>
             </div>`;
             
-            document.getElementById('nextProblem').addEventListener('click', generateSubtractionProblem);
+            // Add event listener for next problem button
+            setTimeout(() => {
+                const nextProblemBtn = document.getElementById('nextProblem');
+                if (nextProblemBtn) {
+                    nextProblemBtn.addEventListener('click', generateSubtractionProblem);
+                }
+            }, 100);
         }
     }
     
     // ===== RENDERING =====
     
     function renderMainGrid() {
+        const problemGrid = document.getElementById('problemGrid');
         if (!problemGrid) return;
         
         problemGrid.innerHTML = '';
         
+        // Create 5 rows × 4 columns
         for (let row = 0; row < 5; row++) {
             for (let col = 0; col < 4; col++) {
                 const cell = document.createElement('div');
                 cell.className = 'grid-cell';
                 
+                // Column 0: Labels or operators
+                // Columns 1-3: Hundreds, Tens, Ones
+                
                 if (row === 0) { // Borrow row
-                    cell.className += ' borrow-cell';
-                    cell.dataset.column = col === 1 ? 'hundreds' : col === 2 ? 'tens' : col === 3 ? 'ones' : '';
-                    
-                    if (cell.dataset.column) {
+                    if (col > 0) {
+                        const columnNames = ['', 'hundreds', 'tens', 'ones'];
+                        cell.dataset.column = columnNames[col];
+                        
                         const colData = getColumnData(cell.dataset.column);
                         if (colData && colData.borrowed) {
                             const indicator = document.createElement('div');
@@ -782,10 +797,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 else if (row === 1) { // Minuend row
                     if (col === 0) {
-                        cell.className += ' minus-column';
+                        // Empty cell for alignment
                     } else {
-                        cell.className += ' number-cell';
-                        cell.dataset.column = col === 1 ? 'hundreds' : col === 2 ? 'tens' : 'ones';
+                        const columnNames = ['', 'hundreds', 'tens', 'ones'];
+                        cell.dataset.column = columnNames[col];
                         const colData = getColumnData(cell.dataset.column);
                         if (colData) {
                             cell.textContent = colData.topCurrent;
@@ -797,28 +812,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 else if (row === 2) { // Subtrahend row
                     if (col === 0) {
-                        cell.className += ' minus-column';
                         cell.textContent = '-';
+                        cell.className += ' minus-column';
                     } else {
-                        cell.className += ' number-cell';
-                        cell.dataset.column = col === 1 ? 'hundreds' : col === 2 ? 'tens' : 'ones';
+                        const columnNames = ['', 'hundreds', 'tens', 'ones'];
+                        cell.dataset.column = columnNames[col];
                         const colData = getColumnData(cell.dataset.column);
                         if (colData) {
                             cell.textContent = colData.bottom;
                         }
                     }
                 }
-                else if (row === 3) { // Line row
+                else if (row === 3) { // Line
                     cell.className += ' line';
+                    cell.style.gridColumn = '1 / span 4';
                 }
                 else if (row === 4) { // Answer row
                     if (col === 0) {
-                        cell.className += ' minus-column answer-cell';
+                        // Empty cell for alignment
                     } else {
-                        cell.className += ' answer-cell';
-                        cell.dataset.column = col === 1 ? 'hundreds' : col === 2 ? 'tens' : 'ones';
-                        
+                        const columnNames = ['', 'hundreds', 'tens', 'ones'];
+                        cell.dataset.column = columnNames[col];
                         const colData = getColumnData(cell.dataset.column);
+                        
                         if (colData && colData.completed) {
                             cell.textContent = colData.answer;
                             cell.classList.add(colData.correct ? 'correct' : 'incorrect');
@@ -828,7 +844,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
                 
-                if ((row === 1 || row === 2 || row === 4) && cell.dataset.column === currentColumn) {
+                // Highlight current column
+                const columnNames = ['', 'hundreds', 'tens', 'ones'];
+                if (col > 0 && columnNames[col] === currentColumn && (row === 1 || row === 2 || row === 4)) {
                     cell.classList.add('active-column');
                 }
                 
@@ -840,11 +858,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // ===== FEEDBACK =====
     
     function showFeedback(message, type) {
-        console.log(`Feedback: ${message}`);
+        console.log(`Feedback [${type}]: ${message}`);
+        const subFeedbackDiv = document.getElementById('subFeedback');
         if (subFeedbackDiv) {
             subFeedbackDiv.textContent = message;
             subFeedbackDiv.className = `sub-feedback ${type}`;
             
+            // Auto-clear after 3 seconds
             setTimeout(() => {
                 if (subFeedbackDiv.textContent === message) {
                     subFeedbackDiv.textContent = '';
@@ -855,6 +875,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function clearFeedback() {
+        const subFeedbackDiv = document.getElementById('subFeedback');
         if (subFeedbackDiv) {
             subFeedbackDiv.textContent = '';
             subFeedbackDiv.className = 'sub-feedback';
@@ -865,6 +886,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function updateScoreDisplay() {
         // Basic scores
+        const correctCountEl = document.getElementById('correctCount');
+        const incorrectCountEl = document.getElementById('incorrectCount');
+        const totalCountEl = document.getElementById('totalCount');
+        const accuracyRateEl = document.getElementById('accuracyRate');
+        
         if (correctCountEl) correctCountEl.textContent = scores.correct;
         if (incorrectCountEl) incorrectCountEl.textContent = scores.incorrect;
         if (totalCountEl) totalCountEl.textContent = scores.total;
@@ -875,43 +901,39 @@ document.addEventListener('DOMContentLoaded', function() {
         if (accuracyRateEl) accuracyRateEl.textContent = `${accuracy}%`;
         
         // Borrowing decision stats
+        const step1CorrectEl = document.getElementById('step1Correct');
+        const step2CorrectEl = document.getElementById('step2Correct');
+        const step3CorrectEl = document.getElementById('step3Correct');
+        const computationCorrectEl = document.getElementById('computationCorrect');
+        
         if (step1CorrectEl) {
-            const rate1 = scores.borrowingDecisions.stage1.total > 0 ?
-                Math.round((scores.borrowingDecisions.stage1.correct / scores.borrowingDecisions.stage1.total) * 100) : 0;
-            step1CorrectEl.textContent = `${scores.borrowingDecisions.stage1.correct}/${scores.borrowingDecisions.stage1.total} (${rate1}%)`;
+            step1CorrectEl.textContent = `${scores.borrowingDecisions.stage1.correct}/${scores.borrowingDecisions.stage1.total}`;
         }
         
         if (step2CorrectEl) {
-            const rate2 = scores.borrowingDecisions.stage2.total > 0 ?
-                Math.round((scores.borrowingDecisions.stage2.correct / scores.borrowingDecisions.stage2.total) * 100) : 0;
-            step2CorrectEl.textContent = `${scores.borrowingDecisions.stage2.correct}/${scores.borrowingDecisions.stage2.total} (${rate2}%)`;
+            step2CorrectEl.textContent = `${scores.borrowingDecisions.stage2.correct}/${scores.borrowingDecisions.stage2.total}`;
         }
         
         if (step3CorrectEl) {
-            const rate3 = scores.borrowingDecisions.stage3.total > 0 ?
-                Math.round((scores.borrowingDecisions.stage3.correct / scores.borrowingDecisions.stage3.total) * 100) : 0;
-            step3CorrectEl.textContent = `${scores.borrowingDecisions.stage3.correct}/${scores.borrowingDecisions.stage3.total} (${rate3}%)`;
+            step3CorrectEl.textContent = `${scores.borrowingDecisions.stage3.correct}/${scores.borrowingDecisions.stage3.total}`;
         }
         
-        // Computation stats
         if (computationCorrectEl) {
-            const compRate = scores.computations.total > 0 ?
-                Math.round((scores.computations.correct / scores.computations.total) * 100) : 0;
-            computationCorrectEl.textContent = `${scores.computations.correct}/${scores.computations.total} (${compRate}%)`;
+            computationCorrectEl.textContent = `${scores.computations.correct}/${scores.computations.total}`;
         }
         
+        // Save to localStorage
         saveScores();
     }
     
     function loadScores() {
-        const saved = localStorage.getItem('subtractionScores');
-        if (saved) {
-            try {
+        try {
+            const saved = localStorage.getItem('subtractionScores');
+            if (saved) {
                 scores = JSON.parse(saved);
-                updateScoreDisplay();
-            } catch (e) {
-                console.error('Error loading scores:', e);
             }
+        } catch (e) {
+            console.error('Error loading scores:', e);
         }
     }
     
@@ -936,12 +958,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 computations: { correct: 0, total: 0 }
             };
+            
             localStorage.removeItem('subtractionScores');
             updateScoreDisplay();
             generateSubtractionProblem();
         }
     }
-    
-    // ===== START THE APPLICATION =====
-    initialize();
 });
