@@ -1,4 +1,4 @@
-/* Subtraction Practice - Complete CSS */
+/* Subtraction Practice - SIMPLIFIED CSS */
 .subtraction-container {
     max-width: 1200px;
     margin: 0 auto;
@@ -18,7 +18,7 @@
     }
 }
 
-/* Main Grid Layout */
+/* Main Grid - SIMPLIFIED */
 .main-problem-container {
     background: #f8f9fa;
     border-radius: 12px;
@@ -51,8 +51,12 @@
     background: white;
 }
 
-/* Grid Row Specific Styles */
-/* Row 0: Borrow indicators */
+/* Specific cell types */
+.empty-cell {
+    background: transparent;
+    border: none;
+}
+
 .borrow-cell {
     background-color: #fff8e1;
     border-color: #ffd54f;
@@ -75,18 +79,54 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-/* Row 1: Minuend (top number) */
 .minuend-cell {
     background-color: #e8f5e9;
     border-color: #4caf50;
     color: #2e7d32;
 }
 
-.minuend-cell.adjusted {
-    background: linear-gradient(135deg, #e8f5e9 0%, #fff8e1 100%);
+.minus-cell {
+    font-size: 3rem;
+    color: #f44336;
+    font-weight: bold;
+    background: #f5f5f5;
 }
 
-/* Show original and current digits when adjusted */
+.subtrahend-cell {
+    background-color: #e3f2fd;
+    border-color: #2196f3;
+    color: #1565c0;
+}
+
+.line-cell {
+    border-bottom: 4px solid #333;
+}
+
+.answer-cell {
+    background-color: #f5f5f5;
+    border-color: #666;
+    color: #333;
+    font-size: 2.5rem;
+}
+
+.answer-cell.correct {
+    background-color: #c8e6c9;
+    border-color: #4caf50;
+    color: #2e7d32;
+}
+
+.answer-cell.incorrect {
+    background-color: #ffcdd2;
+    border-color: #f44336;
+    color: #c62828;
+}
+
+.active-column {
+    box-shadow: 0 0 0 4px #ff9800;
+    z-index: 10;
+}
+
+/* Original and current digits for borrowed numbers */
 .original-digit {
     font-size: 1.8rem;
     color: #999;
@@ -100,66 +140,7 @@
     font-weight: bold;
 }
 
-/* Row 2: Subtrahend (bottom number) */
-.subtrahend-cell {
-    background-color: #e3f2fd;
-    border-color: #2196f3;
-    color: #1565c0;
-}
-
-.operation-cell {
-    font-size: 3rem;
-    color: #f44336;
-    font-weight: bold;
-    background: #f5f5f5;
-}
-
-/* Row 3: Line */
-.line-cell {
-    border-bottom: 4px solid #333;
-    border-top: none;
-    border-left: none;
-    border-right: none;
-    background: transparent;
-}
-
-.line-cell:first-child {
-    border-bottom: none;
-}
-
-/* Row 4: Answer */
-.answer-cell {
-    background-color: #f5f5f5;
-    border-color: #666;
-    color: #333;
-}
-
-.answer-cell.correct {
-    background-color: #c8e6c9;
-    border-color: #4caf50;
-    color: #2e7d32;
-    animation: pulse-correct 0.5s ease-in-out;
-}
-
-.answer-cell.incorrect {
-    background-color: #ffcdd2;
-    border-color: #f44336;
-    color: #c62828;
-}
-
-@keyframes pulse-correct {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-}
-
-/* Highlight current column */
-.active-column {
-    box-shadow: 0 0 0 4px #ff9800;
-    z-index: 10;
-    position: relative;
-}
-
-/* Sub-problem Container */
+/* Sub-problem area */
 .sub-problem-container {
     background: #f8f9fa;
     border-radius: 12px;
@@ -167,17 +148,13 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.borrowing-decision-process {
-    min-height: 400px;
-}
-
 .decision-stage {
     display: none;
-    animation: fadeIn 0.5s ease-in-out;
 }
 
 .decision-stage.active {
     display: block;
+    animation: fadeIn 0.5s ease-in-out;
 }
 
 @keyframes fadeIn {
@@ -185,7 +162,7 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Stage 1: Borrow Need Check */
+/* Stage 1 styles */
 .current-column-display {
     display: flex;
     align-items: center;
@@ -242,144 +219,50 @@
     border: 2px solid #4caf50;
 }
 
-/* Stage 2: Immediate Source Check */
-.source-context {
-    background: white;
-    border-radius: 8px;
-    padding: 20px;
-    margin: 20px 0;
-    border: 2px solid #e0e0e0;
-}
-
-.context-row {
-    margin: 10px 0;
+/* Yes/No buttons */
+.yes-no-buttons {
     display: flex;
-    gap: 15px;
-    align-items: center;
+    gap: 30px;
+    margin: 30px 0;
+    justify-content: center;
 }
 
-.context-label {
+.btn-decision {
+    padding: 20px 40px;
+    font-size: 1.3rem;
     font-weight: bold;
-    color: #666;
-    min-width: 120px;
-}
-
-.context-value {
-    font-family: 'Courier New', monospace;
-    background: #f5f5f5;
-    padding: 8px 15px;
-    border-radius: 6px;
-    font-size: 1.2rem;
-    font-weight: bold;
-}
-
-.zero-warning {
-    background: #fff8e1;
-    border: 2px dashed #ff9800;
-    color: #ff6d00;
-    padding: 12px;
-    border-radius: 6px;
-    margin: 15px 0;
-    font-weight: bold;
-    display: none;
-}
-
-/* Stage 3: Source Selection */
-.problem-context {
-    background: white;
-    border-radius: 8px;
-    padding: 20px;
-    margin: 20px 0;
-    border: 2px solid #e0e0e0;
-}
-
-.context-header {
-    font-weight: bold;
-    color: #666;
-    margin-bottom: 15px;
-    font-size: 1.1rem;
-}
-
-.context-columns {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.context-column {
-    display: flex;
-    gap: 15px;
-    padding: 10px;
-    border-radius: 6px;
-    background: #f8f9fa;
-}
-
-.context-column.current {
-    background: #e3f2fd;
-    border-left: 4px solid #2196f3;
-}
-
-.column-name {
-    font-weight: bold;
-    color: #666;
-    min-width: 100px;
-}
-
-.column-digits {
-    font-family: 'Courier New', monospace;
-    font-weight: bold;
-    color: #333;
-}
-
-.source-options {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin: 20px 0;
-}
-
-.source-option {
-    padding: 15px;
-    background: #e3f2fd;
-    border: 2px solid #2196f3;
-    border-radius: 8px;
-    font-size: 1.1rem;
+    border: none;
+    border-radius: 10px;
     cursor: pointer;
     transition: all 0.3s ease;
-    text-align: left;
-    font-weight: bold;
+    min-width: 150px;
 }
 
-.source-option:hover {
-    background: #bbdefb;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(33, 150, 243, 0.2);
-}
-
-/* Stage 4: Computation */
-.sub-problem-with-borrow {
-    position: relative;
-    margin: 30px 0;
-}
-
-.borrow-indicator-large {
-    position: absolute;
-    top: -25px;
-    left: 30px;
-    background: #ff5252;
+.btn-yes {
+    background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
     color: white;
-    border: 3px solid white;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 1.5rem;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
 }
 
+.btn-yes:hover {
+    background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(76, 175, 80, 0.4);
+}
+
+.btn-no {
+    background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+    color: white;
+    box-shadow: 0 4px 8px rgba(244, 67, 54, 0.3);
+}
+
+.btn-no:hover {
+    background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(244, 67, 54, 0.4);
+}
+
+/* Stage 4 computation area */
 .subtraction-display {
     display: flex;
     align-items: center;
@@ -407,15 +290,7 @@
     width: 120px;
 }
 
-/* Number Controls */
-.computation-input {
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
-    margin: 20px 0;
-    border: 2px solid #e0e0e0;
-}
-
+/* Number controls */
 .number-display {
     background: #f5f5f5;
     border: 3px solid #2196f3;
@@ -471,50 +346,7 @@
     color: white;
 }
 
-/* Yes/No Buttons */
-.yes-no-buttons {
-    display: flex;
-    gap: 30px;
-    margin: 30px 0;
-    justify-content: center;
-}
-
-.btn-decision {
-    padding: 20px 40px;
-    font-size: 1.3rem;
-    font-weight: bold;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    min-width: 150px;
-}
-
-.btn-yes {
-    background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
-    color: white;
-    box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
-}
-
-.btn-yes:hover {
-    background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
-    transform: translateY(-3px);
-    box-shadow: 0 6px 12px rgba(76, 175, 80, 0.4);
-}
-
-.btn-no {
-    background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
-    color: white;
-    box-shadow: 0 4px 8px rgba(244, 67, 54, 0.3);
-}
-
-.btn-no:hover {
-    background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
-    transform: translateY(-3px);
-    box-shadow: 0 6px 12px rgba(244, 67, 54, 0.4);
-}
-
-/* Submit Button */
+/* Submit button */
 .combined-action-btn {
     background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
     color: white;
@@ -548,7 +380,6 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    animation: fadeIn 0.5s ease-in-out;
 }
 
 .sub-feedback.correct {
@@ -559,12 +390,6 @@
 
 .sub-feedback.incorrect {
     color: #c62828;
-    background-color: #ffebee;
-    border: 2px solid #f44336;
-}
-
-.sub-feedback.error {
-    color: #d32f2f;
     background-color: #ffebee;
     border: 2px solid #f44336;
 }
@@ -597,17 +422,7 @@
     transform: translateY(-2px);
 }
 
-.secondary-btn {
-    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
-    color: white;
-}
-
-.secondary-btn:hover {
-    background: linear-gradient(135deg, #f57c00 0%, #ef6c00 100%);
-    transform: translateY(-2px);
-}
-
-/* Score Display */
+/* Score Display - SIMPLIFIED */
 .enhanced-score-container {
     background: #f8f9fa;
     border-radius: 12px;
@@ -677,36 +492,6 @@
     color: #ff9800;
 }
 
-/* Borrow Stats */
-.borrow-stats {
-    background: white;
-    border-radius: 10px;
-    padding: 25px;
-    margin: 25px 0;
-    border: 2px solid #e0e0e0;
-}
-
-.borrow-stats h4 {
-    color: #333;
-    margin-bottom: 20px;
-    text-align: center;
-    font-size: 1.3rem;
-}
-
-.stat-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin-bottom: 15px;
-}
-
-.stat-item {
-    background: #f8f9fa;
-    padding: 15px;
-    border-radius: 8px;
-    text-align: center;
-}
-
 /* Reset Button */
 #resetScores {
     background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
@@ -727,7 +512,7 @@
     transform: translateY(-2px);
 }
 
-/* Responsive Design */
+/* Responsive */
 @media (max-width: 1024px) {
     .problem-grid {
         grid-template-columns: 30px repeat(3, 70px);
@@ -753,10 +538,6 @@
         grid-template-columns: repeat(2, 1fr);
     }
     
-    .stat-row {
-        grid-template-columns: 1fr;
-    }
-    
     .current-column-display {
         font-size: 2rem;
     }
@@ -770,31 +551,5 @@
         padding: 15px 30px;
         font-size: 1.1rem;
         min-width: 120px;
-    }
-}
-
-@media (max-width: 480px) {
-    .problem-grid {
-        grid-template-columns: 20px repeat(3, 50px);
-        grid-template-rows: repeat(5, 50px);
-    }
-    
-    .grid-cell {
-        font-size: 1.5rem;
-    }
-    
-    .current-column-display {
-        font-size: 1.8rem;
-        gap: 10px;
-    }
-    
-    .top-digit, .bottom-digit {
-        padding: 10px 15px;
-        min-width: 60px;
-    }
-    
-    .yes-no-buttons {
-        flex-direction: column;
-        align-items: center;
     }
 }
