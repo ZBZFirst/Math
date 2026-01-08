@@ -1,4 +1,4 @@
-// Subtraction Practice with Borrowing Decision Process - SIMPLIFIED WORKING VERSION
+// Subtraction Practice with Borrowing Decision Process - FIXED GRID VERSION
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Subtraction Practice: Script loaded successfully');
     
@@ -51,17 +51,6 @@ document.addEventListener('DOMContentLoaded', function() {
             submitComputationBtn.addEventListener('click', checkComputation);
         }
         
-        // Show All Steps button
-        const showAllStepsBtn = document.getElementById('showAllSteps');
-        if (showAllStepsBtn) {
-            showAllStepsBtn.addEventListener('click', function() {
-                const stages = document.querySelectorAll('.decision-stage');
-                stages.forEach(stage => {
-                    stage.style.display = stage.style.display === 'none' ? 'block' : 'none';
-                });
-            });
-        }
-        
         console.log('Event listeners setup complete');
     }
     
@@ -101,8 +90,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Generate random 3-digit numbers ensuring num1 ≥ num2
         do {
-            num1 = Math.floor(Math.random() * 400) + 100; // 100-499
-            num2 = Math.floor(Math.random() * 400) + 100;
+            num1 = Math.floor(Math.random() * 900) + 100; // 100-999
+            num2 = Math.floor(Math.random() * 100) + 100; // Smaller range for subtraction
         } while (num1 < num2);
         
         const answer = num1 - num2;
@@ -162,6 +151,136 @@ document.addEventListener('DOMContentLoaded', function() {
         updateScoreDisplay();
         
         console.log('New problem:', `${num1} - ${num2} = ${answer}`);
+        console.log('Digits:', currentProblem.columns);
+    }
+    
+    // ===== FIXED GRID RENDERING =====
+    
+    function renderMainGrid() {
+        const problemGrid = document.getElementById('problemGrid');
+        if (!problemGrid) {
+            console.error('Problem grid not found!');
+            return;
+        }
+        
+        problemGrid.innerHTML = '';
+        
+        // Create 5 rows (borrow, num1, num2, line, answer) × 4 columns (label, hundreds, tens, ones)
+        for (let row = 0; row < 5; row++) {
+            for (let col = 0; col < 4; col++) {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell';
+                
+                // Column mapping: 0=label, 1=hundreds, 2=tens, 3=ones
+                const columnMap = ['', 'hundreds', 'tens', 'ones'];
+                const currentColName = columnMap[col];
+                
+                if (row === 0) { // Borrow row (top row for borrowed numbers)
+                    if (col === 0) {
+                        // Empty label cell
+                        cell.className += ' grid-label';
+                    } else {
+                        cell.className += ' borrow-cell';
+                        cell.dataset.column = currentColName;
+                        
+                        // Check if this column has been borrowed from
+                        const colData = getColumnData(currentColName);
+                        if (colData && colData.borrowed) {
+                            // Show borrow indicator (small number above)
+                            const indicator = document.createElement('div');
+                            indicator.className = 'borrow-indicator';
+                            indicator.textContent = '1';
+                            cell.appendChild(indicator);
+                        }
+                    }
+                }
+                else if (row === 1) { // First number (minuend) row
+                    if (col === 0) {
+                        cell.className += ' grid-label';
+                        // Empty label for minuend
+                    } else {
+                        cell.className += ' number-cell minuend-cell';
+                        cell.dataset.column = currentColName;
+                        
+                        const colData = getColumnData(currentColName);
+                        if (colData) {
+                            cell.textContent = colData.topCurrent;
+                            
+                            // Mark if digit was changed due to borrowing
+                            if (colData.topCurrent !== colData.topOriginal) {
+                                cell.classList.add('adjusted');
+                                
+                                // Add strike-through effect for original number
+                                const originalSpan = document.createElement('span');
+                                originalSpan.className = 'original-digit';
+                                originalSpan.textContent = colData.topOriginal;
+                                originalSpan.style.textDecoration = 'line-through';
+                                originalSpan.style.opacity = '0.5';
+                                originalSpan.style.marginRight = '5px';
+                                
+                                const currentSpan = document.createElement('span');
+                                currentSpan.className = 'current-digit';
+                                currentSpan.textContent = colData.topCurrent;
+                                
+                                cell.innerHTML = '';
+                                cell.appendChild(originalSpan);
+                                cell.appendChild(currentSpan);
+                            }
+                        }
+                    }
+                }
+                else if (row === 2) { // Second number (subtrahend) row
+                    if (col === 0) {
+                        cell.className += ' operation-cell';
+                        cell.textContent = '-';
+                    } else {
+                        cell.className += ' number-cell subtrahend-cell';
+                        cell.dataset.column = currentColName;
+                        
+                        const colData = getColumnData(currentColName);
+                        if (colData) {
+                            cell.textContent = colData.bottom;
+                        }
+                    }
+                }
+                else if (row === 3) { // Line row
+                    cell.className += ' line-cell';
+                    if (col === 0) {
+                        cell.style.borderBottom = 'none';
+                    } else {
+                        cell.style.borderBottom = '3px solid #333';
+                    }
+                }
+                else if (row === 4) { // Answer row
+                    if (col === 0) {
+                        cell.className += ' grid-label';
+                        // Empty label for answer
+                    } else {
+                        cell.className += ' answer-cell';
+                        cell.dataset.column = currentColName;
+                        
+                        const colData = getColumnData(currentColName);
+                        if (colData && colData.completed) {
+                            cell.textContent = colData.answer;
+                            cell.classList.add(colData.correct ? 'correct' : 'incorrect');
+                        } else {
+                            cell.textContent = '_';
+                        }
+                    }
+                }
+                
+                // Highlight current column
+                if (currentColName === currentColumn) {
+                    if (row === 1 || row === 2 || row === 4) {
+                        cell.classList.add('active-column');
+                    }
+                }
+                
+                problemGrid.appendChild(cell);
+            }
+        }
+        
+        console.log('Grid rendered');
     }
     
     // ===== STAGE MANAGEMENT =====
@@ -194,31 +313,29 @@ document.addEventListener('DOMContentLoaded', function() {
         // Show this stage
         showStage(1);
         
-        // Setup button handlers for THIS stage only
+        // Setup button handlers
         setupStage1Buttons();
     }
     
     function setupStage1Buttons() {
         console.log('Setting up Stage 1 buttons');
         
-        // Remove any existing event listeners
+        // Remove any existing event listeners and add new ones
         const yesBtn = document.querySelector('#stage1 .btn-yes');
         const noBtn = document.querySelector('#stage1 .btn-no');
         
         if (yesBtn) {
-            yesBtn.onclick = null; // Remove old listener
-            yesBtn.addEventListener('click', function() {
+            yesBtn.onclick = function() {
                 console.log('Stage 1: Yes clicked');
                 handleStage1Decision(true);
-            });
+            };
         }
         
         if (noBtn) {
-            noBtn.onclick = null; // Remove old listener
-            noBtn.addEventListener('click', function() {
+            noBtn.onclick = function() {
                 console.log('Stage 1: No clicked');
                 handleStage1Decision(false);
-            });
+            };
         }
     }
     
@@ -259,34 +376,26 @@ document.addEventListener('DOMContentLoaded', function() {
             borrowingDecision.stage2.correctAnswer = leftColData.topCurrent >= 1;
         }
         
-        // Setup button handlers for this stage
-        setupStage2Buttons();
-        
-        // Show this stage
-        showStage(2);
-    }
-    
-    function setupStage2Buttons() {
-        console.log('Setting up Stage 2 buttons');
-        
+        // Setup button handlers
         const yesBtn = document.querySelector('#stage2 .btn-yes');
         const noBtn = document.querySelector('#stage2 .btn-no');
         
         if (yesBtn) {
-            yesBtn.onclick = null;
-            yesBtn.addEventListener('click', function() {
+            yesBtn.onclick = function() {
                 console.log('Stage 2: Yes clicked');
                 handleStage2Decision(true);
-            });
+            };
         }
         
         if (noBtn) {
-            noBtn.onclick = null;
-            noBtn.addEventListener('click', function() {
+            noBtn.onclick = function() {
                 console.log('Stage 2: No clicked');
                 handleStage2Decision(false);
-            });
+            };
         }
+        
+        // Show this stage
+        showStage(2);
     }
     
     function setupStage3() {
@@ -354,7 +463,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (colData.borrowed) {
                 displayHtml = `
                 <div class="sub-problem-with-borrow">
-                    <div class="borrow-indicator">1</div>
+                    <div class="borrow-indicator-large">1</div>
                     <div class="subtraction-display">
                         <div class="top-digit">${colData.topCurrent}</div>
                         <div class="operator">-</div>
@@ -551,19 +660,23 @@ document.addEventListener('DOMContentLoaded', function() {
     function executeChainBorrowing(chain) {
         console.log('Executing chain borrowing:', chain);
         
-        // Simple implementation: update all digits at once
+        // Update all digits in the chain
         for (let i = 0; i < chain.length - 1; i++) {
             const from = chain[i];
             const to = chain[i + 1];
             const fromData = getColumnData(from);
             const toData = getColumnData(to);
             
-            fromData.topCurrent -= 1;
-            toData.topCurrent += 10;
+            if (fromData && toData) {
+                fromData.topCurrent -= 1;
+                toData.topCurrent += 10;
+            }
         }
         
         const targetData = getCurrentColumnData();
-        targetData.borrowed = true;
+        if (targetData) {
+            targetData.borrowed = true;
+        }
         
         showFeedback("✓ Chain borrowing complete!", 'correct');
         renderMainGrid();
@@ -653,6 +766,9 @@ document.addEventListener('DOMContentLoaded', function() {
             colData.completed = true;
             
             showFeedback(`✓ Perfect! ${colData.topCurrent} - ${colData.bottom} = ${correctAnswer}`, 'correct');
+            
+            // Update the grid with the answer
+            renderMainGrid();
             
             // Move to next column or complete problem
             setTimeout(() => {
@@ -761,97 +877,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     nextProblemBtn.addEventListener('click', generateSubtractionProblem);
                 }
             }, 100);
-        }
-    }
-    
-    // ===== RENDERING =====
-    
-    function renderMainGrid() {
-        const problemGrid = document.getElementById('problemGrid');
-        if (!problemGrid) return;
-        
-        problemGrid.innerHTML = '';
-        
-        // Create 5 rows × 4 columns
-        for (let row = 0; row < 5; row++) {
-            for (let col = 0; col < 4; col++) {
-                const cell = document.createElement('div');
-                cell.className = 'grid-cell';
-                
-                // Column 0: Labels or operators
-                // Columns 1-3: Hundreds, Tens, Ones
-                
-                if (row === 0) { // Borrow row
-                    if (col > 0) {
-                        const columnNames = ['', 'hundreds', 'tens', 'ones'];
-                        cell.dataset.column = columnNames[col];
-                        
-                        const colData = getColumnData(cell.dataset.column);
-                        if (colData && colData.borrowed) {
-                            const indicator = document.createElement('div');
-                            indicator.className = 'borrow-indicator-small';
-                            indicator.textContent = '1';
-                            cell.appendChild(indicator);
-                        }
-                    }
-                }
-                else if (row === 1) { // Minuend row
-                    if (col === 0) {
-                        // Empty cell for alignment
-                    } else {
-                        const columnNames = ['', 'hundreds', 'tens', 'ones'];
-                        cell.dataset.column = columnNames[col];
-                        const colData = getColumnData(cell.dataset.column);
-                        if (colData) {
-                            cell.textContent = colData.topCurrent;
-                            if (colData.topCurrent !== colData.topOriginal) {
-                                cell.classList.add('adjusted');
-                            }
-                        }
-                    }
-                }
-                else if (row === 2) { // Subtrahend row
-                    if (col === 0) {
-                        cell.textContent = '-';
-                        cell.className += ' minus-column';
-                    } else {
-                        const columnNames = ['', 'hundreds', 'tens', 'ones'];
-                        cell.dataset.column = columnNames[col];
-                        const colData = getColumnData(cell.dataset.column);
-                        if (colData) {
-                            cell.textContent = colData.bottom;
-                        }
-                    }
-                }
-                else if (row === 3) { // Line
-                    cell.className += ' line';
-                    cell.style.gridColumn = '1 / span 4';
-                }
-                else if (row === 4) { // Answer row
-                    if (col === 0) {
-                        // Empty cell for alignment
-                    } else {
-                        const columnNames = ['', 'hundreds', 'tens', 'ones'];
-                        cell.dataset.column = columnNames[col];
-                        const colData = getColumnData(cell.dataset.column);
-                        
-                        if (colData && colData.completed) {
-                            cell.textContent = colData.answer;
-                            cell.classList.add(colData.correct ? 'correct' : 'incorrect');
-                        } else {
-                            cell.textContent = '_';
-                        }
-                    }
-                }
-                
-                // Highlight current column
-                const columnNames = ['', 'hundreds', 'tens', 'ones'];
-                if (col > 0 && columnNames[col] === currentColumn && (row === 1 || row === 2 || row === 4)) {
-                    cell.classList.add('active-column');
-                }
-                
-                problemGrid.appendChild(cell);
-            }
         }
     }
     
