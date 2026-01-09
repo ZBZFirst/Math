@@ -598,3 +598,42 @@
         min-width: 120px;
     }
 }
+
+/* Add this to your subtraction.css file or at the end of your main CSS */
+
+/* Remove the bottom border from all line cells in the problem grid */
+#problemGrid .grid-cell.line-cell {
+    border-bottom: none !important;
+    position: relative;
+    height: 40px; /* Ensure the cell has enough height */
+}
+
+/* Create a centered horizontal line using a pseudo-element */
+#problemGrid .grid-cell.line-cell::after {
+    content: '';
+    position: absolute;
+    top: 50%; /* Center vertically */
+    left: 5px; /* Slight padding from left edge */
+    right: 5px; /* Slight padding from right edge */
+    height: 3px;
+    background-color: rgb(51, 51, 51);
+    transform: translateY(-50%);
+}
+
+/* For the standalone line cell that's outside the grid (if any) */
+.grid-cell.line-cell:not(#problemGrid .grid-cell.line-cell) {
+    border-bottom: none !important;
+    position: relative;
+    height: 40px;
+}
+
+.grid-cell.line-cell:not(#problemGrid .grid-cell.line-cell)::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 5px;
+    right: 5px;
+    height: 3px;
+    background-color: rgb(51, 51, 51);
+    transform: translateY(-50%);
+}
