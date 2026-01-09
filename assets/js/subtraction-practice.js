@@ -569,67 +569,97 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function executeChainBorrowing(sourceColumn) {
-        // Validate source first
-        const sourceData = getColumnData(sourceColumn);
-        if (!sourceData || sourceData.currentTopDigit < 1) {
-            showFeedback("✗ Can't borrow from a column with 0!", 'error');
-            setTimeout(() => setupStage3(), 1000);
-            return;
-        }
-        
-        // Create chain from source to target
-        const chain = [sourceColumn];
-        let current = sourceColumn;
-        
-        while (current !== currentColumn) {
-            const next = getRightColumn(current);
-            if (next) {
-                chain.push(next);
-                current = next;
-            } else {
-                break;
-            }
-        }
-        
-        // Check if chain borrowing is possible
-        // We need to ensure all intermediate columns can pass the 1
-        let canChain = true;
-        for (let i = 0; i < chain.length - 1; i++) {
-            const from = chain[i];
-            const fromData = getColumnData(from);
-            if (!fromData || fromData.currentTopDigit < 1) {
-                canChain = false;
-                break;
-            }
-        }
-        
-        if (!canChain) {
-            showFeedback("✗ Chain borrowing not possible through these columns", 'error');
-            setTimeout(() => setupStage3(), 1000);
-            return;
-        }
-        
-        // Execute borrowing through the chain
-        for (let i = 0; i < chain.length - 1; i++) {
-            const from = chain[i];
-            const to = chain[i + 1];
-            const fromData = getColumnData(from);
-            const toData = getColumnData(to);
+        try {
+            console.log(`[DEBUG] executeChainBorrowing called with source: ${sourceColumn}`);
+            console.log(`[DEBUG] Current column: ${currentColumn}`);
             
-            if (fromData && toData) {
+            // Validate source first
+            const sourceData = getColumnData(sourceColumn);
+            console.log(`[DEBUG] Source data:`, sourceData);
+            
+            if (!sourceData) {
+                throw new Error(`No data for source column: ${sourceColumn}`);
+            }
+            
+            if (sourceData.currentTopDigit < 1) {
+                throw new Error(`Source column ${sourceColumn} has ${sourceData.currentTopDigit}, need at least 1`);
+            }
+            
+            // Create chain from source to target
+            const chain = [sourceColumn];
+            let current = sourceColumn;
+            console.log(`[DEBUG] Building chain starting from ${current}`);
+            
+            while (current !== currentColumn) {
+                const next = getRightColumn(current);
+                console.log(`[DEBUG]   Current: ${current}, Next: ${next}`);
+                if (next) {
+                    chain.push(next);
+                    current = next;
+                } else {
+                    console.log(`[DEBUG]   No next column found`);
+                    break;
+                }
+            }
+            
+            console.log(`[DEBUG] Complete chain:`, chain);
+            
+            if (chain.length < 2) {
+                throw new Error(`Invalid chain length: ${chain.length}`);
+            }
+            
+            if (chain[chain.length - 1] !== currentColumn) {
+                throw new Error(`Chain doesn't end at current column. Chain: ${chain}, Current: ${currentColumn}`);
+            }
+            
+            // Execute borrowing through the chain
+            for (let i = 0; i < chain.length - 1; i++) {
+                const from = chain[i];
+                const to = chain[i + 1];
+                const fromData = getColumnData(from);
+                const toData = getColumnData(to);
+                
+                console.log(`[DEBUG] Processing link ${i}: ${from} -> ${to}`);
+                console.log(`[DEBUG]   Before: ${from}=${fromData?.currentTopDigit}, ${to}=${toData?.currentTopDigit}`);
+                
+                if (!fromData || !toData) {
+                    throw new Error(`Missing data for ${from} -> ${to}`);
+                }
+                
+                // Update the digits
                 fromData.currentTopDigit -= 1;
                 toData.currentTopDigit += 10;
+                
+                console.log(`[DEBUG]   After: ${from}=${fromData.currentTopDigit}, ${to}=${toData.currentTopDigit}`);
+                
+                // Mark the final column as borrowed
+                if (to === currentColumn) {
+                    const targetData = getCurrentColumnData();
+                    if (targetData) {
+                        targetData.borrowed = true;
+                        console.log(`[DEBUG]   Marked ${to} as borrowed`);
+                    }
+                }
             }
+            
+            console.log(`[DEBUG] Borrowing complete, rendering grid...`);
+            
+            showFeedback(`✓ Successfully borrowed from ${sourceColumn} column!`, 'correct');
+            
+            // Update the grid
+            renderMainGrid();
+            
+            // Move to stage 4
+            setTimeout(() => {
+                console.log(`[DEBUG] Moving to stage 4`);
+                setupStage4();
+            }, 1000);
+            
+        } catch (error) {
+            console.error(`Error in executeChainBorrowing:`, error);
+            showFeedback(`✗ Error: ${error.message}`, 'error');
+            setTimeout(() => setupStage3(), 1500);
         }
-        
-        const targetData = getCurrentColumnData();
-        if (targetData) {
-            targetData.borrowed = true;
-        }
-        
-        showFeedback("✓ Chain borrowing complete!", 'correct');
-        renderMainGrid();
-        setTimeout(() => setupStage4(), 1000);
     }
     
     // ===== NUMBER CONTROLS =====
