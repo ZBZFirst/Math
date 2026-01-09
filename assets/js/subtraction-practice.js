@@ -350,15 +350,25 @@ document.addEventListener('DOMContentLoaded', function() {
         const colData = getCurrentColumnData();
         if (!colData) return;
         
-        // Display all columns
+        // Display all columns with clear information
         const allColumnsDisplay = document.getElementById('allColumnsDisplay');
         if (allColumnsDisplay) {
             let columnsHtml = '';
             for (const col of columns) {
                 const data = getColumnData(col);
-                columnsHtml += `<div class="context-column ${col === currentColumn ? 'current' : ''}">
+                const canBorrow = canBorrowFromColumn(col);
+                const canLend = data && data.currentTopDigit >= 1;
+                const afterLending = data ? data.currentTopDigit - 1 : 0;
+                const canStillSubtract = data ? afterLending >= data.bottomDigit : false;
+                
+                columnsHtml += `<div class="context-column ${col === currentColumn ? 'current' : ''} ${canBorrow ? 'can-borrow' : 'cannot-borrow'}">
                     <span class="column-name">${capitalize(col)}:</span>
                     <span class="column-digits">${data.currentTopDigit} - ${data.bottomDigit}</span>
+                    <span class="borrow-status">
+                        ${col === currentColumn ? '(current)' : canLend ? 
+                            `(can lend 1 → ${afterLending} - ${data.bottomDigit} = ${afterLending - data.bottomDigit} ${canStillSubtract ? '✓' : '✗'})` : 
+                            '(cannot lend)'}
+                    </span>
                 </div>`;
             }
             allColumnsDisplay.innerHTML = columnsHtml;
@@ -371,15 +381,35 @@ document.addEventListener('DOMContentLoaded', function() {
             let optionsHtml = '';
             
             if (availableSources.length > 0) {
+                // Show ALL available sources with clear explanations
                 availableSources.forEach(source => {
                     const sourceData = getColumnData(source);
+                    const afterLending = sourceData.currentTopDigit - 1;
+                    const result = afterLending - sourceData.bottomDigit;
+                    
                     optionsHtml += `
                     <button class="source-option" data-source="${source}">
-                        ${capitalize(source)} column (${sourceData.currentTopDigit} - ${sourceData.bottomDigit})
+                        <strong>${capitalize(source)} Column</strong><br>
+                        Current: ${sourceData.currentTopDigit} - ${sourceData.bottomDigit}<br>
+                        After lending 1: ${afterLending} - ${sourceData.bottomDigit} = ${result} ✓<br>
+                        <small>This column can safely lend 1!</small>
                     </button>`;
                 });
             } else {
-                optionsHtml = '<div class="no-sources">No columns available for borrowing</div>';
+                // This should theoretically never happen since the minuend > subtrahend
+                // But just in case...
+                optionsHtml = `
+                <div class="no-sources">
+                    <p>No columns available for borrowing!</p>
+                    <p>Try checking each column:</p>
+                    <ul>
+                        ${columns.map(col => {
+                            const data = getColumnData(col);
+                            return data ? `<li>${capitalize(col)}: ${data.currentTopDigit} - ${data.bottomDigit} 
+                                (${data.currentTopDigit >= 1 ? 'has ≥1' : 'has 0'})</li>` : '';
+                        }).join('')}
+                    </ul>
+                </div>`;
             }
             
             sourceOptions.innerHTML = optionsHtml;
@@ -476,20 +506,22 @@ document.addEventListener('DOMContentLoaded', function() {
         return (columnData.currentTopDigit - 1) >= columnData.bottomDigit;
     }
     
-    // Also, let's update the findAvailableSources function to be more robust:
     function findAvailableSources() {
         const available = [];
         
-        // Check all columns to the left
+        // Check ALL columns to the left (not just the first one)
         let checking = getLeftColumn(currentColumn);
         while (checking) {
             const data = getColumnData(checking);
+            // Use canBorrowFromColumn to check if it can SAFELY borrow
             if (data && canBorrowFromColumn(checking)) {
                 available.push(checking);
+                // DON'T break - keep looking for ALL possible sources!
             }
             checking = getLeftColumn(checking);
         }
         
+        console.log(`Available sources for ${currentColumn}:`, available);
         return available;
     }
     
