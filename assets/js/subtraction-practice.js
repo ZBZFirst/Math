@@ -196,13 +196,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function setupStage1() {
         const colData = getCurrentColumnData();
         if (!colData) return;
-        
-        // Skip if digit already changed by borrowing
-        if (colData.currentTopDigit !== colData.topDigit) {
-            setupStage4();
-            return;
-        }
-        
+
         // Update display elements
         const stage1TopDigit = document.getElementById('stage1TopDigit');
         const stage1BottomDigit = document.getElementById('stage1BottomDigit');
