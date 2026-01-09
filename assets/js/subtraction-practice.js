@@ -495,35 +495,12 @@ document.addEventListener('DOMContentLoaded', function() {
     function canBorrowFromColumn(column) {
         const columnData = getColumnData(column);
         if (!columnData) return false;
-        
-        // Can't borrow from the current column
         if (column === currentColumn) return false;
-        
-        // Must have at least 1 to borrow
-        if (columnData.currentTopDigit < 1) return false;
-        
-        // NEW: After lending 1, will this column still be able to handle its own subtraction?
-        return (columnData.currentTopDigit - 1) >= columnData.bottomDigit;
+        return columnData.currentTopDigit >= 1;
     }
+
     
-    function findAvailableSources() {
-        const available = [];
-        
-        // Check ALL columns to the left (not just the first one)
-        let checking = getLeftColumn(currentColumn);
-        while (checking) {
-            const data = getColumnData(checking);
-            // Use canBorrowFromColumn to check if it can SAFELY borrow
-            if (data && canBorrowFromColumn(checking)) {
-                available.push(checking);
-                // DON'T break - keep looking for ALL possible sources!
-            }
-            checking = getLeftColumn(checking);
-        }
-        
-        console.log(`Available sources for ${currentColumn}:`, available);
-        return available;
-    }
+
     
     function handleStage1Decision(userAnswer, needsBorrow) {
         console.log(`Stage 1: User said ${userAnswer ? 'Yes' : 'No'}, actually ${needsBorrow ? 'needs borrow' : 'no borrow needed'}`);
