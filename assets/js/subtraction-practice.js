@@ -290,6 +290,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const leftColumn = getLeftColumn(currentColumn);
         const leftColData = leftColumn ? getColumnData(leftColumn) : null;
         
+        // FIXED: Check if we can SAFELY borrow
+        // Can safely borrow if: (currentTopDigit - 1) >= bottomDigit
+        const hasEnough = leftColData && 
+                         leftColData.currentTopDigit >= 1 && 
+                         (leftColData.currentTopDigit - 1) >= leftColData.bottomDigit;
+        
         // Update display
         const currentColumnDisplay = document.getElementById('currentColumnDisplay');
         const leftColumnDisplay = document.getElementById('leftColumnDisplay');
@@ -304,7 +310,23 @@ document.addEventListener('DOMContentLoaded', function() {
             leftColumnDisplay.textContent = `${capitalize(leftColumn)}: ${leftColData.currentTopDigit} - ${leftColData.bottomDigit}`;
             
             if (stage2Question) {
-                stage2Question.textContent = `Is there enough to borrow from the ${leftColumn} column?`;
+                // Make the question clearer
+                stage2Question.textContent = `After lending 1 to ${currentColumn}, can ${leftColumn} still subtract ${leftColData.bottomDigit}?`;
+                
+                // Add explanation
+                const explanation = document.createElement('div');
+                explanation.className = 'explanation';
+                explanation.style.fontSize = '0.9em';
+                explanation.style.marginTop = '5px';
+                explanation.style.color = '#666';
+                explanation.innerHTML = `(${leftColData.currentTopDigit} - 1 = ${leftColData.currentTopDigit - 1}, then ${leftColData.currentTopDigit - 1} - ${leftColData.bottomDigit} = ${leftColData.currentTopDigit - 1 - leftColData.bottomDigit})`;
+                
+                // Remove any existing explanation first
+                const existingExplanation = stage2Question.querySelector('.explanation');
+                if (existingExplanation) {
+                    existingExplanation.remove();
+                }
+                stage2Question.appendChild(explanation);
             }
             
             if (zeroWarning) {
@@ -319,7 +341,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('#stage2 .btn-decision').forEach(btn => {
             btn.onclick = function() {
                 const userAnswer = this.dataset.decision === 'yes';
-                const hasEnough = leftColData && leftColData.currentTopDigit >= 1;
                 handleStage2Decision(userAnswer, hasEnough);
             };
         });
@@ -449,7 +470,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (column === currentColumn) return false;
         
         // Must have at least 1 to borrow
-        return columnData.currentTopDigit >= 1;
+        if (columnData.currentTopDigit < 1) return false;
+        
+        // NEW: After lending 1, will this column still be able to handle its own subtraction?
+        return (columnData.currentTopDigit - 1) >= columnData.bottomDigit;
     }
     
     // Also, let's update the findAvailableSources function to be more robust:
@@ -460,9 +484,8 @@ document.addEventListener('DOMContentLoaded', function() {
         let checking = getLeftColumn(currentColumn);
         while (checking) {
             const data = getColumnData(checking);
-            if (data && data.currentTopDigit >= 1) {
+            if (data && canBorrowFromColumn(checking)) {
                 available.push(checking);
-                // Don't break - let's show ALL available sources
             }
             checking = getLeftColumn(checking);
         }
