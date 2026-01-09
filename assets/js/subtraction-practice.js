@@ -247,6 +247,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const colData = getCurrentColumnData();
         if (!colData) return;
         
+        if (colData.currentTopDigit !== colData.topDigit) {
+            console.log(`Skipping borrow check for ${currentColumn}: ` +
+                       `digit changed from ${colData.topDigit} to ${colData.currentTopDigit}`);
+            setupStage4();
+            return;
+        }
+
         // Update display
         const stage1TopDigit = document.getElementById('stage1TopDigit');
         const stage1BottomDigit = document.getElementById('stage1BottomDigit');
@@ -283,9 +290,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const leftColumn = getLeftColumn(currentColumn);
         const leftColData = leftColumn ? getColumnData(leftColumn) : null;
         
-        // Calculate if we can safely borrow - FIXED!
-        const canSafelyBorrow = leftColumn ? canSafelyBorrowFromColumn(leftColumn) : false;
-        
         // Update display
         const currentColumnDisplay = document.getElementById('currentColumnDisplay');
         const leftColumnDisplay = document.getElementById('leftColumnDisplay');
@@ -299,18 +303,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (leftColumnDisplay && leftColData) {
             leftColumnDisplay.textContent = `${capitalize(leftColumn)}: ${leftColData.currentTopDigit} - ${leftColData.bottomDigit}`;
             
-            // Update the question to be clearer
             if (stage2Question) {
-                stage2Question.textContent = `After lending 1 to ${currentColumn}, can ${leftColumn} still subtract ${leftColData.bottomDigit}?`;
-                
-                // Add a hint
-                const hint = document.createElement('div');
-                hint.className = 'borrow-hint';
-                hint.style.fontSize = '0.9em';
-                hint.style.marginTop = '5px';
-                hint.style.color = '#666';
-                hint.innerHTML = `(${leftColData.currentTopDigit} - 1 = ${leftColData.currentTopDigit - 1}, then ${leftColData.currentTopDigit - 1} - ${leftColData.bottomDigit} = ${leftColData.currentTopDigit - 1 - leftColData.bottomDigit})`;
-                stage2Question.appendChild(hint);
+                stage2Question.textContent = `Is there enough to borrow from the ${leftColumn} column?`;
             }
             
             if (zeroWarning) {
@@ -321,11 +315,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Show this stage
         showStage(2);
         
-        // Setup button handlers - PASS THE CORRECT VALUE
+        // Setup button handlers
         document.querySelectorAll('#stage2 .btn-decision').forEach(btn => {
             btn.onclick = function() {
                 const userAnswer = this.dataset.decision === 'yes';
-                handleStage2Decision(userAnswer, canSafelyBorrow);
+                const hasEnough = leftColData && leftColData.currentTopDigit >= 1;
+                handleStage2Decision(userAnswer, hasEnough);
             };
         });
     }
@@ -474,24 +469,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         return available;
     }
-
-    function canSafelyBorrowFromColumn(column) {
-        const columnData = getColumnData(column);
-        if (!columnData) return false;
-        
-        // Can't borrow from the current column
-        if (column === currentColumn) return false;
-        
-        // Must have at least 1 to borrow
-        if (columnData.currentTopDigit < 1) return false;
-        
-        // NEW: After lending 1, will this column still be able to handle its own subtraction?
-        const afterBorrowing = columnData.currentTopDigit - 1;
-        const bottomDigit = columnData.bottomDigit;
-        
-        // If after borrowing, we can still subtract (or at least break even)
-        return afterBorrowing >= bottomDigit;
-    }
     
     function handleStage1Decision(userAnswer, needsBorrow) {
         console.log(`Stage 1: User said ${userAnswer ? 'Yes' : 'No'}, actually ${needsBorrow ? 'needs borrow' : 'no borrow needed'}`);
@@ -525,18 +502,15 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleStage2Decision(userAnswer, hasEnough) {
         console.log(`Stage 2: User said ${userAnswer ? 'Yes' : 'No'}, actually ${hasEnough ? 'has enough' : 'not enough'}`);
         
-        const leftColumn = getLeftColumn(currentColumn);
-        
-        // Recalculate to be sure
-        const actuallyHasEnough = leftColumn ? canSafelyBorrowFromColumn(leftColumn) : false;
-        
-        if (userAnswer === actuallyHasEnough) {
-            showFeedback("✓ Correct! " + (actuallyHasEnough ? 
-                `We can safely borrow from ${leftColumn}.` : 
-                `Can't safely borrow from ${leftColumn}.`), 'correct');
+        if (userAnswer === hasEnough) {
+            showFeedback("✓ Correct! " + (hasEnough ? 
+                "We can borrow from this column." : 
+                "Not enough to borrow from this column."), 'correct');
             
-            if (actuallyHasEnough) {
-                if (canSafelyBorrowFromColumn(leftColumn)) {
+            if (hasEnough) {
+                const leftColumn = getLeftColumn(currentColumn);
+                // ADD VALIDATION HERE
+                if (canBorrowFromColumn(leftColumn)) {
                     executeSimpleBorrow(leftColumn);
                 } else {
                     showFeedback("Error: Cannot borrow from this column", 'error');
@@ -546,13 +520,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 setTimeout(() => setupStage3(), 1000);
             }
         } else {
-            showFeedback("✗ Incorrect. " + (actuallyHasEnough ? 
-                `We CAN safely borrow from ${leftColumn}.` :
-                `We CANNOT safely borrow from ${leftColumn}.`), 'incorrect');
+            showFeedback("✗ Incorrect. " + (hasEnough ? 
+                "This column has enough to borrow from." :
+                "This column doesn't have enough to borrow from."), 'incorrect');
             
             setTimeout(() => {
-                if (actuallyHasEnough) {
-                    if (canSafelyBorrowFromColumn(leftColumn)) {
+                if (hasEnough) {
+                    const leftColumn = getLeftColumn(currentColumn);
+                    // ADD VALIDATION HERE TOO
+                    if (canBorrowFromColumn(leftColumn)) {
                         executeSimpleBorrow(leftColumn);
                     } else {
                         setupStage3();
