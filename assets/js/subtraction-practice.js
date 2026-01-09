@@ -236,16 +236,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const leftColumn = getLeftColumn(currentColumn);
         const leftColData = leftColumn ? getColumnData(leftColumn) : null;
         
-        // Check if we can safely borrow (must have at least 1 AND after borrowing, still have enough)
-        const canSafelyBorrow = leftColData && 
-                               leftColData.currentTopDigit >= 1 && 
-                               (leftColData.currentTopDigit - 1) >= leftColData.bottomDigit;
+        // SIMPLIFIED: Just check if left column has at least 1
+        const hasDigitToBorrow = leftColData && leftColData.currentTopDigit >= 1;
         
         // Update display
         const currentColumnDisplay = document.getElementById('currentColumnDisplay');
         const leftColumnDisplay = document.getElementById('leftColumnDisplay');
         const stage2Question = document.getElementById('stage2Question');
-        const zeroWarning = document.getElementById('zeroWarning');
         
         if (currentColumnDisplay) {
             currentColumnDisplay.textContent = `${capitalize(currentColumn)}: ${colData.currentTopDigit} - ${colData.bottomDigit}`;
@@ -255,25 +252,12 @@ document.addEventListener('DOMContentLoaded', function() {
             leftColumnDisplay.textContent = `${capitalize(leftColumn)}: ${leftColData.currentTopDigit} - ${leftColData.bottomDigit}`;
             
             if (stage2Question) {
-                stage2Question.textContent = `Can the ${leftColumn} column lend 1 without causing issues?`;
+                // SIMPLIFIED QUESTION: Just ask if column has at least 1
+                stage2Question.textContent = `Does the ${leftColumn} column have at least 1?`;
                 
-                // Add explanation
-                const explanation = document.createElement('div');
-                explanation.className = 'explanation';
-                explanation.style.fontSize = '0.9em';
-                explanation.style.marginTop = '5px';
-                explanation.style.color = '#666';
-                explanation.innerHTML = `After lending 1: ${leftColData.currentTopDigit} - 1 = ${leftColData.currentTopDigit - 1}<br>
-                                        Then: ${leftColData.currentTopDigit - 1} - ${leftColData.bottomDigit} = ${leftColData.currentTopDigit - 1 - leftColData.bottomDigit}`;
-                
-                // Replace existing explanation
+                // Remove any existing explanation
                 const existing = stage2Question.querySelector('.explanation');
                 if (existing) existing.remove();
-                stage2Question.appendChild(explanation);
-            }
-            
-            if (zeroWarning) {
-                zeroWarning.style.display = leftColData.currentTopDigit === 0 ? 'block' : 'none';
             }
         }
         
@@ -283,7 +267,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('#stage2 .btn-decision').forEach(btn => {
             btn.onclick = () => {
                 const userAnswer = btn.dataset.decision === 'yes';
-                handleStage2Decision(userAnswer, canSafelyBorrow);
+                handleStage2Decision(userAnswer, hasDigitToBorrow);
             };
         });
     }
@@ -299,8 +283,6 @@ document.addEventListener('DOMContentLoaded', function() {
             for (const col of columns) {
                 const data = getColumnData(col);
                 const canLend = data && data.currentTopDigit >= 1;
-                const afterLending = data ? data.currentTopDigit - 1 : 0;
-                const canStillSubtract = data ? afterLending >= data.bottomDigit : false;
                 
                 columnsHtml += `
                     <div class="context-column ${col === currentColumn ? 'current' : ''} ${canLend ? 'can-lend' : 'cannot-lend'}">
@@ -308,8 +290,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         <span class="column-digits">${data.currentTopDigit} - ${data.bottomDigit}</span>
                         <span class="borrow-status">
                             ${col === currentColumn ? '(current)' : canLend ? 
-                                `(can lend 1 → ${afterLending} - ${data.bottomDigit} = ${afterLending - data.bottomDigit} ${canStillSubtract ? '✓' : '✗'})` : 
-                                '(cannot lend)'}
+                                `(has ${data.currentTopDigit}, can lend 1)` : 
+                                `(has ${data.currentTopDigit})`}
                         </span>
                     </div>
                 `;
@@ -326,14 +308,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (availableSources.length > 0) {
                 availableSources.forEach(source => {
                     const sourceData = getColumnData(source);
-                    const afterLending = sourceData.currentTopDigit - 1;
-                    const result = afterLending - sourceData.bottomDigit;
                     
                     optionsHtml += `
                         <button class="source-option" data-source="${source}">
                             <strong>${capitalize(source)} Column</strong><br>
                             Current: ${sourceData.currentTopDigit} - ${sourceData.bottomDigit}<br>
-                            After lending: ${afterLending} - ${sourceData.bottomDigit} = ${result} ✓
+                            Has ${sourceData.currentTopDigit}, can lend 1
                         </button>
                     `;
                 });
@@ -436,30 +416,30 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    function handleStage2Decision(userAnswer, canSafelyBorrow) {
-        if (userAnswer === canSafelyBorrow) {
+    function handleStage2Decision(userAnswer, hasDigitToBorrow) {
+        if (userAnswer === hasDigitToBorrow) {
             showFeedback(
-                canSafelyBorrow ? 
-                "✓ Yes! This column can safely lend 1." : 
+                hasDigitToBorrow ? 
+                "✓ Yes! This column has at least 1." : 
                 "✓ Correct. Need to search farther left.",
                 'correct'
             );
             
-            if (canSafelyBorrow) {
+            if (hasDigitToBorrow) {
                 executeSimpleBorrow(getLeftColumn(currentColumn));
             } else {
                 setupStage3();
             }
         } else {
             showFeedback(
-                canSafelyBorrow ? 
-                "✗ This column can safely lend 1." : 
-                "✗ This column cannot lend without causing issues.",
+                hasDigitToBorrow ? 
+                "✗ This column does have at least 1." : 
+                "✗ This column does not have at least 1.",
                 'incorrect'
             );
             
             setTimeout(() => {
-                canSafelyBorrow ? 
+                hasDigitToBorrow ? 
                     executeSimpleBorrow(getLeftColumn(currentColumn)) : 
                     setupStage3();
             }, 1500);
