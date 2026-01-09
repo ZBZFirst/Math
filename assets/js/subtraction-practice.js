@@ -433,6 +433,35 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // ===== DECISION HANDLERS =====
+
+    function canBorrowFromColumn(column) {
+        const columnData = getColumnData(column);
+        if (!columnData) return false;
+        
+        // Can't borrow from the current column
+        if (column === currentColumn) return false;
+        
+        // Must have at least 1 to borrow
+        return columnData.currentTopDigit >= 1;
+    }
+    
+    // Also, let's update the findAvailableSources function to be more robust:
+    function findAvailableSources() {
+        const available = [];
+        
+        // Check all columns to the left
+        let checking = getLeftColumn(currentColumn);
+        while (checking) {
+            const data = getColumnData(checking);
+            if (data && data.currentTopDigit >= 1) {
+                available.push(checking);
+                // Don't break - let's show ALL available sources
+            }
+            checking = getLeftColumn(checking);
+        }
+        
+        return available;
+    }
     
     function handleStage1Decision(userAnswer, needsBorrow) {
         console.log(`Stage 1: User said ${userAnswer ? 'Yes' : 'No'}, actually ${needsBorrow ? 'needs borrow' : 'no borrow needed'}`);
@@ -473,7 +502,13 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (hasEnough) {
                 const leftColumn = getLeftColumn(currentColumn);
-                executeSimpleBorrow(leftColumn);
+                // ADD VALIDATION HERE
+                if (canBorrowFromColumn(leftColumn)) {
+                    executeSimpleBorrow(leftColumn);
+                } else {
+                    showFeedback("Error: Cannot borrow from this column", 'error');
+                    setTimeout(() => setupStage3(), 1000);
+                }
             } else {
                 setTimeout(() => setupStage3(), 1000);
             }
@@ -485,7 +520,12 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => {
                 if (hasEnough) {
                     const leftColumn = getLeftColumn(currentColumn);
-                    executeSimpleBorrow(leftColumn);
+                    // ADD VALIDATION HERE TOO
+                    if (canBorrowFromColumn(leftColumn)) {
+                        executeSimpleBorrow(leftColumn);
+                    } else {
+                        setupStage3();
+                    }
                 } else {
                     setupStage3();
                 }
@@ -513,6 +553,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (!sourceData || sourceData.currentTopDigit < 1) {
             showFeedback("Error: Can't borrow from empty column", 'error');
+            // Move to stage 3 to find alternative
+            setTimeout(() => setupStage3(), 1000);
             return;
         }
         
@@ -527,6 +569,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function executeChainBorrowing(sourceColumn) {
+        // Validate source first
+        const sourceData = getColumnData(sourceColumn);
+        if (!sourceData || sourceData.currentTopDigit < 1) {
+            showFeedback("✗ Can't borrow from a column with 0!", 'error');
+            setTimeout(() => setupStage3(), 1000);
+            return;
+        }
+        
         // Create chain from source to target
         const chain = [sourceColumn];
         let current = sourceColumn;
@@ -539,6 +589,24 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 break;
             }
+        }
+        
+        // Check if chain borrowing is possible
+        // We need to ensure all intermediate columns can pass the 1
+        let canChain = true;
+        for (let i = 0; i < chain.length - 1; i++) {
+            const from = chain[i];
+            const fromData = getColumnData(from);
+            if (!fromData || fromData.currentTopDigit < 1) {
+                canChain = false;
+                break;
+            }
+        }
+        
+        if (!canChain) {
+            showFeedback("✗ Chain borrowing not possible through these columns", 'error');
+            setTimeout(() => setupStage3(), 1000);
+            return;
         }
         
         // Execute borrowing through the chain
