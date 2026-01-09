@@ -422,6 +422,51 @@
     transform: translateY(-2px);
 }
 
+.context-column.can-borrow {
+    background-color: #e8f5e8;
+    border-left: 3px solid #4caf50;
+}
+
+.context-column.cannot-borrow {
+    background-color: #ffebee;
+    border-left: 3px solid #f44336;
+}
+
+.source-option {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    text-align: left;
+    background: #e8f5e8;
+    border: 2px solid #4caf50;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.source-option:hover {
+    background: #c8e6c9;
+    transform: translateY(-2px);
+}
+
+.source-option strong {
+    color: #2e7d32;
+}
+
+.source-option small {
+    color: #666;
+    font-style: italic;
+}
+
+.no-sources {
+    padding: 15px;
+    background: #fff3e0;
+    border: 2px dashed #ff9800;
+    border-radius: 6px;
+    text-align: center;
+}
+
 /* Score Display - SIMPLIFIED */
 .enhanced-score-container {
     background: #f8f9fa;
