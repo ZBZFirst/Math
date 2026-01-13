@@ -1,1 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        {{ page.title }} - {{ site.title }}
+    </title>
+    <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/style.css">
+    <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/multiplication.css">
+    <meta name="operation" content="multiplication">
+</head>
+<body>
+    {% include header.html %}
+    
+    <main class="page-content">
+        <div class="multiplication-container">
+            <!-- Title Container -->
+            <div class="container title-container">
+                <h1 class="page-title">{{ page.title }}</h1>
+                <p class="page-description">{{ page.description }}</p>
+            </div>
 
+            <!-- Controls Container -->
+            <div class="container controls-container">
+                <div class="size-selector">
+                    <label for="tableSize">Table Size:</label>
+                    <input type="number" id="tableSize" min="1" max="20" value="10">
+                    <span class="size-info">(1 to 20)</span>
+                </div>
+                
+                <div class="table-controls">
+                    <button id="showFilledBtn" class="btn btn-primary">Show Filled Table</button>
+                    <button id="makeBlankBtn" class="btn btn-secondary">Make Blank for Practice</button>
+                    <button id="resetPracticeBtn" class="btn btn-warning">Reset Practice</button>
+                </div>
+            </div>
+
+            <!-- Main Table Container -->
+            <div class="container table-container-wrapper">
+                <div class="table-scroll-container">
+                    <div id="tableContainer"></div>
+                </div>
+            </div>
+
+            <!-- Progress Stats -->
+            <div class="container stats-container">
+                <div class="score-display">
+                    <h3>Your Progress</h3>
+                    <div class="score-stats">
+                        <div class="stat correct">
+                            <span class="stat-label">Correct:</span>
+                            <span class="stat-value" id="correctCount">0</span>
+                        </div>
+                        <div class="stat total">
+                            <span class="stat-label">Total Cells:</span>
+                            <span class="stat-value" id="totalCells">0</span>
+                        </div>
+                        <div class="stat accuracy">
+                            <span class="stat-label">Progress:</span>
+                            <span class="stat-value" id="progressPercent">0%</span>
+                        </div>
+                        <div class="stat attempts">
+                            <span class="stat-label">Accuracy:</span>
+                            <span class="stat-value" id="accuracyRate">0%</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Progress Bar -->
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div id="progressFill" class="progress-fill"></div>
+                        </div>
+                        <div id="progressText" class="progress-text">Fill in the table to see your progress!</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Instructions -->
+            <div class="container instructions-container">
+                <div class="instructions">
+                    <h4>How to Use:</h4>
+                    <ul>
+                        <li>Choose your table size (1-20)</li>
+                        <li>Click "Show Filled Table" to study the complete table</li>
+                        <li>Click "Make Blank for Practice" to start practicing</li>
+                        <li>Type your answer and press <strong>Enter</strong> to check</li>
+                        <li>Correct answers turn green and lock</li>
+                        <li>Wrong answers will shake - try again!</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    {% include footer.html %}
+    
+    <!-- Hidden Audio for correct answers -->
+    <audio id="correctSound" preload="auto">
+        <source src="{{ site.baseurl }}/assets/sounds/correct.mp3" type="audio/mpeg">
+    </audio>
+    
+    <script src="{{ site.baseurl }}/assets/js/multiplication.js"></script>
+</body>
+</html>
