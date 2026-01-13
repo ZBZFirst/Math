@@ -76,7 +76,7 @@
 .multiplication-table {
     border-collapse: collapse;
     margin: 0 auto;
-    min-width: min-content;
+    min-width: max-content;
 }
 
 .multiplication-table td {
