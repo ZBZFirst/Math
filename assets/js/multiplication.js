@@ -236,7 +236,7 @@ class MultiplicationTable {
 if (!input.disabled && input.value !== '') {
         this.checkAnswer(input);
     }
-    
+    }
     
     handleInput(event) {
         // Clean input - only allow numbers
