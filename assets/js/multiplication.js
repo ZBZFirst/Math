@@ -1,6 +1,5 @@
 // Multiplication Table Practice
 // Main application logic
-
 class MultiplicationTable {
     constructor() {
         // DOM Elements
