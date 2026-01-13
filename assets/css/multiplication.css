@@ -122,6 +122,20 @@
     background-color: #fff9c4;
 }
 
+/* Cell States - Add to existing cell state styles */
+.error-cell {
+    background-color: #f8d7da !important;
+}
+
+.error-cell input {
+    color: #721c24;
+    font-weight: bold;
+}
+
+.empty-cell {
+    background-color: #ffffff !important;
+}
+
 /* Cell States */
 .correct-cell {
     background-color: #d4edda !important;
