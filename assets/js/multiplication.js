@@ -1,4 +1,3 @@
-// Multiplication Table Practice
 // Main application logic
 
 class MultiplicationTable {
