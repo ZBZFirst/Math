@@ -232,7 +232,11 @@ class MultiplicationTable {
         
         // Remove highlight
         cell.classList.remove('current-cell');
+
+if (!input.disabled && input.value !== '') {
+        this.checkAnswer(input);
     }
+    
     
     handleInput(event) {
         // Clean input - only allow numbers
