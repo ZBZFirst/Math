@@ -1,4 +1,3 @@
-
 // Multiplication Table Practice
 // Main application logic
 
@@ -112,7 +111,7 @@ class MultiplicationTable {
         // Table body with all answers
         for (let row = 1; row <= this.tableSize; row++) {
             html += '<tr>';
-            html += `<td class="header">${row}</td>`;
+            html += `<td class="header">${row}</td>';
             
             for (let col = 1; col <= this.tableSize; col++) {
                 const product = this.answerTable[row][col];
@@ -148,18 +147,19 @@ class MultiplicationTable {
         // Table with input boxes
         for (let row = 1; row <= this.tableSize; row++) {
             html += '<tr>';
-            html += `<td class="header">${row}</td>`;
+            html += `<td class="header">${row}</td>';
             
             for (let col = 1; col <= this.tableSize; col++) {
                 const cellId = `cell-${row}-${col}`;
                 const inputId = `input-${row}-${col}`;
                 
-                html += `<td id="${cellId}">`;
+                html += `<td id="${cellId}" class="empty-cell">`;
                 html += `<input type="text" id="${inputId}" 
                          data-row="${row}" 
                          data-col="${col}"
                          maxlength="4"
-                         inputmode="numeric">`;
+                         inputmode="numeric"
+                         pattern="[0-9]*">`;
                 html += '</td>';
             }
             
@@ -197,13 +197,14 @@ class MultiplicationTable {
             
             // Add new listeners
             newInput.addEventListener('keypress', (e) => this.handleKeyPress(e));
-            newInput.addEventListener('focus', (e) => this.handleFocus(e));
             newInput.addEventListener('blur', (e) => this.handleBlur(e));
+            newInput.addEventListener('focus', (e) => this.handleFocus(e));
             newInput.addEventListener('input', (e) => this.handleInput(e));
         });
     }
     
     handleKeyPress(event) {
+        // Check on Enter key (desktop)
         if (event.key === 'Enter') {
             event.preventDefault();
             this.checkAnswer(event.target);
@@ -218,14 +219,10 @@ class MultiplicationTable {
     handleFocus(event) {
         const input = event.target;
         const cell = input.parentElement;
-        const row = parseInt(input.dataset.row);
-        const col = parseInt(input.dataset.col);
         
         // Add highlight to current cell
         cell.classList.add('current-cell');
-        
-        // Update any relevant UI if needed
-        // (e.g., show current position in stats)
+        cell.classList.remove('error-cell');
     }
     
     handleBlur(event) {
@@ -234,12 +231,24 @@ class MultiplicationTable {
         
         // Remove highlight
         cell.classList.remove('current-cell');
+        
+        // Check answer when leaving field (mobile/touch devices)
+        // Only check if there's a value
+        if (input.value.trim() !== '' && !input.disabled) {
+            this.checkAnswer(input);
+        }
     }
     
     handleInput(event) {
         // Clean input - only allow numbers
         const input = event.target;
+        const cell = input.parentElement;
+        
+        // Remove any non-digit characters
         input.value = input.value.replace(/[^\d]/g, '');
+        
+        // Clear error state when user starts typing again
+        cell.classList.remove('error-cell');
     }
     
     checkAnswer(inputElement) {
@@ -249,16 +258,22 @@ class MultiplicationTable {
         const userAnswer = parseInt(inputElement.value);
         const correctAnswer = this.answerTable[row][col];
         
-        if (isNaN(userAnswer) || inputElement.value === '') {
-            return; // Empty input, do nothing
+        // Don't check if input is empty
+        if (isNaN(userAnswer) || inputElement.value.trim() === '') {
+            return;
+        }
+        
+        // Don't check if already correct
+        if (inputElement.disabled) {
+            return;
         }
         
         this.totalAnswered++;
         
         if (userAnswer === correctAnswer) {
-            // CORRECT
+            // CORRECT ANSWER
+            cell.classList.remove('error-cell', 'empty-cell');
             cell.classList.add('correct-cell');
-            cell.classList.remove('current-cell');
             inputElement.blur();
             inputElement.disabled = true;
             
@@ -271,15 +286,23 @@ class MultiplicationTable {
             }, 200);
             
         } else {
-            // INCORRECT
+            // WRONG ANSWER
+            cell.classList.remove('correct-cell');
+            cell.classList.add('error-cell');
             cell.classList.add('shake');
+            
+            // Keep the value so user can see their mistake
+            // But don't disable the input - let them try again
+            
+            // Remove shake animation after it plays
             setTimeout(() => {
                 cell.classList.remove('shake');
             }, 500);
             
-            // Clear for retry
-            inputElement.value = '';
+            // Don't clear the input - let user see their wrong answer
+            // Focus stays in the field so they can correct it
             inputElement.focus();
+            inputElement.select(); // Select all text for easy editing
         }
         
         this.updateStats();
