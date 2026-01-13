@@ -120,7 +120,10 @@ class MultiplicationTable {
         }
 
         html += '</table>';
-        this.tableContainer.innerHTML = html;
+        this.tableContainer.innerHTML = ` <div class="table-scroll-container">
+        ${html}
+    </div>
+`;
 
         this.attachInputHandlers();
 
