@@ -147,7 +147,7 @@ class MultiplicationTable {
         // Table with input boxes
         for (let row = 1; row <= this.tableSize; row++) {
             html += '<tr>';
-            html += `<td class="header">${row}</td>';
+            html += `<td class="header">${row}</td>`;
             
             for (let col = 1; col <= this.tableSize; col++) {
                 const cellId = `cell-${row}-${col}`;
