@@ -29,93 +29,10 @@
     border: 1px solid var(--border-color);
 }
 
-.division-layout {
+.main-problem {
+    min-height: 300px;
     font-family: 'Courier New', monospace;
     font-size: 1.3em;
-    min-height: 350px;
-    position: relative;
-}
-
-.dividend-row {
-    display: flex;
-    align-items: center;
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #333;
-}
-
-.division-symbol {
-    font-size: 2.5em;
-    margin-right: 15px;
-    color: #333;
-}
-
-.dividend-digits {
-    display: flex;
-    gap: 8px;
-    font-size: 1.5em;
-    font-weight: bold;
-}
-
-.dividend-digit {
-    width: 45px;
-    height: 45px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid var(--primary-color);
-    border-radius: 6px;
-    background: #f0f7ff;
-}
-
-.divisor-row {
-    margin-left: 60px;
-    margin-bottom: 25px;
-}
-
-.divisor-value {
-    font-size: 1.5em;
-    font-weight: bold;
-    color: var(--text-color);
-    padding: 8px 16px;
-    border: 2px solid var(--secondary-color);
-    border-radius: 6px;
-    display: inline-block;
-    background: #e3f2fd;
-}
-
-/* Work area in main container */
-.work-area {
-    margin-top: 25px;
-    padding: 15px;
-    border: 2px dashed var(--border-color);
-    border-radius: 6px;
-    min-height: 180px;
-    background-color: var(--background-secondary);
-}
-
-.current-step-container {
-    margin-top: 15px;
-    padding: 12px;
-    background: #d4edda;
-    border-radius: 6px;
-    border-left: 4px solid #28a745;
-}
-
-.step-focus {
-    font-size: 1em;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.step-label {
-    font-weight: bold;
-    color: var(--text-color);
-}
-
-.step-description {
-    color: var(--text-secondary);
 }
 
 /* Work container (right side) */
@@ -127,166 +44,13 @@
     border: 1px solid var(--border-color);
 }
 
-.work-stage-container {
+.Work-Container {
     min-height: 280px;
     padding: 15px;
     background-color: var(--background-secondary);
     border-radius: 6px;
     border: 1px solid var(--border-color);
     margin-bottom: 15px;
-}
-
-/* Work stage content styles */
-.work-stage {
-    padding: 15px;
-}
-
-.work-stage h4 {
-    color: var(--primary-color);
-    margin-bottom: 12px;
-    font-size: 1.2em;
-}
-
-.current-digit-display {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
-    margin: 15px 0;
-    padding: 12px;
-    background: white;
-    border-radius: 6px;
-    border: 1px solid var(--border-color);
-}
-
-.digit-context, .divisor-display {
-    text-align: center;
-}
-
-.context-label {
-    display: block;
-    font-size: 0.85em;
-    color: var(--text-secondary);
-    margin-bottom: 4px;
-}
-
-.current-portion, .divisor-value-display {
-    font-size: 1.8em;
-    font-weight: bold;
-    color: var(--text-color);
-}
-
-.vs-symbol {
-    font-size: 1.8em;
-    color: #999;
-}
-
-.multiple-options {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin: 15px 0;
-    justify-content: center;
-}
-
-.multiple-option {
-    padding: 10px 16px;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 1.1em;
-    background: white;
-    transition: all 0.2s;
-    color: var(--text-color);
-}
-
-.multiple-option:hover {
-    border-color: var(--primary-color);
-    background: #f0f7ff;
-}
-
-.multiple-option.selected {
-    border-color: #28a745;
-    background: #d4edda;
-    color: #155724;
-}
-
-.estimation-hint {
-    text-align: center;
-    color: var(--text-secondary);
-    font-style: italic;
-    margin-top: 8px;
-    font-size: 0.9em;
-}
-
-/* Multiplication and subtraction inputs */
-.multiplication-input, .subtraction-input {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin: 15px 0;
-    padding: 12px;
-    background: white;
-    border-radius: 6px;
-    border: 1px solid var(--border-color);
-}
-
-.answer-input {
-    width: 80px;
-    padding: 8px 12px;
-    font-size: 1em;
-    text-align: center;
-    border: 2px solid var(--border-color);
-    border-radius: 6px;
-    font-family: monospace;
-    color: var(--text-color);
-    background-color: white;
-}
-
-.answer-input:focus {
-    border-color: var(--primary-color);
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.2);
-}
-
-/* Work navigation */
-.work-navigation {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px;
-    background-color: var(--background-secondary);
-    border-radius: 6px;
-    margin-top: 15px;
-    border: 1px solid var(--border-color);
-}
-
-.nav-btn {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 6px;
-    background: var(--primary-color);
-    color: white;
-    cursor: pointer;
-    font-size: 0.95em;
-    transition: background 0.2s;
-}
-
-.nav-btn:hover:not(:disabled) {
-    background: var(--primary-dark);
-}
-
-.nav-btn:disabled {
-    background: #e9ecef;
-    color: #6c757d;
-    cursor: not-allowed;
-}
-
-.step-counter {
-    font-weight: bold;
-    color: var(--text-color);
-    font-size: 1em;
 }
 
 /* Feedback area */
@@ -357,31 +121,6 @@
     background: #dee2e6;
 }
 
-.difficulty-selector {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.difficulty-selector label {
-    font-weight: 600;
-    color: var(--text-color);
-}
-
-.difficulty-selector select {
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: 2px solid var(--border-color);
-    background: white;
-    font-size: 0.95em;
-    color: var(--text-color);
-}
-
-.difficulty-selector select:focus {
-    border-color: var(--primary-color);
-    outline: none;
-}
-
 /* Enhanced Score Container */
 .enhanced-score-container {
     background-color: var(--background-secondary);
@@ -436,36 +175,6 @@
     color: var(--text-color);
 }
 
-/* Progress bars */
-.progress-bars {
-    margin: 20px 0;
-}
-
-.progress-item {
-    margin-bottom: 12px;
-}
-
-.progress-label {
-    display: block;
-    margin-bottom: 5px;
-    color: var(--text-color);
-    font-size: 0.9em;
-}
-
-.progress-bar {
-    height: 10px;
-    background-color: #e9ecef;
-    border-radius: 5px;
-    overflow: hidden;
-}
-
-.progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-    border-radius: 5px;
-    transition: width 0.3s ease;
-}
-
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .division-container {
@@ -491,10 +200,6 @@
         justify-content: center;
     }
     
-    .difficulty-selector {
-        justify-content: center;
-    }
-    
     .score-stats {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -509,29 +214,9 @@
         gap: 10px;
     }
     
-    .dividend-digit {
-        width: 40px;
-        height: 40px;
-        font-size: 1.2em;
-    }
-    
-    .work-stage-container {
+    .Work-Container {
         min-height: 250px;
         padding: 12px;
-    }
-    
-    .current-portion, .divisor-value-display {
-        font-size: 1.5em;
-    }
-    
-    .multiple-option {
-        padding: 8px 12px;
-        font-size: 1em;
-    }
-    
-    .work-navigation {
-        flex-direction: column;
-        gap: 10px;
     }
     
     .control-buttons {
