@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        {{ page.title }} - {{ site.title }}
+    </title>
+    <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/style.css">
+    <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/division.css">
+    <meta name="operation" content="division">
+</head>
+<body>
+    {% include header.html %}
+    
+    <main class="page-content">
+        <div class="division-container">
+            <!-- Title Container -->
+            <div class="container title-container">
+                <h1 class="page-title">{{ page.title }}</h1>
+                <p class="page-description">{{ page.description }}</p>
+            </div>
+
+            <!-- Main Workspace -->
+            <div class="dual-container">
+                <!-- Left: Main Problem Container -->
+                <div class="main-problem-container">
+                    <h3>Division Problem</h3>
+                    <div class="division-layout" id="divisionLayout">
+                        <!-- Long Division Layout -->
+                        <div class="dividend-row">
+                            <div class="division-symbol">⟌</div>
+                            <div class="dividend-digits" id="dividendDigits">
+                                <!-- Will be filled by JavaScript -->
+                            </div>
+                        </div>
+                        <div class="divisor-row">
+                            <div class="divisor-value" id="divisorValue"></div>
+                        </div>
+                        
+                        <!-- Work Area for Long Division Steps -->
+                        <div class="work-area" id="workArea">
+                            <!-- Steps will appear here as user progresses -->
+                        </div>
+                        
+                        <!-- Current Step Display -->
+                        <div class="current-step-container">
+                            <div class="step-focus" id="currentStepFocus">
+                                <span class="step-label">Current Step:</span>
+                                <span class="step-description" id="currentStepDescription">
+                                    Start with the first digit
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right: Interactive Work Container -->
+                <div class="work-container">
+                    <h3>Work Area</h3>
+                    
+                    <!-- Single container that gets filled with content -->
+                    <div class="work-stage-container" id="workStageContainer">
+                        <!-- This container will be dynamically filled by JavaScript -->
+                        <!-- It will contain one of the following based on current step: -->
+                        <!-- 1. Divide step content -->
+                        <!-- 2. Multiply step content -->
+                        <!-- 3. Subtract step content -->
+                        <!-- 4. Bring down step content -->
+                        <!-- 5. Final answer content -->
+                    </div>
+                    
+                    <!-- Navigation buttons for moving between steps -->
+                    <div class="work-navigation">
+                        <button id="prevStep" class="nav-btn" disabled>
+                            ← Previous Step
+                        </button>
+                        <span class="step-counter">
+                            Step <span id="currentStepNumber">1</span> of <span id="totalSteps">5</span>
+                        </span>
+                        <button id="nextStep" class="nav-btn">
+                            Next Step →
+                        </button>
+                    </div>
+                    
+                    <!-- Feedback Area -->
+                    <div class="work-feedback" id="workFeedback"></div>
+                </div>
+            </div>
+            
+            <!-- Controls -->
+            <div class="division-controls">
+                <div class="control-buttons">
+                    <button id="newDivisionProblem" class="primary-btn">New Problem</button>
+                    <button id="resetCurrentProblem" class="secondary-btn">Reset This Problem</button>
+                    <button id="checkAnswer" class="secondary-btn">Check My Answer</button>
+                </div>
+                
+                <div class="difficulty-selector">
+                    <label for="difficultyLevel">Difficulty:</label>
+                    <select id="difficultyLevel">
+                        <option value="easy">Easy (2-digit ÷ 1-digit)</option>
+                        <option value="medium" selected>Medium (3-digit ÷ 1-digit)</option>
+                        <option value="hard">Hard (3-digit ÷ 2-digit)</option>
+                        <option value="expert">Expert (4-digit ÷ 2-digit)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Enhanced Score Container -->
+            <div class="container enhanced-score-container">
+                <div class="score-display">
+                    <h3>Your Division Progress</h3>
+                    <div class="score-stats">
+                        <div class="stat correct">
+                            <span class="stat-label">Problems Solved:</span>
+                            <span class="stat-value" id="solvedCount">0</span>
+                        </div>
+                        <div class="stat incorrect">
+                            <span class="stat-label">Mistakes:</span>
+                            <span class="stat-value" id="mistakeCount">0</span>
+                        </div>
+                        <div class="stat accuracy">
+                            <span class="stat-label">Accuracy:</span>
+                            <span class="stat-value" id="divisionAccuracy">0%</span>
+                        </div>
+                        <div class="stat streak">
+                            <span class="stat-label">Current Streak:</span>
+                            <span class="stat-value" id="currentStreak">0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-bars">
+                        <div class="progress-item">
+                            <span class="progress-label">Divide Step</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="divideStepProgress" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="progress-item">
+                            <span class="progress-label">Multiply Step</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="multiplyStepProgress" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="progress-item">
+                            <span class="progress-label">Subtract Step</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="subtractStepProgress" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button id="resetDivisionScores">Reset All Scores</button>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    {% include footer.html %}
+    
+    <script src="{{ site.baseurl }}/assets/js/division-practice.js"></script>
+</body>
+</html>
