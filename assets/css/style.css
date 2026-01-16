@@ -98,7 +98,7 @@
     padding: 2rem;
     border: 2px solid transparent;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .operation-card:hover {
