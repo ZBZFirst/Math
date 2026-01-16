@@ -129,6 +129,7 @@
 .card-title::before {
     content: '';
     position: absolute;
+        line-height: 1;
     top: -50px;
     left: 50%;
     transform: translateX(-50%);
