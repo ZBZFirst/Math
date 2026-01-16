@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: division
 title: Division Practice
 description: Practice division problems
 permalink: /division/
