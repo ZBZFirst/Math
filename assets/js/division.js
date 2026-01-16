@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Generate a new division problem
 function generateNewProblem() {
     // Generate random divisor (1-99)
-    let divisor = Math.floor(Math.random() * 99) + 1;
+    let divisor = Math.floor(Math.random() * 15) + 1;
     
     // Generate random dividend (1-999) that's bigger than divisor
     let dividend;
