@@ -583,3 +583,161 @@
         margin-left: 5px;
     }
 }
+/* LaTeX-style Division Display */
+.latex-division {
+    font-family: "Latin Modern Math", "STIX Two Math", "Cambria Math", serif;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.division-layout {
+    position: relative;
+    margin-bottom: 30px;
+    min-height: 120px;
+}
+
+.quotient {
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #1a237e;
+}
+
+.divisor-box {
+    position: absolute;
+    left: 0;
+    top: 40px;
+    font-size: 1.3em;
+    font-weight: bold;
+}
+
+.dividend-box {
+    position: absolute;
+    left: 40px;
+    top: 40px;
+    font-size: 1.3em;
+    border-top: 2px solid #333;
+    padding-top: 5px;
+    padding-left: 10px;
+    padding-right: 20px;
+}
+
+.division-symbol {
+    position: absolute;
+    left: 35px;
+    top: 40px;
+    width: 20px;
+    height: 45px;
+    border-right: 2px solid #333;
+    border-top: 2px solid #333;
+}
+
+.calculation-steps {
+    margin-top: 100px;
+    border-top: 1px solid #dee2e6;
+    padding-top: 15px;
+}
+
+.step {
+    margin: 15px 0;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border-left: 3px solid #5c6bc0;
+}
+
+.current-step {
+    margin: 15px 0;
+    padding: 15px;
+    background: #e3f2fd;
+    border-radius: 6px;
+    border-left: 3px solid #2196f3;
+    animation: pulse 2s infinite;
+}
+
+.step-header {
+    font-weight: bold;
+    color: #5c6bc0;
+    margin-bottom: 8px;
+    font-size: 1.1em;
+}
+
+.current-step .step-header {
+    color: #0d47a1;
+}
+
+.step-details {
+    line-height: 1.8;
+    padding-left: 10px;
+}
+
+.step-details div {
+    margin: 5px 0;
+    padding: 5px;
+    background: white;
+    border-radius: 4px;
+}
+
+.final-remainder {
+    font-weight: bold;
+    color: #e91e63;
+    background: #fce4ec !important;
+}
+
+.visual-representation {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f5f5f5;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+}
+
+.visual-title {
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #666;
+}
+
+.visual-line, .visual-subtract, .visual-hr, .visual-remainder {
+    font-family: 'Courier New', monospace;
+    margin: 5px 0;
+    padding: 3px 10px;
+}
+
+.visual-hr {
+    border-top: 1px solid #333;
+    padding-top: 2px;
+    margin-top: -2px;
+}
+
+.visual-remainder {
+    font-weight: bold;
+    color: #1a237e;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .division-layout {
+        min-height: 100px;
+    }
+    
+    .quotient {
+        font-size: 1.2em;
+    }
+    
+    .divisor-box, .dividend-box {
+        font-size: 1.1em;
+    }
+    
+    .step, .current-step {
+        padding: 8px;
+    }
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(33, 150, 243, 0.4); }
+    70% { box-shadow: 0 0 0 5px rgba(33, 150, 243, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(33, 150, 243, 0); }
+}
