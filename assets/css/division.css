@@ -26,7 +26,7 @@
     border-radius: 10px;
     padding: 20px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    border: 1px solid var(--border-color);
+    border: 1px solid #dee2e6; /* Using direct color instead of var */
 }
 
 .main-problem {
@@ -41,15 +41,15 @@
     border-radius: 10px;
     padding: 20px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    border: 1px solid var(--border-color);
+    border: 1px solid #dee2e6;
 }
 
 .Work-Container {
     min-height: 280px;
     padding: 15px;
-    background-color: var(--background-secondary);
+    background-color: #f8f9fa;
     border-radius: 6px;
-    border: 1px solid var(--border-color);
+    border: 1px solid #dee2e6;
     margin-bottom: 15px;
 }
 
@@ -81,7 +81,7 @@
     align-items: center;
     margin: 20px 0;
     padding: 15px;
-    background-color: var(--background-secondary);
+    background-color: #f8f9fa;
     border-radius: 10px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
@@ -103,18 +103,18 @@
 }
 
 .primary-btn {
-    background: var(--primary-color);
+    background: #007bff;
     color: white;
 }
 
 .primary-btn:hover {
-    background: var(--primary-dark);
+    background: #0056b3;
 }
 
 .secondary-btn {
     background: #e9ecef;
-    color: var(--text-color);
-    border: 1px solid var(--border-color);
+    color: #212529;
+    border: 1px solid #dee2e6;
 }
 
 .secondary-btn:hover {
@@ -123,7 +123,7 @@
 
 /* Enhanced Score Container */
 .enhanced-score-container {
-    background-color: var(--background-secondary);
+    background-color: #f8f9fa;
     border-radius: 10px;
     padding: 20px;
     margin-top: 20px;
@@ -164,7 +164,7 @@
 .stat-label {
     display: block;
     font-size: 0.9em;
-    color: var(--text-secondary);
+    color: #6c757d;
     margin-bottom: 5px;
 }
 
@@ -172,7 +172,7 @@
     display: block;
     font-size: 1.5em;
     font-weight: bold;
-    color: var(--text-color);
+    color: #212529;
 }
 
 /* Responsive adjustments */
@@ -242,16 +242,4 @@
 
 .shake {
     animation: shake 0.5s ease-in-out;
-}
-
-/* Ensure consistency with multiplication styling */
-:root {
-    --primary-color: #007bff;
-    --primary-dark: #0056b3;
-    --secondary-color: #6c757d;
-    --background-secondary: #f8f9fa;
-    --border-color: #dee2e6;
-    --text-color: #212529;
-    --text-secondary: #6c757d;
-    --primary-rgb: 0, 123, 255;
 }
