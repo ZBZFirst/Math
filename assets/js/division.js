@@ -24,12 +24,14 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('Division practice initialized');
     updateScoreDisplay();
     generateNewProblem();
-    createNumberButtons();
     
     // Event listeners
     newProblemBtn.addEventListener('click', generateNewProblem);
     resetProblemBtn.addEventListener('click', resetCurrentProblem);
     resetScoresBtn.addEventListener('click', resetAllScores);
+    
+    // Create number buttons after DOM is loaded
+    createNumberButtons();
 });
 
 // Generate a new division problem
@@ -48,14 +50,12 @@ function generateNewProblem() {
 // Initialize the division state machine
 function initializeDivisionState(dividend, divisor) {
     currentProblem = {
-        dividend,
-        divisor,
+        dividend: dividend,
+        divisor: divisor,
         digits: String(dividend).split('').map(Number),
         stepIndex: 0,
         partial: 0,
         quotientDigits: [],
-        lastProduct: null,
-        lastSubtraction: null,
         steps: [], // Array to store each step for display
         finished: false
     };
@@ -72,7 +72,8 @@ function initializeDivisionState(dividend, divisor) {
 function displayProblem() {
     if (!currentProblem) return;
     
-    const { dividend, divisor } = currentProblem;
+    const dividend = currentProblem.dividend;
+    const divisor = currentProblem.divisor;
     
     problemDisplay.innerHTML = `
         <div class="equation-display">
@@ -86,7 +87,7 @@ function displayProblem() {
 // Create number buttons in the feedback area
 function createNumberButtons() {
     const numberButtonsHTML = `
-        <div class="number-controls">
+        <div class="number-buttons-container">
             <div class="number-buttons-row">
                 <button class="number-btn" data-change="1">+1</button>
                 <button class="number-btn" data-change="-1">-1</button>
@@ -99,13 +100,11 @@ function createNumberButtons() {
         </div>
     `;
     
-    const container = document.createElement('div');
-    container.className = 'number-buttons-container';
-    container.innerHTML = numberButtonsHTML;
-    workFeedback.appendChild(container);
+    // Clear existing content
+    workFeedback.innerHTML = numberButtonsHTML;
     
     // Add event listeners to number buttons
-    container.querySelectorAll('.number-btn').forEach(btn => {
+    document.querySelectorAll('.number-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             if (!currentProblem || currentProblem.finished) return;
             
@@ -120,16 +119,16 @@ function createNumberButtons() {
     });
     
     // Add event listener to commit button
-    container.querySelector('#commitGuessBtn').addEventListener('click', commitGuess);
+    document.getElementById('commitGuessBtn').addEventListener('click', commitGuess);
 }
 
 // Render number buttons (show/hide based on state)
 function renderNumberButtons() {
     const container = document.querySelector('.number-buttons-container');
     if (!currentProblem || currentProblem.finished) {
-        container?.style.display = 'none';
+        if (container) container.style.display = 'none';
     } else {
-        container?.style.display = 'block';
+        if (container) container.style.display = 'block';
         updateGuessDisplay();
     }
 }
@@ -218,71 +217,65 @@ function renderWorkArea() {
     if (!currentProblem) return;
     
     const p = currentProblem;
-    let html = `
-        <div class="long-division-work">
-            <div class="division-header">
-                <span class="divisor">${p.divisor}</span>
-                <span class="dividend">${p.dividend}</span>
-            </div>
-            <div class="division-steps">
-    `;
+    let html = '';
+    
+    html += '<div class="long-division-work">';
+    html += '<div class="division-header">';
+    html += '<span class="divisor">' + p.divisor + '</span>';
+    html += '<span class="dividend">' + p.dividend + '</span>';
+    html += '</div>';
+    html += '<div class="division-steps">';
     
     // Render each completed step
     p.steps.forEach((step, index) => {
         const stepNumber = index + 1;
-        html += `
-            <div class="division-step ${index === p.steps.length - 1 ? 'current-step' : ''}">
-                <div class="step-header">Step ${stepNumber}:</div>
-                <div class="step-calculation">
-                    <div>${p.divisor} × ${step.digit} = ${step.product}</div>
-                    <div>${step.partialBefore} - ${step.product} = ${step.subtraction}</div>
-        `;
+        const isCurrentStep = index === p.steps.length - 1;
+        
+        html += '<div class="division-step ' + (isCurrentStep ? 'current-step' : '') + '">';
+        html += '<div class="step-header">Step ' + stepNumber + ':</div>';
+        html += '<div class="step-calculation">';
+        html += '<div>' + p.divisor + ' × ' + step.digit + ' = ' + step.product + '</div>';
+        html += '<div>' + step.partialBefore + ' - ' + step.product + ' = ' + step.subtraction + '</div>';
         
         if (step.broughtDown !== null) {
-            html += `<div>Bring down ${step.broughtDown} → ${step.subtraction}${step.broughtDown}</div>`;
+            html += '<div>Bring down ' + step.broughtDown + ' → ' + step.subtraction + step.broughtDown + '</div>';
         } else if (index === p.steps.length - 1 && p.finished) {
-            html += `<div class="remainder">Remainder: ${step.subtraction}</div>`;
+            html += '<div class="remainder">Remainder: ' + step.subtraction + '</div>';
         }
         
-        html += `</div></div>`;
+        html += '</div></div>';
     });
     
     // Show current state if not finished
     if (!p.finished) {
-        html += `
-            <div class="current-state">
-                <div class="state-header">Current:</div>
-                <div class="state-details">
-                    <div>Working with: <strong>${p.partial}</strong></div>
-                    <div>${p.divisor} fits into ${p.partial} how many times?</div>
-                </div>
-            </div>
-        `;
+        html += '<div class="current-state">';
+        html += '<div class="state-header">Current:</div>';
+        html += '<div class="state-details">';
+        html += '<div>Working with: <strong>' + p.partial + '</strong></div>';
+        html += '<div>' + p.divisor + ' fits into ' + p.partial + ' how many times?</div>';
+        html += '</div></div>';
     } else {
         // Show final answer
         const quotient = p.quotientDigits.join('').replace(/^0+/, '') || '0';
         const remainder = p.steps[p.steps.length - 1].subtraction;
         
-        html += `
-            <div class="final-answer">
-                <div class="answer-header">Complete!</div>
-                <div class="answer-result">
-                    ${p.dividend} ÷ ${p.divisor} = ${quotient} R ${remainder}
-                </div>
-                <div class="quotient-digits">
-                    Quotient digits: [${p.quotientDigits.join(', ')}]
-                </div>
-            </div>
-        `;
+        html += '<div class="final-answer">';
+        html += '<div class="answer-header">Complete!</div>';
+        html += '<div class="answer-result">';
+        html += p.dividend + ' ÷ ' + p.divisor + ' = ' + quotient + ' R ' + remainder;
+        html += '</div>';
+        html += '<div class="quotient-digits">';
+        html += 'Quotient digits: [' + p.quotientDigits.join(', ') + ']';
+        html += '</div></div>';
     }
     
-    html += `</div></div>`;
+    html += '</div></div>';
     workStageContainer.innerHTML = html;
 }
 
 // Show feedback message
 function showFeedback(message) {
-    const feedbackArea = document.querySelector('.work-feedback .number-buttons-container');
+    const feedbackArea = document.querySelector('.number-buttons-container');
     if (feedbackArea) {
         const errorMsg = document.createElement('div');
         errorMsg.className = 'error-message';
@@ -332,7 +325,7 @@ function updateScoreDisplay() {
     
     const total = solvedCount + mistakeCount;
     const accuracy = total > 0 ? Math.round((solvedCount / total) * 100) : 0;
-    divisionAccuracyEl.textContent = `${accuracy}%`;
+    divisionAccuracyEl.textContent = accuracy + '%';
     currentStreakEl.textContent = currentStreak;
     
     // Save to localStorage
