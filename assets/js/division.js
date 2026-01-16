@@ -212,64 +212,107 @@ function commitGuess() {
     clearFeedback();
 }
 
-// Render the work area with long division visualization
+// Render the work area with proper long division visualization
 function renderWorkArea() {
     if (!currentProblem) return;
     
     const p = currentProblem;
-    let html = '';
+    const quotient = p.quotientDigits.join('').replace(/^0+/, '') || '0';
     
-    html += '<div class="long-division-work">';
-    html += '<div class="division-header">';
+    // Create the main long division structure
+    let html = '<div class="long-division-display">';
+    
+    // Build the quotient at the top
+    html += '<div class="quotient-top">' + quotient;
+    if (!p.finished && p.quotientDigits.length > 0) {
+        html += '...';
+    }
+    html += '</div>';
+    
+    // Create the division symbol and dividend
+    html += '<div class="division-symbol">';
     html += '<span class="divisor">' + p.divisor + '</span>';
     html += '<span class="dividend">' + p.dividend + '</span>';
     html += '</div>';
+    
+    // Render each step with proper alignment
     html += '<div class="division-steps">';
     
-    // Render each completed step
-    p.steps.forEach((step, index) => {
-        const stepNumber = index + 1;
-        const isCurrentStep = index === p.steps.length - 1;
+    let currentPartial = 0;
+    let workingNumber = '';
+    let indent = 0;
+    
+    for (let i = 0; i < p.steps.length; i++) {
+        const step = p.steps[i];
+        const digitIndex = i;
         
-        html += '<div class="division-step ' + (isCurrentStep ? 'current-step' : '') + '">';
-        html += '<div class="step-header">Step ' + stepNumber + ':</div>';
-        html += '<div class="step-calculation">';
-        html += '<div>' + p.divisor + ' × ' + step.digit + ' = ' + step.product + '</div>';
-        html += '<div>' + step.partialBefore + ' - ' + step.product + ' = ' + step.subtraction + '</div>';
-        
-        if (step.broughtDown !== null) {
-            html += '<div>Bring down ' + step.broughtDown + ' → ' + step.subtraction + step.broughtDown + '</div>';
-        } else if (index === p.steps.length - 1 && p.finished) {
-            html += '<div class="remainder">Remainder: ' + step.subtraction + '</div>';
+        // Calculate the number to bring down
+        if (i === 0) {
+            currentPartial = p.digits[0];
+        } else {
+            currentPartial = step.subtraction;
         }
         
-        html += '</div></div>';
-    });
-    
-    // Show current state if not finished
-    if (!p.finished) {
-        html += '<div class="current-state">';
-        html += '<div class="state-header">Current:</div>';
-        html += '<div class="state-details">';
-        html += '<div>Working with: <strong>' + p.partial + '</strong></div>';
-        html += '<div>' + p.divisor + ' fits into ' + p.partial + ' how many times?</div>';
-        html += '</div></div>';
-    } else {
-        // Show final answer
-        const quotient = p.quotientDigits.join('').replace(/^0+/, '') || '0';
-        const remainder = p.steps[p.steps.length - 1].subtraction;
+        // Create the step visualization
+        html += '<div class="step-visualization">';
         
-        html += '<div class="final-answer">';
-        html += '<div class="answer-header">Complete!</div>';
-        html += '<div class="answer-result">';
-        html += p.dividend + ' ÷ ' + p.divisor + ' = ' + quotient + ' R ' + remainder;
+        // Show what we're working with
+        if (i === 0) {
+            // First digit of dividend
+            html += '<div class="working-number" style="margin-left: ' + indent + 'px">';
+            html += p.digits[0];
+            html += '</div>';
+        } else if (step.broughtDown !== null) {
+            // Show the brought down number
+            html += '<div class="brought-down" style="margin-left: ' + indent + 'px">';
+            html += step.subtraction + step.broughtDown;
+            html += '</div>';
+            workingNumber = step.subtraction + step.broughtDown;
+        }
+        
+        // Show the multiplication and subtraction
+        html += '<div class="calculation" style="margin-left: ' + indent + 'px">';
+        html += '−' + step.product;
         html += '</div>';
-        html += '<div class="quotient-digits">';
-        html += 'Quotient digits: [' + p.quotientDigits.join(', ') + ']';
-        html += '</div></div>';
+        
+        // Draw the subtraction line
+        html += '<div class="subtraction-line" style="margin-left: ' + indent + 'px">';
+        html += '―';
+        html += '</div>';
+        
+        // Show the remainder
+        html += '<div class="remainder-display" style="margin-left: ' + indent + 'px">';
+        html += step.subtraction;
+        html += '</div>';
+        
+        html += '</div>'; // Close step-visualization
+        
+        // Update indentation for next step
+        if (step.broughtDown !== null) {
+            indent += 20; // Add some indentation
+        }
     }
     
-    html += '</div></div>';
+    // Show current working number if not finished
+    if (!p.finished && p.partial > 0) {
+        html += '<div class="current-working">';
+        html += '<div class="current-label">Current working number:</div>';
+        html += '<div class="current-value">' + p.partial + '</div>';
+        html += '</div>';
+    }
+    
+    // If finished, show final remainder
+    if (p.finished && p.steps.length > 0) {
+        const lastStep = p.steps[p.steps.length - 1];
+        html += '<div class="final-result">';
+        html += '<div class="final-answer">' + quotient + ' R ' + lastStep.subtraction + '</div>';
+        html += '<div class="explanation">' + p.dividend + ' ÷ ' + p.divisor + ' = ' + quotient + ' remainder ' + lastStep.subtraction + '</div>';
+        html += '</div>';
+    }
+    
+    html += '</div>'; // Close division-steps
+    html += '</div>'; // Close long-division-display
+    
     workStageContainer.innerHTML = html;
 }
 
