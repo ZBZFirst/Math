@@ -212,106 +212,126 @@ function commitGuess() {
     clearFeedback();
 }
 
-// Render the work area with proper long division visualization
+// Render the work area with LaTeX-style long division
 function renderWorkArea() {
     if (!currentProblem) return;
     
     const p = currentProblem;
+    let html = '<div class="latex-division">';
+    
+    // Traditional long division layout
+    html += '<div class="division-layout">';
+    
+    // Quotient at the top
     const quotient = p.quotientDigits.join('').replace(/^0+/, '') || '0';
-    
-    // Create the main long division structure
-    let html = '<div class="long-division-display">';
-    
-    // Build the quotient at the top
-    html += '<div class="quotient-top">' + quotient;
-    if (!p.finished && p.quotientDigits.length > 0) {
-        html += '...';
+    html += '<div class="quotient">' + quotient;
+    if (p.finished && p.steps.length > 0) {
+        html += ' R ' + p.steps[p.steps.length - 1].subtraction;
     }
     html += '</div>';
     
-    // Create the division symbol and dividend
-    html += '<div class="division-symbol">';
-    html += '<span class="divisor">' + p.divisor + '</span>';
-    html += '<span class="dividend">' + p.dividend + '</span>';
-    html += '</div>';
+    // Divisor and dividend
+    html += '<div class="divisor-box">' + p.divisor + '</div>';
+    html += '<div class="dividend-box">' + p.dividend + '</div>';
     
-    // Render each step with proper alignment
-    html += '<div class="division-steps">';
+    // Draw the long division symbol
+    html += '<div class="division-symbol"></div>';
     
-    let currentPartial = 0;
-    let workingNumber = '';
-    let indent = 0;
+    html += '</div>'; // Close division-layout
     
+    // Step-by-step calculations
+    html += '<div class="calculation-steps">';
+    
+    let currentNumber = '';
+    let resultLines = [];
+    
+    // Build the calculation step by step
     for (let i = 0; i < p.steps.length; i++) {
         const step = p.steps[i];
-        const digitIndex = i;
+        const stepNum = i + 1;
         
-        // Calculate the number to bring down
+        html += '<div class="step">';
+        html += '<div class="step-header">Step ' + stepNum + ':</div>';
+        
+        // Show the current working number
         if (i === 0) {
-            currentPartial = p.digits[0];
-        } else {
-            currentPartial = step.subtraction;
-        }
-        
-        // Create the step visualization
-        html += '<div class="step-visualization">';
-        
-        // Show what we're working with
-        if (i === 0) {
-            // First digit of dividend
-            html += '<div class="working-number" style="margin-left: ' + indent + 'px">';
-            html += p.digits[0];
-            html += '</div>';
+            currentNumber = '' + p.digits[0];
         } else if (step.broughtDown !== null) {
-            // Show the brought down number
-            html += '<div class="brought-down" style="margin-left: ' + indent + 'px">';
-            html += step.subtraction + step.broughtDown;
-            html += '</div>';
-            workingNumber = step.subtraction + step.broughtDown;
+            currentNumber = step.subtraction + '' + step.broughtDown;
         }
         
-        // Show the multiplication and subtraction
-        html += '<div class="calculation" style="margin-left: ' + indent + 'px">';
-        html += '−' + step.product;
-        html += '</div>';
+        html += '<div class="step-details">';
+        html += '<div><strong>' + currentNumber + '</strong> ÷ ' + p.divisor + ' = ' + step.digit + '</div>';
+        html += '<div>' + p.divisor + ' × ' + step.digit + ' = ' + step.product + '</div>';
+        html += '<div>' + currentNumber + ' − ' + step.product + ' = ' + step.subtraction + '</div>';
         
-        // Draw the subtraction line
-        html += '<div class="subtraction-line" style="margin-left: ' + indent + 'px">';
-        html += '―';
-        html += '</div>';
-        
-        // Show the remainder
-        html += '<div class="remainder-display" style="margin-left: ' + indent + 'px">';
-        html += step.subtraction;
-        html += '</div>';
-        
-        html += '</div>'; // Close step-visualization
-        
-        // Update indentation for next step
         if (step.broughtDown !== null) {
-            indent += 20; // Add some indentation
+            html += '<div>Bring down next digit (' + step.broughtDown + ') → ' + step.subtraction + step.broughtDown + '</div>';
+        } else if (p.finished && i === p.steps.length - 1) {
+            html += '<div class="final-remainder">Remainder: ' + step.subtraction + '</div>';
+        }
+        
+        html += '</div></div>';
+        
+        // Store for the visual representation
+        resultLines.push({
+            number: currentNumber,
+            product: step.product,
+            remainder: step.subtraction,
+            broughtDown: step.broughtDown
+        });
+    }
+    
+    // If not finished, show current state
+    if (!p.finished && p.partial > 0) {
+        html += '<div class="current-step">';
+        html += '<div class="step-header">Current:</div>';
+        html += '<div class="step-details">';
+        html += '<div>Working with: <strong>' + p.partial + '</strong></div>';
+        html += '<div>How many times does ' + p.divisor + ' go into ' + p.partial + '?</div>';
+        html += '<div>Current guess: ' + currentGuess + '</div>';
+        html += '</div></div>';
+    }
+    
+    html += '</div>'; // Close calculation-steps
+    
+    // Visual representation of the division
+    html += '<div class="visual-representation">';
+    html += '<div class="visual-title">Long Division Process:</div>';
+    
+    let visualHtml = '';
+    let indent = 0;
+    
+    for (let i = 0; i < resultLines.length; i++) {
+        const line = resultLines[i];
+        
+        if (i > 0) {
+            visualHtml += '<div class="visual-line" style="margin-left: ' + indent + 'px">';
+            visualHtml += line.number;
+            visualHtml += '</div>';
+            
+            visualHtml += '<div class="visual-subtract" style="margin-left: ' + indent + 'px">';
+            visualHtml += '−' + line.product;
+            visualHtml += '</div>';
+            
+            visualHtml += '<div class="visual-hr" style="margin-left: ' + indent + 'px">';
+            visualHtml += '―――';
+            visualHtml += '</div>';
+            
+            visualHtml += '<div class="visual-remainder" style="margin-left: ' + indent + 'px">';
+            visualHtml += line.remainder;
+            if (line.broughtDown !== null) {
+                visualHtml += line.broughtDown;
+                indent += 20;
+            }
+            visualHtml += '</div>';
         }
     }
     
-    // Show current working number if not finished
-    if (!p.finished && p.partial > 0) {
-        html += '<div class="current-working">';
-        html += '<div class="current-label">Current working number:</div>';
-        html += '<div class="current-value">' + p.partial + '</div>';
-        html += '</div>';
-    }
+    html += visualHtml;
+    html += '</div>'; // Close visual-representation
     
-    // If finished, show final remainder
-    if (p.finished && p.steps.length > 0) {
-        const lastStep = p.steps[p.steps.length - 1];
-        html += '<div class="final-result">';
-        html += '<div class="final-answer">' + quotient + ' R ' + lastStep.subtraction + '</div>';
-        html += '<div class="explanation">' + p.dividend + ' ÷ ' + p.divisor + ' = ' + quotient + ' remainder ' + lastStep.subtraction + '</div>';
-        html += '</div>';
-    }
-    
-    html += '</div>'; // Close division-steps
-    html += '</div>'; // Close long-division-display
+    html += '</div>'; // Close latex-division
     
     workStageContainer.innerHTML = html;
 }
