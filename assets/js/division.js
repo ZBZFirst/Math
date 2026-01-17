@@ -212,128 +212,101 @@ function commitGuess() {
     clearFeedback();
 }
 
-// Render the work area with LaTeX-style long division
+// Render the work area with MathJax long division
 function renderWorkArea() {
     if (!currentProblem) return;
     
     const p = currentProblem;
-    let html = '<div class="latex-division">';
     
-    // Traditional long division layout
-    html += '<div class="division-layout">';
+    // Display the problem
+    displayProblem();
     
-    // Quotient at the top
-    const quotient = p.quotientDigits.join('').replace(/^0+/, '') || '0';
-    html += '<div class="quotient">' + quotient;
-    if (p.finished && p.steps.length > 0) {
-        html += ' R ' + p.steps[p.steps.length - 1].subtraction;
-    }
-    html += '</div>';
+    // Generate MathJax code with revealed steps
+    const mathjaxCode = generateMathJaxDivision(p);
     
-    // Divisor and dividend
-    html += '<div class="divisor-box">' + p.divisor + '</div>';
-    html += '<div class="dividend-box">' + p.dividend + '</div>';
+    // Display in work area
+    workStageContainer.innerHTML = `
+        <div class="mathjax-container" id="mathjax-container">
+            ${mathjaxCode}
+        </div>
+    `;
     
-    // Draw the long division symbol
-    html += '<div class="division-symbol"></div>';
-    
-    html += '</div>'; // Close division-layout
-    
-    // Step-by-step calculations
-    html += '<div class="calculation-steps">';
-    
-    let currentNumber = '';
-    let resultLines = [];
-    
-    // Build the calculation step by step
-    for (let i = 0; i < p.steps.length; i++) {
-        const step = p.steps[i];
-        const stepNum = i + 1;
-        
-        html += '<div class="step">';
-        html += '<div class="step-header">Step ' + stepNum + ':</div>';
-        
-        // Show the current working number
-        if (i === 0) {
-            currentNumber = '' + p.digits[0];
-        } else if (step.broughtDown !== null) {
-            currentNumber = step.subtraction + '' + step.broughtDown;
-        }
-        
-        html += '<div class="step-details">';
-        html += '<div><strong>' + currentNumber + '</strong> ÷ ' + p.divisor + ' = ' + step.digit + '</div>';
-        html += '<div>' + p.divisor + ' × ' + step.digit + ' = ' + step.product + '</div>';
-        html += '<div>' + currentNumber + ' − ' + step.product + ' = ' + step.subtraction + '</div>';
-        
-        if (step.broughtDown !== null) {
-            html += '<div>Bring down next digit (' + step.broughtDown + ') → ' + step.subtraction + step.broughtDown + '</div>';
-        } else if (p.finished && i === p.steps.length - 1) {
-            html += '<div class="final-remainder">Remainder: ' + step.subtraction + '</div>';
-        }
-        
-        html += '</div></div>';
-        
-        // Store for the visual representation
-        resultLines.push({
-            number: currentNumber,
-            product: step.product,
-            remainder: step.subtraction,
-            broughtDown: step.broughtDown
+    // Process MathJax
+    if (window.MathJax) {
+        MathJax.typesetPromise([workStageContainer]).catch(err => {
+            console.log('MathJax typesetting:', err);
         });
     }
+}
+
+// Generate MathJax code with revealed steps
+function generateMathJaxDivision(p) {
+    const quotient = p.quotientDigits.join('').replace(/^0+/, '') || '0';
+    const dividendStr = p.dividend.toString();
+    const divisorStr = p.divisor.toString();
     
-    // If not finished, show current state
-    if (!p.finished && p.partial > 0) {
-        html += '<div class="current-step">';
-        html += '<div class="step-header">Current:</div>';
-        html += '<div class="step-details">';
-        html += '<div>Working with: <strong>' + p.partial + '</strong></div>';
-        html += '<div>How many times does ' + p.divisor + ' go into ' + p.partial + '?</div>';
-        html += '<div>Current guess: ' + currentGuess + '</div>';
-        html += '</div></div>';
-    }
+    // Start building the LaTeX
+    let latex = '\\[';
     
-    html += '</div>'; // Close calculation-steps
-    
-    // Visual representation of the division
-    html += '<div class="visual-representation">';
-    html += '<div class="visual-title">Long Division Process:</div>';
-    
-    let visualHtml = '';
-    let indent = 0;
-    
-    for (let i = 0; i < resultLines.length; i++) {
-        const line = resultLines[i];
+    // Build step by step based on what's been revealed
+    if (p.steps.length === 0) {
+        // Stage 0: Just show the setup
+        latex += `\\begin{array}{r}
+\\ph{${quotient}} \\\\
+${divisorStr}\\big)\\overline{\\ph{${dividendStr}}}
+\\end{array}`;
+    } else {
+        // We have some steps - build them
+        latex += `\\begin{array}{r}`;
         
-        if (i > 0) {
-            visualHtml += '<div class="visual-line" style="margin-left: ' + indent + 'px">';
-            visualHtml += line.number;
-            visualHtml += '</div>';
+        // Quotient (revealed digits)
+        const revealedQuotient = p.quotientDigits.slice(0, p.steps.length).join('');
+        const hiddenQuotient = '\\ph{' + '0'.repeat(p.digits.length - p.steps.length) + '}';
+        latex += `${revealedQuotient}${hiddenQuotient} \\\\`;
+        latex += `\\hline`;
+        latex += `${divisorStr}\\big)\\overline{${dividendStr}} \\\\`;
+        
+        // Add each revealed step
+        for (let i = 0; i < p.steps.length; i++) {
+            const step = p.steps[i];
             
-            visualHtml += '<div class="visual-subtract" style="margin-left: ' + indent + 'px">';
-            visualHtml += '−' + line.product;
-            visualHtml += '</div>';
-            
-            visualHtml += '<div class="visual-hr" style="margin-left: ' + indent + 'px">';
-            visualHtml += '―――';
-            visualHtml += '</div>';
-            
-            visualHtml += '<div class="visual-remainder" style="margin-left: ' + indent + 'px">';
-            visualHtml += line.remainder;
-            if (line.broughtDown !== null) {
-                visualHtml += line.broughtDown;
-                indent += 20;
+            if (i === 0) {
+                // First step: first digit of dividend
+                const firstDigit = dividendStr[0];
+                const indent = ' '.repeat(i * 2);
+                latex += `\\ph{${divisorStr}}\\big)\\underline{${indent}${step.product}} \\\\`;
+                latex += `\\ph{${divisorStr}}\\big)\\overline{${indent}${step.subtraction}} \\\\`;
+                
+                if (step.broughtDown !== null) {
+                    latex += `\\ph{${divisorStr}}\\big)\\overline{${indent}${step.subtraction}${step.broughtDown}} \\\\`;
+                }
+            } else {
+                // Subsequent steps
+                const indent = ' '.repeat(i * 2);
+                const workingNum = step.partialBefore;
+                latex += `\\ph{${divisorStr}}\\big)\\overline{${indent}${workingNum}} \\\\`;
+                latex += `\\ph{${divisorStr}}\\big)\\underline{${indent}${step.product}} \\\\`;
+                latex += `\\ph{${divisorStr}}\\big)\\overline{${indent}${step.subtraction}} \\\\`;
+                
+                if (step.broughtDown !== null) {
+                    latex += `\\ph{${divisorStr}}\\big)\\overline{${indent}${step.subtraction}${step.broughtDown}} \\\\`;
+                }
             }
-            visualHtml += '</div>';
         }
+        
+        // If finished, show remainder
+        if (p.finished) {
+            const lastStep = p.steps[p.steps.length - 1];
+            const indent = ' '.repeat(p.steps.length * 2);
+            latex += `\\ph{${divisorStr}}\\big)\\underline{${indent}${lastStep.product}} \\\\`;
+            latex += `\\ph{${divisorStr}}\\big)\\overline{${indent}\\color{red}{${lastStep.subtraction}}} \\\\`;
+        }
+        
+        latex += `\\end{array}`;
     }
     
-    html += visualHtml;
-    html += '</div>'; // Close visual-representation
-    
-    html += '</div>'; // Close latex-division
-    
-    workStageContainer.innerHTML = html;
+    latex += '\\]';
+    return latex;
 }
 
 // Show feedback message
