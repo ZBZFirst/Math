@@ -133,18 +133,16 @@ function renderNumberButtons() {
     }
 }
 
-// Adjust the current guess
+// Adjust the current guess - NO RESTRICTIONS
 function adjustGuess(delta) {
     if (!currentProblem || currentProblem.finished) return;
     
     const newGuess = currentGuess + delta;
-    const maxPossible = Math.floor(currentProblem.partial / currentProblem.divisor);
     
-    if (newGuess >= 0 && newGuess <= maxPossible) {
+    // Allow any digit from 0-9 (single digit only)
+    if (newGuess >= 0 && newGuess <= 9) {
         currentGuess = newGuess;
         updateGuessDisplay();
-    } else if (newGuess > maxPossible) {
-        showFeedback(`Too high! Maximum possible is ${maxPossible}`);
     }
 }
 
@@ -167,49 +165,72 @@ function commitGuess() {
     if (!currentProblem || currentProblem.finished) return;
     
     const p = currentProblem;
+    
+    // Calculate the CORRECT digit for this step
+    const correctDigit = Math.floor(p.partial / p.divisor);
     const product = currentGuess * p.divisor;
     
+    // Check if guess is mathematically valid (product <= partial)
     if (product > p.partial) {
         mistakeCount++;
         currentStreak = 0;
-        showFeedback(`Product ${product} is greater than ${p.partial}. Try a smaller digit.`);
+        showFeedback(`Cannot multiply ${p.divisor} × ${currentGuess} = ${product} because it's greater than ${p.partial}. Try a smaller digit.`, 'error');
         updateScoreDisplay();
         return;
     }
     
-    // Create step record
-    const step = {
-        digit: currentGuess,
-        partialBefore: p.partial,
-        product: product,
-        subtraction: p.partial - product,
-        broughtDown: null
-    };
-    
-    p.quotientDigits.push(currentGuess);
-    p.steps.push(step);
-    
-    // Update partial
-    p.partial = step.subtraction;
-    
-    // Bring down next digit if available
-    if (p.stepIndex < p.digits.length - 1) {
-        p.stepIndex++;
-        const nextDigit = p.digits[p.stepIndex];
-        p.partial = p.partial * 10 + nextDigit;
-        step.broughtDown = nextDigit;
+    // Check if guess equals the correct digit
+    if (currentGuess === correctDigit) {
+        // CORRECT! Create step record
+        const step = {
+            digit: currentGuess,
+            partialBefore: p.partial,
+            product: product,
+            subtraction: p.partial - product,
+            broughtDown: null,
+            isCorrect: true
+        };
+        
+        p.quotientDigits.push(currentGuess);
+        p.steps.push(step);
+        
+        // Update partial
+        p.partial = step.subtraction;
+        
+        // Bring down next digit if available
+        if (p.stepIndex < p.digits.length - 1) {
+            p.stepIndex++;
+            const nextDigit = p.digits[p.stepIndex];
+            p.partial = p.partial * 10 + nextDigit;
+            step.broughtDown = nextDigit;
+            
+            showFeedback(`Correct! ${p.divisor} × ${currentGuess} = ${product}. ${step.partialBefore} - ${product} = ${step.subtraction}. Bringing down ${nextDigit} gives ${step.subtraction}${nextDigit}.`, 'success');
+        } else {
+            p.finished = true;
+            // Problem completed successfully
+            solvedCount++;
+            currentStreak++;
+            showFeedback(`Perfect! ${p.dividend} ÷ ${p.divisor} = ${p.quotientDigits.join('').replace(/^0+/, '') || '0'} remainder ${step.subtraction}`, 'success');
+            updateScoreDisplay();
+        }
+        
+        currentGuess = 0;
+        renderWorkArea();
+        renderNumberButtons();
+        
     } else {
-        p.finished = true;
-        // Problem completed successfully
-        solvedCount++;
-        currentStreak++;
+        // INCORRECT - but mathematically valid (product <= partial)
+        mistakeCount++;
+        currentStreak = 0;
+        
+        showFeedback(`Incorrect. ${p.partial} ÷ ${p.divisor} = ${correctDigit}, not ${currentGuess}. The calculation ${p.divisor} × ${currentGuess} = ${product} is valid, but ${correctDigit} would give ${p.divisor} × ${correctDigit} = ${correctDigit * p.divisor}. Try again.`, 'error');
+        
         updateScoreDisplay();
+        
+        // Clear guess but don't progress
+        currentGuess = 0;
+        updateGuessDisplay();
     }
-    
-    currentGuess = 0;
-    renderWorkArea();
-    renderNumberButtons();
-    clearFeedback();
 }
 
 // Render the work area with MathJax long division
@@ -309,33 +330,11 @@ ${divisorStr}\\big)\\overline{\\ph{${dividendStr}}}
     return latex;
 }
 
-// Show feedback message
-function showFeedback(message) {
-    const feedbackArea = document.querySelector('.number-buttons-container');
-    if (feedbackArea) {
-        const errorMsg = document.createElement('div');
-        errorMsg.className = 'error-message';
-        errorMsg.textContent = message;
-        errorMsg.style.color = '#dc3545';
-        errorMsg.style.marginTop = '10px';
-        errorMsg.style.padding = '5px';
-        errorMsg.style.borderRadius = '4px';
-        errorMsg.style.backgroundColor = '#f8d7da';
-        
-        // Remove any existing error message
-        const existingError = feedbackArea.querySelector('.error-message');
-        if (existingError) {
-            existingError.remove();
-        }
-        
-        feedbackArea.appendChild(errorMsg);
-        
-        // Auto-remove after 3 seconds
-        setTimeout(() => {
-            if (errorMsg.parentNode) {
-                errorMsg.remove();
-            }
-        }, 3000);
+// Clear feedback
+function clearFeedback() {
+    const feedbackMsg = document.querySelector('.feedback-message');
+    if (feedbackMsg) {
+        feedbackMsg.remove();
     }
 }
 
