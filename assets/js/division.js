@@ -160,6 +160,40 @@ function updateGuessDisplay() {
     }
 }
 
+// Show feedback message with type
+function showFeedback(message, type = 'error') {
+    const feedbackArea = document.querySelector('.number-buttons-container');
+    if (feedbackArea) {
+        // Remove any existing feedback
+        const existingFeedback = feedbackArea.querySelector('.feedback-message');
+        if (existingFeedback) {
+            existingFeedback.remove();
+        }
+        
+        const feedbackMsg = document.createElement('div');
+        feedbackMsg.className = `feedback-message feedback-${type}`;
+        feedbackMsg.textContent = message;
+        
+        feedbackArea.appendChild(feedbackMsg);
+        
+        // Auto-remove after appropriate time
+        const removeTime = type === 'error' ? 4000 : 3000;
+        setTimeout(() => {
+            if (feedbackMsg.parentNode) {
+                feedbackMsg.remove();
+            }
+        }, removeTime);
+    }
+}
+
+// Clear feedback
+function clearFeedback() {
+    const feedbackMsg = document.querySelector('.feedback-message');
+    if (feedbackMsg) {
+        feedbackMsg.remove();
+    }
+}
+
 // Commit the current guess as the next quotient digit
 function commitGuess() {
     if (!currentProblem || currentProblem.finished) return;
@@ -328,22 +362,6 @@ ${divisorStr}\\big)\\overline{\\ph{${dividendStr}}}
     
     latex += '\\]';
     return latex;
-}
-
-// Clear feedback
-function clearFeedback() {
-    const feedbackMsg = document.querySelector('.feedback-message');
-    if (feedbackMsg) {
-        feedbackMsg.remove();
-    }
-}
-
-// Clear feedback
-function clearFeedback() {
-    const errorMsg = document.querySelector('.error-message');
-    if (errorMsg) {
-        errorMsg.remove();
-    }
 }
 
 // Reset current problem
