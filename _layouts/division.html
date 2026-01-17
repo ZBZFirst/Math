@@ -9,6 +9,32 @@
     <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/style.css">
     <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/division.css">
     <meta name="operation" content="division">
+    <script>
+    MathJax = {
+        loader: {
+            load: ['[tex]/longdivision']
+        },
+        tex: {
+            packages: {'[+]': ['longdivision']},
+            inlineMath: [['$', '$']],
+            displayMath: [['$$', '$$']],
+            processEscapes: true
+        },
+        startup: {
+            pageReady: () => {
+                return MathJax.startup.defaultPageReady().then(() => {
+                    console.log('MathJax initialized');
+                    // Initialize our division app after MathJax is ready
+                    initDivisionApp();
+                });
+            }
+        }
+    };
+    </script>
+    
+    <!-- Load MathJax -->
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+
 </head>
 <body>
     {% include header.html %}
