@@ -267,7 +267,6 @@ function commitGuess() {
     }
 }
 
-// Render the work area with MathJax long division
 function renderWorkArea() {
     if (!currentProblem) return;
     
@@ -276,22 +275,90 @@ function renderWorkArea() {
     // Display the problem
     displayProblem();
     
-    // Generate MathJax code with revealed steps
-    const mathjaxCode = generateMathJaxDivision(p);
+    // Generate clean HTML long division
+    const divisionHTML = generateCleanDivisionHTML(p);
     
     // Display in work area
     workStageContainer.innerHTML = `
-        <div class="mathjax-container" id="mathjax-container">
-            ${mathjaxCode}
+        <div class="clean-long-division">
+            ${divisionHTML}
         </div>
     `;
+}
+
+// Generate clean HTML for long division
+function generateCleanDivisionHTML(p) {
+    let html = '';
     
-    // Process MathJax
-    if (window.MathJax) {
-        MathJax.typesetPromise([workStageContainer]).catch(err => {
-            console.log('MathJax typesetting:', err);
-        });
+    // Step 1: Show quotient at top (if any digits have been revealed)
+    if (p.quotientDigits.length > 0) {
+        const quotient = p.quotientDigits.join('');
+        html += `<div class="quotient-line">${quotient}</div>`;
     }
+    
+    // Step 2: Create the division symbol
+    html += `<div class="division-setup">`;
+    html += `<span class="divisor">${p.divisor}</span>`;
+    html += `<span class="division-symbol">)</span>`;
+    html += `<span class="dividend">${p.dividend}</span>`;
+    html += `</div>`;
+    
+    // Step 3: Show completed steps
+    for (let i = 0; i < p.steps.length; i++) {
+        const step = p.steps[i];
+        
+        // Create a step container
+        html += `<div class="division-step step-${i}">`;
+        
+        // Show the subtraction line
+        const indent = i * 20; // pixels of indentation
+        html += `<div class="subtraction-line" style="margin-left: ${indent}px">`;
+        html += `<span class="minus">-</span>`;
+        html += `<span class="product">${step.product}</span>`;
+        html += `</div>`;
+        
+        // Show the horizontal bar
+        const barLength = Math.max(
+            step.product.toString().length + 1,
+            step.subtraction.toString().length
+        );
+        html += `<div class="horizontal-bar" style="margin-left: ${indent}px; width: ${barLength * 0.8}em">`;
+        html += `――`;
+        html += `</div>`;
+        
+        // Show the remainder
+        html += `<div class="remainder" style="margin-left: ${indent}px">`;
+        html += `${step.subtraction}`;
+        
+        // If bringing down next digit
+        if (step.broughtDown !== null) {
+            html += `<span class="brought-down">${step.broughtDown}</span>`;
+        }
+        html += `</div>`;
+        
+        html += `</div>`; // Close division-step
+    }
+    
+    // Step 4: If not finished, show current working number
+    if (!p.finished && p.partial > 0) {
+        html += `<div class="current-step">`;
+        html += `<div class="current-label">Currently working with:</div>`;
+        html += `<div class="current-number">${p.partial}</div>`;
+        html += `<div class="current-question">How many times does ${p.divisor} go into ${p.partial}?</div>`;
+        html += `</div>`;
+    }
+    
+    // Step 5: If finished, show final answer
+    if (p.finished && p.steps.length > 0) {
+        const lastStep = p.steps[p.steps.length - 1];
+        const quotient = p.quotientDigits.join('').replace(/^0+/, '') || '0';
+        
+        html += `<div class="final-answer">`;
+        html += `<div class="answer-line">${p.dividend} ÷ ${p.divisor} = ${quotient} remainder ${lastStep.subtraction}</div>`;
+        html += `</div>`;
+    }
+    
+    return html;
 }
 
 // Generate MathJax code with revealed steps
