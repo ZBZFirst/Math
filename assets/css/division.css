@@ -33,6 +33,37 @@
     min-height: 300px;
 }
 
+/* MathJax Container */
+.mathjax-container {
+    min-height: 280px;
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    text-align: center;
+    overflow-x: auto;
+    font-size: 1.2em;
+}
+
+/* MathJax styling */
+.MathJax {
+    font-size: 1.3em !important;
+}
+
+.mjx-chtml {
+    padding: 10px 0;
+}
+
+/* Step reveal animation */
+.revealed-step {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 /* Equation display styling */
 .equation-display {
     display: flex;
