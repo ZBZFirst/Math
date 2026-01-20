@@ -1,4 +1,4 @@
-// division.js - Complete Reconstruction
+// division.js - Interactive Version
 
 // ============================================
 // DOM Elements
@@ -25,11 +25,11 @@ let currentStreak = parseInt(localStorage.getItem('divisionCurrentStreak')) || 0
 
 // Color scheme
 const COLORS = {
-    BLUE: 'blue',     // divisor
-    ORANGE: 'orange', // dividend digits
-    YELLOW: 'yellow', // remainders & brought-down digits
-    PINK: 'pink',     // user input (products)
-    GREEN: 'green'    // answer
+    BLUE: 'blue',
+    ORANGE: 'orange',
+    YELLOW: 'yellow',
+    PINK: 'pink',
+    GREEN: 'green'
 };
 
 // ============================================
@@ -78,21 +78,21 @@ function initializeDivisionState(dividend, divisor) {
         n: n,
         
         // Current solving state
-        currentDigit: 0,          // Which digit we're working on (0 to n-1)
-        currentRow: 1,            // Which grid row we're filling next (1, 3, 5...)
-        partial: digits[0],       // Current working number
-        quotientDigits: [],       // Quotient digits found so far
-        steps: [],                // Steps taken
+        currentDigit: 0,
+        currentRow: 1,
+        partial: digits[0],
+        quotientDigits: [],
+        steps: [],
         finished: false,
         
-        // Grid structure - COMPLETE and pre-calculated
-        workGrid: workGrid,       // 2D array [2n+1][n] - ALL cells exist
-        answerGrid: answerGrid,   // 1D array [n+2]
+        // Grid structure
+        workGrid: workGrid,
+        answerGrid: answerGrid,
         totalRows: 2 * n + 1,
         totalCols: n,
         
-        // Current step info for problem display
-        currentStep: 0,           // 0 = start, 1 = find quotient, 2 = subtract
+        // Current step
+        currentStep: 0,
         needsBringDown: false
     };
     
@@ -104,7 +104,7 @@ function initializeDivisionState(dividend, divisor) {
 }
 
 // ============================================
-// Grid Creation - 2n+1 Structure
+// Grid Creation
 // ============================================
 function createCompleteGrid(digits, divisor) {
     const n = digits.length;
@@ -114,7 +114,7 @@ function createCompleteGrid(digits, divisor) {
     // Create empty work grid
     const workGrid = Array(totalRows).fill().map(() => Array(totalCols).fill(null));
     
-    // Create answer grid (n quotient digits + "R" + remainder)
+    // Create answer grid
     const answerGrid = Array(n + 2).fill().map((_, i) => ({
         value: '',
         color: COLORS.GREEN,
@@ -124,9 +124,7 @@ function createCompleteGrid(digits, divisor) {
     answerGrid[n].value = 'R';
     answerGrid[n].revealed = true;
     
-    // --------------------------------------------------
-    // Row 0: DIVIDEND (Orange)
-    // --------------------------------------------------
+    // Row 0: DIVIDEND
     for (let col = 0; col < n; col++) {
         workGrid[0][col] = {
             value: digits[col],
@@ -139,84 +137,48 @@ function createCompleteGrid(digits, divisor) {
         };
     }
     
-    // --------------------------------------------------
-    // Rows 1, 3, 5...: PRODUCT rows (Pink - user input)
-    // --------------------------------------------------
+    // Create product and remainder rows
     for (let step = 0; step < n; step++) {
         const productRow = 2 * step + 1;
-        
-        // Determine which columns this product will occupy
-        // For step 0: under first digit (column n-1)
-        // For step 1: under first two digits if remainder was 2+ digits
-        const partialLength = Math.min(step + 1, n); // Max columns this product could need
-        const startCol = totalCols - partialLength;
-        
-        for (let colOffset = 0; colOffset < partialLength; colOffset++) {
-            const col = startCol + colOffset;
-            if (col < totalCols) {
-                workGrid[productRow][col] = {
-                    value: '',
-                    color: COLORS.PINK,
-                    type: 'product',
-                    step: step,
-                    position: colOffset,
-                    revealed: false,
-                    isInput: colOffset === (partialLength - 1), // Rightmost digit is user input
-                    row: productRow,
-                    col: col
-                };
-            }
-        }
-    }
-    
-    // --------------------------------------------------
-    // Rows 2, 4, 6...: REMAINDER rows (Yellow - deterministic)
-    // Also contain BROUGHT-DOWN digits
-    // --------------------------------------------------
-    for (let step = 0; step < n; step++) {
         const remainderRow = 2 * step + 2;
         
+        // Product row
+        const startCol = totalCols - 1 - step; // Align under current digit
+        workGrid[productRow][startCol] = {
+            value: '',
+            color: COLORS.PINK,
+            type: 'product',
+            step: step,
+            revealed: false,
+            isInput: true,
+            row: productRow,
+            col: startCol
+        };
+        
+        // Remainder row
         if (remainderRow < totalRows) {
-            // Remainder cells (will be filled after subtraction)
-            const partialLength = Math.min(step + 1, n);
-            const startCol = totalCols - partialLength;
-            
-            for (let colOffset = 0; colOffset < partialLength; colOffset++) {
-                const col = startCol + colOffset;
-                if (col < totalCols) {
-                    workGrid[remainderRow][col] = {
-                        value: '',
-                        color: COLORS.YELLOW,
-                        type: 'remainder',
-                        step: step,
-                        position: colOffset,
-                        revealed: false,
-                        row: remainderRow,
-                        col: col
-                    };
-                }
-            }
+            workGrid[remainderRow][startCol] = {
+                value: '',
+                color: COLORS.YELLOW,
+                type: 'remainder',
+                step: step,
+                revealed: false,
+                row: remainderRow,
+                col: startCol
+            };
             
             // Brought-down digit (if not last step)
             if (step < n - 1) {
-                const broughtDownCol = step + 1; // Next digit position
-                const existingCell = workGrid[remainderRow][broughtDownCol];
-                
-                if (existingCell) {
-                    existingCell.hasBroughtDown = true;
-                    existingCell.broughtDownDigit = digits[step + 1];
-                } else {
-                    workGrid[remainderRow][broughtDownCol] = {
-                        value: digits[step + 1],
-                        color: COLORS.YELLOW,
-                        type: 'brought_down',
-                        step: step,
-                        revealed: false,
-                        row: remainderRow,
-                        col: broughtDownCol,
-                        broughtDownDigit: digits[step + 1]
-                    };
-                }
+                const broughtDownCol = startCol + 1;
+                workGrid[remainderRow][broughtDownCol] = {
+                    value: digits[step + 1],
+                    color: COLORS.YELLOW,
+                    type: 'brought_down',
+                    step: step,
+                    revealed: false,
+                    row: remainderRow,
+                    col: broughtDownCol
+                };
             }
         }
     }
@@ -245,12 +207,12 @@ function updateProblemDisplay() {
     } else {
         // Show current sub-problem
         switch (p.currentStep) {
-            case 0: // Starting
+            case 0:
                 currentSubProblem = `${p.partial} ÷ ${divisor} = ?`;
                 instruction = `Start with the first digit: ${p.partial} ÷ ${divisor}`;
                 break;
                 
-            case 1: // Just found quotient, need to subtract
+            case 1:
                 const lastStep = p.steps[p.steps.length - 1];
                 if (lastStep) {
                     currentSubProblem = `${lastStep.partialBefore} - (${divisor} × ${lastStep.digit}) = ${lastStep.partialBefore} - ${lastStep.product}`;
@@ -258,7 +220,7 @@ function updateProblemDisplay() {
                 }
                 break;
                 
-            case 2: // Just subtracted, need to bring down
+            case 2:
                 const lastRemainder = p.steps[p.steps.length - 1]?.subtraction || p.partial;
                 if (p.currentDigit < p.n - 1) {
                     const nextDigit = p.digits[p.currentDigit + 1];
@@ -300,7 +262,7 @@ function updateProblemDisplay() {
 }
 
 // ============================================
-// Grid Rendering (Right Panel)
+// Grid Rendering (Right Panel) - FIXED
 // ============================================
 function renderGrid() {
     if (!currentProblem) return;
@@ -309,58 +271,79 @@ function renderGrid() {
     const totalRows = p.totalRows;
     const totalCols = p.totalCols;
     
-    let html = `
-    <div class="long-division-grid">
-        <style>
-            .division-grid {
-                display: inline-grid;
-                grid-template-columns: 60px repeat(${totalCols + 2}, 40px);
-                grid-template-rows: 40px repeat(${totalRows}, 40px);
-                gap: 1px;
-                background: #f0f0f0;
-                border: 2px solid #333;
-                padding: 10px;
-                font-family: 'Courier New', monospace;
-            }
-            .grid-cell {
-                background: white;
-                border: 1px solid #ccc;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 18px;
-                font-weight: bold;
-                min-width: 40px;
-                min-height: 40px;
-            }
-            .grid-cell.orange { background: #ff8c2a; }
-            .grid-cell.yellow { background: #ffee00; }
-            .grid-cell.pink { background: #ffb6c1; }
-            .grid-cell.green { background: #2db84d; color: white; }
-            .grid-cell.blue { background: #00a6e6; color: white; }
-            .grid-cell.empty { background: transparent; border: none; }
-            .grid-cell.input-active { 
-                box-shadow: 0 0 0 2px #007bff;
-                cursor: pointer;
-            }
-        </style>
-        
-        <div class="division-grid">
+    // Create container
+    const container = document.createElement('div');
+    container.className = 'long-division-grid';
+    
+    // Create style element
+    const style = document.createElement('style');
+    style.textContent = `
+        .division-grid {
+            display: inline-grid;
+            grid-template-columns: 60px repeat(${totalCols + 2}, 40px);
+            grid-template-rows: 40px repeat(${totalRows}, 40px);
+            gap: 1px;
+            background: #f0f0f0;
+            border: 2px solid #333;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+        }
+        .grid-cell {
+            background: white;
+            border: 1px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            min-width: 40px;
+            min-height: 40px;
+        }
+        .grid-cell.orange { background: #ff8c2a; }
+        .grid-cell.yellow { background: #ffee00; }
+        .grid-cell.pink { background: #ffb6c1; }
+        .grid-cell.green { background: #2db84d; color: white; }
+        .grid-cell.blue { background: #00a6e6; color: white; }
+        .grid-cell.empty { background: transparent; border: none; }
+        .grid-cell.input-active { 
+            box-shadow: 0 0 0 2px #007bff;
+            cursor: pointer;
+        }
+        .division-symbol {
+            grid-column: 2;
+            grid-row: 2 / span ${totalRows};
+            border-left: 3px solid black;
+            position: relative;
+            margin-left: -15px;
+            pointer-events: none;
+        }
+        .division-symbol::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -15px;
+            width: ${totalCols * 40 + 25}px;
+            height: 3px;
+            background: black;
+        }
     `;
     
-    // --------------------------------------------------
-    // Column 0: DIVISOR (Blue) - spans all rows
-    // --------------------------------------------------
-    html += `<div class="grid-cell blue" style="grid-column: 1; grid-row: 1 / span ${totalRows + 1}">
-        ${p.divisor}
-    </div>`;
+    // Create grid container
+    const grid = document.createElement('div');
+    grid.className = 'division-grid';
     
-    // --------------------------------------------------
-    // Row 0: ANSWER GRID (Green)
-    // --------------------------------------------------
+    // Add divisor cell
+    const divisorCell = document.createElement('div');
+    divisorCell.className = 'grid-cell blue';
+    divisorCell.style.gridColumn = '1';
+    divisorCell.style.gridRow = `1 / span ${totalRows + 1}`;
+    divisorCell.textContent = p.divisor;
+    grid.appendChild(divisorCell);
+    
+    // Add answer grid
     for (let col = 0; col < p.answerGrid.length; col++) {
         const cell = p.answerGrid[col];
-        const gridCol = col + 2; // +1 for divisor column
+        const gridCol = col + 2;
         
         let displayValue = cell.value;
         if (!cell.revealed) {
@@ -368,20 +351,23 @@ function renderGrid() {
             else if (cell.type === 'remainder_value') displayValue = '';
         }
         
-        html += `<div class="grid-cell green" style="grid-column: ${gridCol}; grid-row: 1">
-            ${displayValue}
-        </div>`;
+        const answerCell = document.createElement('div');
+        answerCell.className = 'grid-cell green';
+        answerCell.style.gridColumn = gridCol;
+        answerCell.style.gridRow = '1';
+        answerCell.textContent = displayValue;
+        grid.appendChild(answerCell);
     }
     
-    // --------------------------------------------------
-    // Rows 1 through 2n: WORK GRID
-    // --------------------------------------------------
+    // Add work grid cells
     for (let row = 0; row < totalRows; row++) {
-        const cssRow = row + 2; // +1 for answer row
+        const cssRow = row + 2;
         
         for (let col = 0; col < totalCols; col++) {
             const cell = p.workGrid[row][col];
-            const cssCol = col + 2; // +1 for divisor column
+            const cssCol = col + 2;
+            
+            const cellDiv = document.createElement('div');
             
             if (cell) {
                 const isActiveInput = !p.finished && 
@@ -390,64 +376,57 @@ function renderGrid() {
                                     !cell.revealed &&
                                     row === p.currentRow;
                 
-                const cellClass = `grid-cell ${cell.color} ${isActiveInput ? 'input-active' : ''}`;
-                const displayValue = cell.revealed ? cell.value : '';
+                cellDiv.className = `grid-cell ${cell.color} ${isActiveInput ? 'input-active' : ''}`;
+                cellDiv.style.gridColumn = cssCol;
+                cellDiv.style.gridRow = cssRow;
+                cellDiv.textContent = cell.revealed ? cell.value : '';
                 
-                html += `<div class="${cellClass}" 
-                         style="grid-column: ${cssCol}; grid-row: ${cssRow}"
-                         data-row="${row}" 
-                         data-col="${col}"
-                         title="${cell.type}">
-                    ${displayValue}
-                </div>`;
+                // Add click handler for active input cells
+                if (isActiveInput) {
+                    cellDiv.dataset.row = row;
+                    cellDiv.dataset.col = col;
+                    cellDiv.addEventListener('click', handleCellClick);
+                }
             } else {
-                // Empty cell for visual spacing
-                html += `<div class="grid-cell empty" 
-                         style="grid-column: ${cssCol}; grid-row: ${cssRow}"></div>`;
+                cellDiv.className = 'grid-cell empty';
+                cellDiv.style.gridColumn = cssCol;
+                cellDiv.style.gridRow = cssRow;
             }
+            
+            grid.appendChild(cellDiv);
         }
     }
     
-    // --------------------------------------------------
-    // DIVISION SYMBOL (overlay)
-    // --------------------------------------------------
-    html += `<div class="division-symbol" style="
-        grid-column: 2;
-        grid-row: 2 / span ${totalRows};
-        border-left: 3px solid black;
-        position: relative;
-        margin-left: -15px;
-        pointer-events: none;
-    ">
-        <div style="
-            position: absolute;
-            top: -3px;
-            left: -15px;
-            width: ${totalCols * 40 + 25}px;
-            height: 3px;
-            background: black;
-        "></div>
-    </div>`;
+    // Add division symbol
+    const symbol = document.createElement('div');
+    symbol.className = 'division-symbol';
+    grid.appendChild(symbol);
     
-    html += `</div></div>`;
+    // Assemble everything
+    container.appendChild(style);
+    container.appendChild(grid);
     
-    // Add click handlers for input cells
-    html += `<script>
-        document.querySelectorAll('.grid-cell.input-active').forEach(cell => {
-            cell.addEventListener('click', function() {
-                const row = this.dataset.row;
-                const col = this.dataset.col;
-                console.log('Cell clicked:', row, col);
-                // Input handling would go here
-            });
-        });
-    </script>`;
+    // Clear and add to container
+    workStageContainer.innerHTML = '';
+    workStageContainer.appendChild(container);
+}
+
+// Handle cell clicks
+function handleCellClick(event) {
+    if (!currentProblem || currentProblem.finished) return;
     
-    workStageContainer.innerHTML = html;
+    const row = parseInt(event.target.dataset.row);
+    const col = parseInt(event.target.dataset.col);
+    
+    console.log('Cell clicked:', row, col);
+    
+    // For now, just focus on the number buttons
+    // In a more advanced version, you could make the cell itself editable
+    showFeedback('Use the number buttons below to enter your answer, then click "Confirm This Digit"', 'info');
 }
 
 // ============================================
-// User Input & Number Buttons
+// User Input & Number Buttons - FIXED
 // ============================================
 function createNumberButtons() {
     const numberButtonsHTML = `
@@ -466,6 +445,7 @@ function createNumberButtons() {
     
     workFeedback.innerHTML = numberButtonsHTML;
     
+    // Re-attach event listeners
     document.querySelectorAll('.number-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             if (!currentProblem || currentProblem.finished) return;
@@ -514,14 +494,13 @@ function commitGuess() {
     const p = currentProblem;
     
     if (p.currentStep === 0) {
-        // Step 1: Finding quotient digit
         processQuotientInput();
     } else if (p.currentStep === 1) {
-        // Step 2: Confirming subtraction
         processSubtraction();
     } else if (p.currentStep === 2 && p.needsBringDown) {
-        // Step 3: Bringing down next digit
         processBringDown();
+    } else {
+        showFeedback('Click "New Problem" to start a new division problem', 'info');
     }
 }
 
@@ -544,12 +523,12 @@ function processQuotientInput() {
         currentStreak = 0;
         showFeedback(`Incorrect. ${p.partial} ÷ ${p.divisor} = ${correctDigit}, not ${currentGuess}`, 'error');
         updateScoreDisplay();
-        currentGuess = correctDigit; // Show correct answer
+        currentGuess = correctDigit;
         updateGuessDisplay();
         return;
     }
     
-    // CORRECT - Update state
+    // CORRECT
     p.quotientDigits.push(currentGuess);
     p.steps.push({
         digit: currentGuess,
@@ -567,15 +546,11 @@ function processQuotientInput() {
     const productRow = p.currentRow;
     const partialStr = String(p.partial);
     const startCol = p.totalCols - partialStr.length;
-    const productStr = String(product).padStart(partialStr.length, '0');
     
-    for (let i = 0; i < productStr.length; i++) {
-        const col = startCol + i;
-        const cell = p.workGrid[productRow][col];
-        if (cell && cell.type === 'product') {
-            cell.value = productStr[i];
-            cell.revealed = true;
-        }
+    const cell = p.workGrid[productRow][startCol];
+    if (cell && cell.type === 'product') {
+        cell.value = currentGuess;
+        cell.revealed = true;
     }
     
     showFeedback(`Correct! ${p.divisor} × ${currentGuess} = ${product}`, 'success');
@@ -604,24 +579,26 @@ function processSubtraction() {
         return;
     }
     
-    // CORRECT - Update work grid with remainder
+    // CORRECT
     const remainderRow = p.currentRow + 1;
     const partialStr = String(lastStep.partialBefore);
     const startCol = p.totalCols - partialStr.length;
-    const remainderStr = String(expectedRemainder).padStart(partialStr.length, '0');
     
-    for (let i = 0; i < remainderStr.length; i++) {
-        const col = startCol + i;
-        const cell = p.workGrid[remainderRow][col];
-        if (cell && (cell.type === 'remainder' || cell.type === 'brought_down')) {
-            cell.value = remainderStr[i];
-            cell.revealed = true;
+    const cell = p.workGrid[remainderRow][startCol];
+    if (cell && cell.type === 'remainder') {
+        cell.value = expectedRemainder;
+        cell.revealed = true;
+    }
+    
+    // Reveal brought-down digit if present
+    if (p.currentDigit < p.n - 1) {
+        const broughtDownCell = p.workGrid[remainderRow][startCol + 1];
+        if (broughtDownCell && broughtDownCell.type === 'brought_down') {
+            broughtDownCell.revealed = true;
         }
     }
     
-    // Update partial
     p.partial = expectedRemainder;
-    
     showFeedback(`Correct! Remainder is ${expectedRemainder}`, 'success');
     
     // Move to next step
@@ -638,7 +615,6 @@ function processBringDown() {
     const p = currentProblem;
     
     if (p.currentDigit >= p.n) {
-        // No more digits - problem complete
         completeProblem();
         return;
     }
@@ -664,7 +640,7 @@ function completeProblem() {
     const p = currentProblem;
     p.finished = true;
     
-    // Update final remainder in answer grid
+    // Update final remainder
     const finalRemainder = p.steps[p.steps.length - 1]?.subtraction || 0;
     p.answerGrid[p.n + 1].value = finalRemainder;
     p.answerGrid[p.n + 1].revealed = true;
