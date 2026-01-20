@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>
-        {{ page.title }} - {{ site.title }}
-    </title>
+    <title>{{ page.title }} - {{ site.title }}</title>
     <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/style.css">
     <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/division.css">
+    <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/buttons.css">
     <meta name="operation" content="division">
     <script>
     window.MathJax = {
@@ -17,7 +16,6 @@
         processEscapes: true,
         packages: {'[+]': ['base', 'ams', 'color']},
         macros: {
-          // Custom long division macros
           longdiv: ['\\enclose{longdiv}{#1}', 1],
           ph: '\\phantom',
           showdiv: ['\\overline{\\smash{)\\mkern-3.2mu)}#1}', 1]
@@ -32,7 +30,40 @@
     };
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
-
+    <style>
+        /* Static grid styles */
+        .static-division-grid {
+            display: grid;
+            grid-template-columns: 50px repeat(5, 50px);
+            grid-template-rows: repeat(11, 50px);
+            gap: 2px;
+            position: relative;
+        }
+        
+        .static-grid-container {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .static-division-symbol {
+            position: absolute;
+            left: 50px;
+            top: 50px;
+            width: 3px;
+            height: 500px;
+            background: black;
+        }
+        
+        .static-division-symbol::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -20px;
+            width: 260px;
+            height: 3px;
+            background: black;
+        }
+    </style>
 </head>
 <body>
     {% include header.html %}
@@ -47,19 +78,134 @@
 
             <!-- Main Workspace -->
             <div class="dual-container">
+                <!-- LEFT: Problem Display -->
                 <div class="main-problem-container">
                     <h3>Division Problem</h3>
                     <div class="main-problem" id="problemdisplay">
+                        <div class="equation-display">
+                            <div class="large-equation" id="mainEquation">
+                                123 ÷ 5
+                            </div>
+                        </div>
+                        
+                        <!-- Current Step Area -->
+                        <div class="current-step-container">
+                            <div class="current-step-title">Current Step</div>
+                            <div class="current-step-equation" id="currentStepEquation">
+                                1 ÷ 5 = ?
+                            </div>
+                            <div class="current-instruction" id="currentInstruction">
+                                How many times does 5 go into 1?
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
+                <!-- RIGHT: Work Area -->
                 <div class="work-container">
                     <h3>Work Area</h3>              
                     <div class="Work-Container" id="workStageContainer">
+                        <!-- STATIC 11x5 GRID - Hardcoded once -->
+                        <div class="static-grid-container">
+                            <div class="static-division-symbol"></div>
+                            <div class="static-division-grid" id="divisionGrid">
+                                <!-- =========== COLUMN 0: DIVISOR (spans rows 2-12) =========== -->
+                                <div id="divisor" class="grid-cell blue" style="grid-column:1; grid-row:2/span 11">5</div>
+                                
+                                <!-- =========== ROW 1: ANSWER GRID =========== -->
+                                <div id="ans-q0" class="grid-cell green" style="grid-column:2; grid-row:1">?</div>
+                                <div id="ans-q1" class="grid-cell green" style="grid-column:3; grid-row:1">?</div>
+                                <div id="ans-q2" class="grid-cell green" style="grid-column:4; grid-row:1">?</div>
+                                <div id="ans-r" class="grid-cell green" style="grid-column:5; grid-row:1">R</div>
+                                <div id="ans-rem" class="grid-cell green" style="grid-column:6; grid-row:1">?</div>
+                                
+                                <!-- =========== ROW 2: DIVIDEND =========== -->
+                                <div id="r2c1" class="grid-cell orange" style="grid-column:2; grid-row:2">1</div>
+                                <div id="r2c2" class="grid-cell orange" style="grid-column:3; grid-row:2">2</div>
+                                <div id="r2c3" class="grid-cell orange" style="grid-column:4; grid-row:2">3</div>
+                                <div id="r2c4" class="grid-cell empty" style="grid-column:5; grid-row:2"></div>
+                                <div id="r2c5" class="grid-cell empty" style="grid-column:6; grid-row:2"></div>
+                                
+                                <!-- =========== ROW 3: STEP 1 PRODUCT =========== -->
+                                <div id="r3c1" class="grid-cell pink" style="grid-column:2; grid-row:3"></div>
+                                <div id="r3c2" class="grid-cell empty" style="grid-column:3; grid-row:3"></div>
+                                <div id="r3c3" class="grid-cell empty" style="grid-column:4; grid-row:3"></div>
+                                <div id="r3c4" class="grid-cell empty" style="grid-column:5; grid-row:3"></div>
+                                <div id="r3c5" class="grid-cell empty" style="grid-column:6; grid-row:3"></div>
+                                
+                                <!-- =========== ROW 4: STEP 1 REMAINDER =========== -->
+                                <div id="r4c1" class="grid-cell yellow" style="grid-column:2; grid-row:4"></div>
+                                <div id="r4c2" class="grid-cell yellow" style="grid-column:3; grid-row:4">2</div>
+                                <div id="r4c3" class="grid-cell empty" style="grid-column:4; grid-row:4"></div>
+                                <div id="r4c4" class="grid-cell empty" style="grid-column:5; grid-row:4"></div>
+                                <div id="r4c5" class="grid-cell empty" style="grid-column:6; grid-row:4"></div>
+                                
+                                <!-- =========== ROW 5: STEP 2 PRODUCT =========== -->
+                                <div id="r5c1" class="grid-cell pink" style="grid-column:2; grid-row:5"></div>
+                                <div id="r5c2" class="grid-cell pink" style="grid-column:3; grid-row:5"></div>
+                                <div id="r5c3" class="grid-cell empty" style="grid-column:4; grid-row:5"></div>
+                                <div id="r5c4" class="grid-cell empty" style="grid-column:5; grid-row:5"></div>
+                                <div id="r5c5" class="grid-cell empty" style="grid-column:6; grid-row:5"></div>
+                                
+                                <!-- =========== ROW 6: STEP 2 REMAINDER =========== -->
+                                <div id="r6c1" class="grid-cell empty" style="grid-column:2; grid-row:6"></div>
+                                <div id="r6c2" class="grid-cell yellow" style="grid-column:3; grid-row:6"></div>
+                                <div id="r6c3" class="grid-cell yellow" style="grid-column:4; grid-row:6">3</div>
+                                <div id="r6c4" class="grid-cell empty" style="grid-column:5; grid-row:6"></div>
+                                <div id="r6c5" class="grid-cell empty" style="grid-column:6; grid-row:6"></div>
+                                
+                                <!-- =========== ROW 7: STEP 3 PRODUCT =========== -->
+                                <div id="r7c1" class="grid-cell empty" style="grid-column:2; grid-row:7"></div>
+                                <div id="r7c2" class="grid-cell pink" style="grid-column:3; grid-row:7"></div>
+                                <div id="r7c3" class="grid-cell pink" style="grid-column:4; grid-row:7"></div>
+                                <div id="r7c4" class="grid-cell empty" style="grid-column:5; grid-row:7"></div>
+                                <div id="r7c5" class="grid-cell empty" style="grid-column:6; grid-row:7"></div>
+                                
+                                <!-- =========== ROW 8: STEP 3 REMAINDER =========== -->
+                                <div id="r8c1" class="grid-cell empty" style="grid-column:2; grid-row:8"></div>
+                                <div id="r8c2" class="grid-cell empty" style="grid-column:3; grid-row:8"></div>
+                                <div id="r8c3" class="grid-cell yellow" style="grid-column:4; grid-row:8"></div>
+                                <div id="r8c4" class="grid-cell empty" style="grid-column:5; grid-row:8"></div>
+                                <div id="r8c5" class="grid-cell empty" style="grid-column:6; grid-row:8"></div>
+                                
+                                <!-- =========== ROW 9: EXTRA (for 4-digit problems) =========== -->
+                                <div id="r9c1" class="grid-cell empty" style="grid-column:2; grid-row:9"></div>
+                                <div id="r9c2" class="grid-cell empty" style="grid-column:3; grid-row:9"></div>
+                                <div id="r9c3" class="grid-cell empty" style="grid-column:4; grid-row:9"></div>
+                                <div id="r9c4" class="grid-cell empty" style="grid-column:5; grid-row:9"></div>
+                                <div id="r9c5" class="grid-cell empty" style="grid-column:6; grid-row:9"></div>
+                                
+                                <!-- =========== ROW 10: EXTRA (for 5-digit problems) =========== -->
+                                <div id="r10c1" class="grid-cell empty" style="grid-column:2; grid-row:10"></div>
+                                <div id="r10c2" class="grid-cell empty" style="grid-column:3; grid-row:10"></div>
+                                <div id="r10c3" class="grid-cell empty" style="grid-column:4; grid-row:10"></div>
+                                <div id="r10c4" class="grid-cell empty" style="grid-column:5; grid-row:10"></div>
+                                <div id="r10c5" class="grid-cell empty" style="grid-column:6; grid-row:10"></div>
+                                
+                                <!-- =========== ROW 11: EXTRA (baseline) =========== -->
+                                <div id="r11c1" class="grid-cell empty" style="grid-column:2; grid-row:11"></div>
+                                <div id="r11c2" class="grid-cell empty" style="grid-column:3; grid-row:11"></div>
+                                <div id="r11c3" class="grid-cell empty" style="grid-column:4; grid-row:11"></div>
+                                <div id="r11c4" class="grid-cell empty" style="grid-column:5; grid-row:11"></div>
+                                <div id="r11c5" class="grid-cell empty" style="grid-column:6; grid-row:11"></div>
+                            </div>
+                        </div>
                     </div>
                     
-                    <!-- Feedback Area -->
-                    <div class="work-feedback" id="workFeedback"></div>
+                    <!-- Control Buttons -->
+                    <div class="work-feedback" id="workFeedback">
+                        <div class="control-grid">
+                            <button class="grid-btn decrement" data-change="-5">-5</button>
+                            <button class="grid-btn decrement" data-change="-1">-1</button>
+                            <button class="grid-btn clear" id="clearGuess">C</button>
+                            <button class="grid-btn increment" data-change="+1">+1</button>
+                            <button class="grid-btn increment" data-change="+5">+5</button>
+                        </div>
+                        <div class="number-display">
+                            Current guess: <span id="currentGuessDisplay">0</span>
+                        </div>
+                        <button id="commitGuessBtn" class="commit-btn">✓ Confirm This Digit</button>
+                    </div>
                 </div>
             </div>
             
@@ -69,7 +215,6 @@
                     <button id="newDivisionProblem" class="primary-btn">New Problem</button>
                     <button id="resetCurrentProblem" class="secondary-btn">Reset This Problem</button>
                 </div>
-                
             </div>
             
             <!-- Enhanced Score Container -->
@@ -95,7 +240,6 @@
                         </div>
                     </div>
                     
-                    
                     <button id="resetDivisionScores">Reset All Scores</button>
                 </div>
             </div>
@@ -104,6 +248,60 @@
     
     {% include footer.html %}
     
+    <!-- Minimal JavaScript - just for button interactions -->
+    <script>
+        // Simple UI controls
+        let currentGuess = 0;
+        
+        function updateGuessDisplay() {
+            document.getElementById('currentGuessDisplay').textContent = currentGuess;
+        }
+        
+        function adjustGuess(delta) {
+            currentGuess += delta;
+            if (currentGuess < 0) currentGuess = 0;
+            if (currentGuess > 9) currentGuess = 9;
+            updateGuessDisplay();
+        }
+        
+        // Button event handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            // Number adjustment buttons
+            document.querySelectorAll('[data-change]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const delta = parseInt(this.dataset.change);
+                    adjustGuess(delta);
+                });
+            });
+            
+            // Clear button
+            document.getElementById('clearGuess').addEventListener('click', function() {
+                currentGuess = 0;
+                updateGuessDisplay();
+            });
+            
+            // Commit button (just for demo)
+            document.getElementById('commitGuessBtn').addEventListener('click', function() {
+                // This will be handled by division.js
+                console.log(`Guess submitted: ${currentGuess}`);
+            });
+            
+            // Load scores from localStorage
+            const solvedCount = parseInt(localStorage.getItem('divisionSolvedCount')) || 0;
+            const mistakeCount = parseInt(localStorage.getItem('divisionMistakeCount')) || 0;
+            const currentStreak = parseInt(localStorage.getItem('divisionCurrentStreak')) || 0;
+            
+            document.getElementById('solvedCount').textContent = solvedCount;
+            document.getElementById('mistakeCount').textContent = mistakeCount;
+            document.getElementById('currentStreak').textContent = currentStreak;
+            
+            const total = solvedCount + mistakeCount;
+            const accuracy = total > 0 ? Math.round((solvedCount / total) * 100) : 0;
+            document.getElementById('divisionAccuracy').textContent = accuracy + '%';
+        });
+    </script>
+    
+    <!-- The full division.js will use the static grid -->
     <script src="{{ site.baseurl }}/assets/js/division.js"></script>
 </body>
 </html>
