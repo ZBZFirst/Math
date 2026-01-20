@@ -1,0 +1,253 @@
+/* buttons.css - All button styling for division page */
+
+/* Control buttons */
+.division-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px 0;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.control-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.primary-btn, .secondary-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95em;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.primary-btn {
+    background: #007bff;
+    color: white;
+}
+
+.primary-btn:hover {
+    background: #0056b3;
+}
+
+.secondary-btn {
+    background: #e9ecef;
+    color: #212529;
+    border: 1px solid #dee2e6;
+}
+
+.secondary-btn:hover {
+    background: #dee2e6;
+}
+
+/* Grid control buttons */
+.control-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 60px);
+    gap: 10px;
+    margin: 20px auto;
+    justify-content: center;
+}
+
+.grid-btn {
+    width: 60px;
+    height: 60px;
+    font-size: 20px;
+    font-weight: bold;
+    border: 2px solid #333;
+    border-radius: 8px;
+    cursor: pointer;
+    background: #f8f9fa;
+    transition: all 0.2s;
+}
+
+.grid-btn:hover {
+    background: #e9ecef;
+    transform: translateY(-2px);
+}
+
+.grid-btn:active {
+    transform: translateY(0);
+}
+
+.grid-btn.increment { 
+    background: #28a745; 
+    color: white; 
+    border-color: #1e7e34;
+}
+
+.grid-btn.decrement { 
+    background: #dc3545; 
+    color: white; 
+    border-color: #c82333;
+}
+
+.grid-btn.clear { 
+    background: #6c757d; 
+    color: white; 
+    border-color: #545b62;
+}
+
+.grid-btn.submit { 
+    background: #007bff; 
+    color: white; 
+    border-color: #0056b3;
+}
+
+.grid-btn.equal {
+    background: #17a2b8;
+    color: white;
+    border-color: #138496;
+}
+
+/* Number Control buttons */
+.number-buttons-container {
+    width: 100%;
+    max-width: 100%;
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+}
+
+.number-buttons-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.number-btn {
+    flex: 1;
+    padding: 8px 4px;
+    border: 1px solid #007bff;
+    border-radius: 4px;
+    background: #007bff;
+    color: white;
+    font-size: 0.9em;
+    cursor: pointer;
+    min-height: 40px;
+    max-width: 33.33%;
+}
+
+.number-btn:hover {
+    background: #0056b3;
+}
+
+.number-btn.clear {
+    background: #6c757d;
+    border-color: #6c757d;
+}
+
+.number-btn.clear:hover {
+    background: #545b62;
+}
+
+.number-display {
+    text-align: center;
+    font-size: 1em;
+    margin: 8px 0;
+    padding: 8px;
+    background: white;
+    border-radius: 4px;
+    border: 1px solid #007bff;
+    font-weight: bold;
+}
+
+#currentGuessDisplay {
+    color: #d32f2f;
+    font-weight: bold;
+    margin-left: 5px;
+}
+
+.commit-btn {
+    width: 100%;
+    padding: 10px;
+    background: #28a745;
+    color: white;
+    border: 1px solid #28a745;
+    border-radius: 4px;
+    font-size: 1em;
+    cursor: pointer;
+    margin-top: 5px;
+}
+
+.commit-btn:hover {
+    background: #218838;
+}
+
+/* Enhanced Score Container buttons */
+.enhanced-score-container button {
+    padding: 8px 16px;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background 0.2s;
+}
+
+.enhanced-score-container button:hover {
+    background: #545b62;
+}
+
+/* Responsive adjustments for buttons */
+@media (max-width: 768px) {
+    .division-controls {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+    
+    .control-buttons {
+        justify-content: center;
+    }
+    
+    .control-grid {
+        grid-template-columns: repeat(3, 50px);
+    }
+    
+    .grid-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 16px;
+    }
+    
+    .number-buttons-row {
+        flex-wrap: wrap;
+    }
+    
+    .number-btn {
+        min-height: 35px;
+        font-size: 0.85em;
+    }
+}
+
+@media (max-width: 480px) {
+    .control-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .primary-btn, .secondary-btn {
+        width: 100%;
+    }
+    
+    .control-grid {
+        grid-template-columns: repeat(2, 50px);
+        gap: 5px;
+    }
+    
+    .number-btn {
+        max-width: 48%;
+    }
+}
