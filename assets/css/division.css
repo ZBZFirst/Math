@@ -1,4 +1,4 @@
-/* Division Specific Styles */
+/* division.css - Division specific styles WITHOUT buttons */
 
 .division-container {
     max-width: 1200px;
@@ -54,25 +54,6 @@
     20%, 40%, 60%, 80% { transform: translateX(3px); }
 }
 
-.feedback-error {
-    background: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-    padding: 10px;
-    border-radius: 6px;
-    margin-top: 10px;
-    animation: shake 0.5s ease-in-out;
-}
-
-.feedback-success {
-    background: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-    padding: 10px;
-    border-radius: 6px;
-    margin-top: 10px;
-}
-
 @media (max-width: 768px) {
     .dual-container {
         grid-template-columns: 1fr;
@@ -90,18 +71,6 @@
 
 .main-problem {
     min-height: 300px;
-}
-
-/* MathJax Container */
-.mathjax-container {
-    min-height: 280px;
-    padding: 20px;
-    background-color: white;
-    border-radius: 8px;
-    border: 1px solid #dee2e6;
-    text-align: center;
-    overflow-x: auto;
-    font-size: 1.2em;
 }
 
 /* MathJax styling */
@@ -143,10 +112,6 @@
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
     border: 2px solid #e8eaf6;
     display: inline-block;
-}
-
-/* Style the division symbol to look more like LaTeX */
-.large-equation {
     position: relative;
 }
 
@@ -212,53 +177,6 @@
     color: #721c24;
 }
 
-/* Controls */
-.division-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 20px 0;
-    padding: 15px;
-    background-color: #f8f9fa;
-    border-radius: 10px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.control-buttons {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.primary-btn, .secondary-btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.95em;
-    font-weight: 600;
-    transition: all 0.2s;
-}
-
-.primary-btn {
-    background: #007bff;
-    color: white;
-}
-
-.primary-btn:hover {
-    background: #0056b3;
-}
-
-.secondary-btn {
-    background: #e9ecef;
-    color: #212529;
-    border: 1px solid #dee2e6;
-}
-
-.secondary-btn:hover {
-    background: #dee2e6;
-}
-
 /* Enhanced Score Container */
 .enhanced-score-container {
     background-color: #f8f9fa;
@@ -313,178 +231,40 @@
     color: #212529;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .division-container {
-        padding: 15px;
-    }
-    
-    .dual-container {
-        gap: 15px;
-    }
-    
-    .main-problem-container,
-    .work-container {
-        padding: 15px;
-    }
-    
-    .large-equation {
-        font-size: 2.8em;
-        padding: 20px 25px;
-    }
-    
-    .division-controls {
-        flex-direction: column;
-        gap: 15px;
-        align-items: stretch;
-    }
-    
-    .control-buttons {
-        justify-content: center;
-    }
-    
-    .score-stats {
-        grid-template-columns: repeat(2, 1fr);
-    }
+/* Current Step Area */
+.current-step-container {
+    margin-top: 20px;
+    padding: 20px;
+    background: #e3f2fd;
+    border-radius: 8px;
+    border: 2px solid #2196f3;
 }
 
-@media (max-width: 480px) {
-    .division-container {
-        padding: 10px;
-    }
-    
-    .dual-container {
-        gap: 10px;
-    }
-    
-    .large-equation {
-        font-size: 2.2em;
-        padding: 15px 20px;
-    }
-    
-    .Work-Container {
-        min-height: 250px;
-        padding: 12px;
-    }
-    
-    .control-buttons {
-        flex-direction: column;
-        width: 100%;
-    }
-    
-    .primary-btn, .secondary-btn {
-        width: 100%;
-    }
-    
-    .score-stats {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* Animation for feedback */
-@keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
-    20%, 40%, 60%, 80% { transform: translateX(3px); }
-}
-
-.shake {
-    animation: shake 0.5s ease-in-out;
-}
-/* Long Division Content Styles - Only for content inside work container */
-.long-division-work {
-    font-family: 'Courier New', monospace;
-    font-size: 1em;
-    width: 100%;
-    overflow-x: auto;
-}
-
-.division-header {
-    display: flex;
-    align-items: flex-start;
-    margin-bottom: 15px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #dee2e6;
-    max-width: 100%;
-}
-
-.divisor {
-    font-size: 1.1em;
+.current-step-title {
     font-weight: bold;
-    margin-right: 10px;
+    color: #0d47a1;
+    margin-bottom: 10px;
+    font-size: 1.2em;
+}
+
+.current-step-equation {
+    font-family: "Latin Modern Math", "STIX Two Math", serif;
+    font-size: 1.5em;
     color: #1a237e;
-    position: relative;
-    top: -3px;
-}
-
-.dividend {
-    font-size: 1.1em;
-    padding-left: 10px;
-    position: relative;
-}
-
-.dividend::before {
-    content: "";
-    position: absolute;
-    top: -12px;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: #333;
-}
-
-.division-steps {
-    margin-left: 20px;
-    max-width: 100%;
-}
-
-.division-step {
     margin: 10px 0;
-    padding: 8px;
-    border-left: 3px solid #5c6bc0;
-    background-color: #f8f9fa;
-    border-radius: 0 4px 4px 0;
-    max-width: 100%;
-    word-wrap: break-word;
-}
-
-.division-step.current-step {
-    border-left-color: #28a745;
-    background-color: #e8f5e9;
-}
-
-.step-header {
-    font-weight: bold;
-    color: #5c6bc0;
-    margin-bottom: 5px;
-    font-size: 0.95em;
-}
-
-.division-step.current-step .step-header {
-    color: #28a745;
-}
-
-.step-calculation {
-    margin-left: 8px;
-    line-height: 1.6;
-}
-
-.step-calculation div {
-    margin: 3px 0;
-    padding: 3px 6px;
+    padding: 15px;
     background: white;
-    border-radius: 3px;
-    border: 1px solid #e0e0e0;
-    font-size: 0.9em;
+    border-radius: 6px;
+    border: 1px solid #bbdefb;
 }
 
-.current-state {
-    margin: 15px 0;
-    padding: 12px;
-    background-color: #e3f2fd;
-    border-radius: 6px;
-    border: 1px solid #2196f3;
-    max-width: 100%;
+.current-instruction {
+    font-style: italic;
+    color: #546e7a;
+    margin: 10px 0;
+    padding: 10px;
+    background: #f1f8fe;
+    border-radius: 4px;
 }
 
 /* Grid-based long division styles */
@@ -542,11 +322,6 @@
 .grid-cell.pink {
     background-color: #ffb6c1;
     border-color: #ff8da1;
-    cursor: pointer;
-}
-
-.grid-cell.pink:hover {
-    background-color: #ff9baa;
 }
 
 .grid-cell.green {
@@ -558,6 +333,10 @@
 .grid-cell.empty {
     background-color: transparent;
     border-color: transparent;
+}
+
+.grid-cell.hidden {
+    display: none;
 }
 
 .division-symbol {
@@ -572,364 +351,94 @@
     background: black;
 }
 
+/* Static Grid Container */
+.static-grid-container {
+    display: inline-block;
+    position: relative;
+    margin: 20px auto;
+}
+
+.static-division-grid {
+    display: grid;
+    grid-template-columns: 50px repeat(5, 50px);
+    grid-template-rows: repeat(11, 50px);
+    gap: 2px;
+    position: relative;
+    z-index: 2;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
+    .division-container {
+        padding: 15px;
+    }
+    
+    .dual-container {
+        gap: 15px;
+    }
+    
+    .main-problem-container,
+    .work-container {
+        padding: 15px;
+    }
+    
+    .large-equation {
+        font-size: 2.8em;
+        padding: 20px 25px;
+    }
+    
+    .score-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
     .grid-cell {
         min-width: 40px;
         min-height: 40px;
         font-size: 16px;
     }
+    
+    .static-division-grid {
+        grid-template-columns: 40px repeat(5, 40px);
+        grid-template-rows: repeat(11, 40px);
+    }
 }
 
 @media (max-width: 480px) {
+    .division-container {
+        padding: 10px;
+    }
+    
+    .dual-container {
+        gap: 10px;
+    }
+    
+    .large-equation {
+        font-size: 2.2em;
+        padding: 15px 20px;
+    }
+    
+    .Work-Container {
+        min-height: 250px;
+        padding: 12px;
+    }
+    
+    .score-stats {
+        grid-template-columns: 1fr;
+    }
+    
     .grid-cell {
         min-width: 30px;
         min-height: 30px;
         font-size: 14px;
     }
-}
-
-.state-header {
-    font-weight: bold;
-    color: #0d47a1;
-    margin-bottom: 8px;
-    font-size: 1em;
-}
-
-.state-details {
-    font-size: 0.95em;
-}
-
-.state-details strong {
-    color: #d32f2f;
-}
-
-.final-answer {
-    margin: 15px 0;
-    padding: 15px;
-    background-color: #e8f5e9;
-    border-radius: 6px;
-    border: 1px solid #4caf50;
-    max-width: 100%;
-}
-
-.answer-header {
-    font-weight: bold;
-    color: #2e7d32;
-    margin-bottom: 10px;
-    font-size: 1.1em;
-}
-
-.answer-result {
-    font-weight: bold;
-    color: #1b5e20;
-    margin: 8px 0;
-    padding: 8px;
-    background: white;
-    border-radius: 4px;
-    border: 1px solid #4caf50;
-    font-size: 1em;
-}
-
-.quotient-digits {
-    font-style: italic;
-    color: #666;
-    margin-top: 10px;
-    padding: 8px;
-    background: #f1f8e9;
-    border-radius: 4px;
-    font-size: 0.9em;
-}
-
-.remainder {
-    font-weight: bold;
-    color: #e91e63;
-    background: #fce4ec;
-    padding: 4px 8px;
-    border-radius: 3px;
-    display: inline-block;
-    margin-top: 5px;
-    font-size: 0.9em;
-}
-
-/* Number Controls - Minimal styling */
-.number-buttons-container {
-    width: 100%;
-    max-width: 100%;
-    margin-top: 10px;
-    padding: 10px;
-    background-color: #f8f9fa;
-    border-radius: 6px;
-    border: 1px solid #dee2e6;
-}
-
-.number-buttons-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 10px;
-    width: 100%;
-}
-
-.number-btn {
-    flex: 1;
-    padding: 8px 4px;
-    border: 1px solid #007bff;
-    border-radius: 4px;
-    background: #007bff;
-    color: white;
-    font-size: 0.9em;
-    cursor: pointer;
-    min-height: 40px;
-    max-width: 33.33%;
-}
-
-.number-btn:hover {
-    background: #0056b3;
-}
-
-.number-btn.clear {
-    background: #6c757d;
-    border-color: #6c757d;
-}
-
-.number-btn.clear:hover {
-    background: #545b62;
-}
-
-.number-display {
-    text-align: center;
-    font-size: 1em;
-    margin: 8px 0;
-    padding: 8px;
-    background: white;
-    border-radius: 4px;
-    border: 1px solid #007bff;
-    font-weight: bold;
-}
-
-#currentGuessDisplay {
-    color: #d32f2f;
-    font-weight: bold;
-    margin-left: 5px;
-}
-
-.commit-btn {
-    width: 100%;
-    padding: 10px;
-    background: #28a745;
-    color: white;
-    border: 1px solid #28a745;
-    border-radius: 4px;
-    font-size: 1em;
-    cursor: pointer;
-    margin-top: 5px;
-}
-
-.commit-btn:hover {
-    background: #218838;
-}
-
-.error-message {
-    margin-top: 8px;
-    padding: 8px;
-    border-radius: 4px;
-    color: #dc3545;
-    background: #f8d7da;
-    border: 1px solid #dc3545;
-    font-size: 0.9em;
-    text-align: center;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .division-steps {
-        margin-left: 10px;
-    }
     
-    .division-step {
-        padding: 6px;
-    }
-    
-    .number-buttons-row {
-        flex-wrap: wrap;
-    }
-    
-    .number-btn {
-        min-height: 35px;
-        font-size: 0.85em;
+    .static-division-grid {
+        grid-template-columns: 30px repeat(5, 30px);
+        grid-template-rows: repeat(11, 30px);
     }
 }
 
-@media (max-width: 480px) {
-    .division-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    .divisor {
-        position: static;
-        margin-bottom: 5px;
-    }
-    
-    .division-steps {
-        margin-left: 5px;
-    }
-}
-/* LaTeX-style Division Display */
-.latex-division {
-    font-family: "Latin Modern Math", "STIX Two Math", "Cambria Math", serif;
-    max-width: 100%;
-    overflow-x: auto;
-}
-
-.division-layout {
-    position: relative;
-    margin-bottom: 30px;
-    min-height: 120px;
-}
-
-.quotient {
-    position: absolute;
-    top: 0;
-    right: 0;
-    font-size: 1.5em;
-    font-weight: bold;
-    color: #1a237e;
-}
-
-.divisor-box {
-    position: absolute;
-    left: 0;
-    top: 40px;
-    font-size: 1.3em;
-    font-weight: bold;
-}
-
-.dividend-box {
-    position: absolute;
-    left: 40px;
-    top: 40px;
-    font-size: 1.3em;
-    border-top: 2px solid #333;
-    padding-top: 5px;
-    padding-left: 10px;
-    padding-right: 20px;
-}
-
-.division-symbol {
-    position: absolute;
-    left: 35px;
-    top: 40px;
-    width: 20px;
-    height: 45px;
-    border-right: 2px solid #333;
-    border-top: 2px solid #333;
-}
-
-.calculation-steps {
-    margin-top: 100px;
-    border-top: 1px solid #dee2e6;
-    padding-top: 15px;
-}
-
-.step {
-    margin: 15px 0;
-    padding: 10px;
-    background: #f8f9fa;
-    border-radius: 6px;
-    border-left: 3px solid #5c6bc0;
-}
-
-.current-step {
-    margin: 15px 0;
-    padding: 15px;
-    background: #e3f2fd;
-    border-radius: 6px;
-    border-left: 3px solid #2196f3;
-    animation: pulse 2s infinite;
-}
-
-.step-header {
-    font-weight: bold;
-    color: #5c6bc0;
-    margin-bottom: 8px;
-    font-size: 1.1em;
-}
-
-.current-step .step-header {
-    color: #0d47a1;
-}
-
-.step-details {
-    line-height: 1.8;
-    padding-left: 10px;
-}
-
-.step-details div {
-    margin: 5px 0;
-    padding: 5px;
-    background: white;
-    border-radius: 4px;
-}
-
-.final-remainder {
-    font-weight: bold;
-    color: #e91e63;
-    background: #fce4ec !important;
-}
-
-.visual-representation {
-    margin-top: 20px;
-    padding: 15px;
-    background: #f5f5f5;
-    border-radius: 6px;
-    border: 1px solid #ddd;
-}
-
-.visual-title {
-    font-weight: bold;
-    margin-bottom: 15px;
-    color: #666;
-}
-
-.visual-line, .visual-subtract, .visual-hr, .visual-remainder {
-    font-family: 'Courier New', monospace;
-    margin: 5px 0;
-    padding: 3px 10px;
-}
-
-.visual-hr {
-    border-top: 1px solid #333;
-    padding-top: 2px;
-    margin-top: -2px;
-}
-
-.visual-remainder {
-    font-weight: bold;
-    color: #1a237e;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .division-layout {
-        min-height: 100px;
-    }
-    
-    .quotient {
-        font-size: 1.2em;
-    }
-    
-    .divisor-box, .dividend-box {
-        font-size: 1.1em;
-    }
-    
-    .step, .current-step {
-        padding: 8px;
-    }
-}
-
-@keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(33, 150, 243, 0.4); }
-    70% { box-shadow: 0 0 0 5px rgba(33, 150, 243, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(33, 150, 243, 0); }
+/* Animation for feedback */
+.shake {
+    animation: shake 0.5s ease-in-out;
 }
