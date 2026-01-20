@@ -245,63 +245,7 @@
             </div>
         </div>
     </main>
-    
     {% include footer.html %}
-    
-    <!-- Minimal JavaScript - just for button interactions -->
-    <script>
-        // Simple UI controls
-        let currentGuess = 0;
-        
-        function updateGuessDisplay() {
-            document.getElementById('currentGuessDisplay').textContent = currentGuess;
-        }
-        
-        function adjustGuess(delta) {
-            currentGuess += delta;
-            if (currentGuess < 0) currentGuess = 0;
-            if (currentGuess > 9) currentGuess = 9;
-            updateGuessDisplay();
-        }
-        
-        // Button event handlers
-        document.addEventListener('DOMContentLoaded', function() {
-            // Number adjustment buttons
-            document.querySelectorAll('[data-change]').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const delta = parseInt(this.dataset.change);
-                    adjustGuess(delta);
-                });
-            });
-            
-            // Clear button
-            document.getElementById('clearGuess').addEventListener('click', function() {
-                currentGuess = 0;
-                updateGuessDisplay();
-            });
-            
-            // Commit button (just for demo)
-            document.getElementById('commitGuessBtn').addEventListener('click', function() {
-                // This will be handled by division.js
-                console.log(`Guess submitted: ${currentGuess}`);
-            });
-            
-            // Load scores from localStorage
-            const solvedCount = parseInt(localStorage.getItem('divisionSolvedCount')) || 0;
-            const mistakeCount = parseInt(localStorage.getItem('divisionMistakeCount')) || 0;
-            const currentStreak = parseInt(localStorage.getItem('divisionCurrentStreak')) || 0;
-            
-            document.getElementById('solvedCount').textContent = solvedCount;
-            document.getElementById('mistakeCount').textContent = mistakeCount;
-            document.getElementById('currentStreak').textContent = currentStreak;
-            
-            const total = solvedCount + mistakeCount;
-            const accuracy = total > 0 ? Math.round((solvedCount / total) * 100) : 0;
-            document.getElementById('divisionAccuracy').textContent = accuracy + '%';
-        });
-    </script>
-    
-    <!-- The full division.js will use the static grid -->
     <script src="{{ site.baseurl }}/assets/js/division.js"></script>
 </body>
 </html>
