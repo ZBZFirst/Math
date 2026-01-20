@@ -1,4 +1,25 @@
-// division.js - Using Static HTML Grid
+// division.js - Using Static HTML Grid (Debug Version)
+
+// ============================================
+// Debug Configuration
+// ============================================
+const DEBUG = true; // Set to false to disable debug logs
+
+function debugLog(message, data = null) {
+    if (DEBUG) {
+        if (data) {
+            console.log(`[DEBUG] ${message}:`, data);
+        } else {
+            console.log(`[DEBUG] ${message}`);
+        }
+    }
+}
+
+function debugError(message, error = null) {
+    if (DEBUG) {
+        console.error(`[DEBUG ERROR] ${message}`, error || '');
+    }
+}
 
 // ============================================
 // DOM Elements
@@ -31,7 +52,7 @@ let currentStreak = parseInt(localStorage.getItem('divisionCurrentStreak')) || 0
 // Initialization
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Division practice initialized');
+    debugLog('Division practice initialized');
     
     // Initialize grid cell references
     initializeGridReferences();
@@ -46,6 +67,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Initialize references to all grid cells
 function initializeGridReferences() {
+    debugLog('Initializing grid cell references');
+    
     // Map all grid cells by their IDs
     gridCells = {
         // Answer cells
@@ -61,7 +84,7 @@ function initializeGridReferences() {
         // Work grid cells - organized by row and column
         'r2c1': document.getElementById('r2c1'),
         'r2c2': document.getElementById('r2c2'),
-        'r2c3': document.getElementById('r2c3'),
+        'r2c3': document.getElementById('r2c2'),
         'r2c4': document.getElementById('r2c4'),
         'r2c5': document.getElementById('r2c5'),
         
@@ -120,6 +143,10 @@ function initializeGridReferences() {
         'r11c5': document.getElementById('r11c5')
     };
     
+    // Log which cells were found
+    const foundCells = Object.keys(gridCells).filter(key => gridCells[key]);
+    debugLog(`Found ${foundCells.length} grid cells`, foundCells);
+    
     // Store answer cells separately for easy access
     answerCells = {
         'q0': gridCells['ans-q0'],
@@ -127,10 +154,14 @@ function initializeGridReferences() {
         'q2': gridCells['ans-q2'],
         'rem': gridCells['ans-rem']
     };
+    
+    debugLog('Grid cell references initialized');
 }
 
 // Setup all button handlers
 function setupButtonHandlers() {
+    debugLog('Setting up button handlers');
+    
     // Main control buttons
     newProblemBtn.addEventListener('click', generateNewProblem);
     resetProblemBtn.addEventListener('click', resetCurrentProblem);
@@ -144,6 +175,8 @@ function setupButtonHandlers() {
 // Control Buttons Creation
 // ============================================
 function createControlButtons() {
+    debugLog('Creating control buttons');
+    
     const controlButtonsHTML = `
         <div class="control-grid">
             <button class="grid-btn decrement" data-change="-5">-5</button>
@@ -165,12 +198,15 @@ function createControlButtons() {
 }
 
 function setupControlButtonListeners() {
+    debugLog('Setting up control button listeners');
+    
     // Number adjustment buttons
     document.querySelectorAll('[data-change]').forEach(btn => {
         btn.addEventListener('click', () => {
             if (!currentProblem || currentProblem.finished) return;
             
             const delta = parseInt(btn.dataset.change);
+            debugLog(`Adjusting guess by ${delta}, current guess: ${currentGuess}`);
             adjustGuess(delta);
         });
     });
@@ -186,6 +222,8 @@ function setupControlButtonListeners() {
 // Problem Generation
 // ============================================
 function generateNewProblem() {
+    debugLog('Generating new problem');
+    
     let divisor = Math.floor(Math.random() * 15) + 1;
     let dividend;
     
@@ -193,12 +231,22 @@ function generateNewProblem() {
         dividend = Math.floor(Math.random() * 999) + 1;
     } while (dividend <= divisor);
     
+    debugLog(`Generated problem: ${dividend} ÷ ${divisor}`);
+    
     initializeDivisionState(dividend, divisor);
 }
 
 function initializeDivisionState(dividend, divisor) {
     const digits = String(dividend).split('').map(Number);
     const n = digits.length;
+    
+    debugLog(`Initializing division state`, {
+        dividend,
+        divisor,
+        digits,
+        n,
+        currentGuess
+    });
     
     // Reset grid to initial state
     resetGrid();
@@ -222,6 +270,8 @@ function initializeDivisionState(dividend, divisor) {
         visibleRows: 2 * n + 1    // Number of rows to show (2n+1)
     };
     
+    debugLog('Current problem state initialized', currentProblem);
+    
     // Update UI
     updateDivisor(divisor);
     updateDividend(digits);
@@ -238,13 +288,19 @@ function initializeDivisionState(dividend, divisor) {
 // Grid Management (using static HTML)
 // ============================================
 function resetGrid() {
+    debugLog('Resetting grid to initial state');
+    
     // Clear all answer cells
     for (let key in answerCells) {
         if (answerCells[key]) {
             answerCells[key].textContent = '?';
+            debugLog(`Reset answer cell ${key} to ?`);
         }
     }
-    gridCells['ans-rem'].textContent = '?';
+    if (gridCells['ans-rem']) {
+        gridCells['ans-rem'].textContent = '?';
+        debugLog('Reset remainder cell to ?');
+    }
     
     // Clear all work grid cells
     for (let row = 2; row <= 11; row++) {
@@ -253,32 +309,40 @@ function resetGrid() {
             const cell = gridCells[cellId];
             if (cell) {
                 // Reset to initial values from HTML
+                let newValue = '';
                 switch (row) {
                     case 2:
-                        if (col <= 3) cell.textContent = '';
-                        else cell.textContent = '';
+                        if (col <= 3) newValue = '';
+                        else newValue = '';
                         break;
                     case 4:
-                        if (col === 2) cell.textContent = '2';
-                        else if (col !== 1) cell.textContent = '';
+                        if (col === 2) newValue = '2';
+                        else if (col !== 1) newValue = '';
                         break;
                     case 6:
-                        if (col === 3) cell.textContent = '3';
-                        else cell.textContent = '';
+                        if (col === 3) newValue = '3';
+                        else newValue = '';
                         break;
                     default:
-                        cell.textContent = '';
+                        newValue = '';
                 }
+                cell.textContent = newValue;
+                debugLog(`Reset cell ${cellId} to "${newValue}"`);
             }
         }
     }
 }
 
 function updateDivisor(divisor) {
-    gridCells['divisor'].textContent = divisor;
+    if (gridCells['divisor']) {
+        gridCells['divisor'].textContent = divisor;
+        debugLog(`Updated divisor cell to ${divisor}`);
+    }
 }
 
 function updateDividend(digits) {
+    debugLog(`Updating dividend cells with digits: ${digits}`);
+    
     // Update the dividend row (row 2)
     for (let i = 0; i < 5; i++) {
         const cellId = `r2c${i + 1}`;
@@ -287,9 +351,11 @@ function updateDividend(digits) {
             if (i < digits.length) {
                 cell.textContent = digits[i];
                 cell.style.display = 'flex';
+                debugLog(`Set dividend cell ${cellId} to ${digits[i]}`);
             } else {
                 cell.textContent = '';
                 cell.style.display = 'none';
+                debugLog(`Hid dividend cell ${cellId}`);
             }
         }
     }
@@ -297,6 +363,7 @@ function updateDividend(digits) {
 
 function updateVisibleRows(n) {
     const visibleRows = 2 * n + 1;
+    debugLog(`Showing ${visibleRows} rows for n=${n} (2n+1)`);
     
     // Show/hide rows based on n
     for (let row = 2; row <= 11; row++) {
@@ -307,6 +374,9 @@ function updateVisibleRows(n) {
             const cell = gridCells[cellId];
             if (cell) {
                 cell.style.display = shouldShow ? 'flex' : 'none';
+                if (DEBUG && row <= 8) {
+                    debugLog(`${shouldShow ? 'Showing' : 'Hiding'} cell ${cellId}`);
+                }
             }
         }
     }
@@ -316,9 +386,19 @@ function updateVisibleRows(n) {
 // Problem Display (Left Panel)
 // ============================================
 function updateProblemDisplay() {
-    if (!currentProblem) return;
+    if (!currentProblem) {
+        debugLog('No current problem to display');
+        return;
+    }
     
     const p = currentProblem;
+    debugLog('Updating problem display', {
+        currentStep: p.currentStep,
+        currentDigitIndex: p.currentDigitIndex,
+        partial: p.partial,
+        finished: p.finished
+    });
+    
     const dividend = p.dividend;
     const divisor = p.divisor;
     
@@ -331,18 +411,21 @@ function updateProblemDisplay() {
         const remainder = p.steps[p.steps.length - 1]?.subtraction || 0;
         currentStep = `${dividend} ÷ ${divisor} = ${quotient} R ${remainder}`;
         instruction = 'Problem completed!';
+        debugLog(`Problem finished. Quotient: ${quotient}, Remainder: ${remainder}`);
     } else {
         // Show current step
         switch (p.currentStep) {
             case 0:
                 currentStep = `${p.partial} ÷ ${divisor} = ?`;
                 instruction = `How many times does ${divisor} go into ${p.partial}?`;
+                debugLog(`Step 0: Finding quotient for ${p.partial} ÷ ${divisor}`);
                 break;
             case 1:
                 const lastStep = p.steps[p.steps.length - 1];
                 if (lastStep) {
                     currentStep = `${lastStep.partialBefore} - ${lastStep.product} = ?`;
                     instruction = `Subtract ${lastStep.product} from ${lastStep.partialBefore}`;
+                    debugLog(`Step 1: Subtracting ${lastStep.product} from ${lastStep.partialBefore}`);
                 }
                 break;
             case 2:
@@ -351,6 +434,9 @@ function updateProblemDisplay() {
                     const nextDigit = p.digits[p.currentDigitIndex + 1];
                     currentStep = `Bring down ${nextDigit}`;
                     instruction = `New number: ${lastRemainder}${nextDigit}`;
+                    debugLog(`Step 2: Bringing down ${nextDigit}, new partial: ${lastRemainder}${nextDigit}`);
+                } else {
+                    debugLog(`Step 2: No more digits to bring down`);
                 }
                 break;
         }
@@ -378,16 +464,23 @@ function updateProblemDisplay() {
 // User Input Controls
 // ============================================
 function adjustGuess(delta) {
-    if (!currentProblem || currentProblem.finished) return;
+    if (!currentProblem || currentProblem.finished) {
+        debugLog(`Cannot adjust guess: ${currentProblem ? 'problem finished' : 'no problem'}`);
+        return;
+    }
     
     const newGuess = currentGuess + delta;
     if (newGuess >= 0 && newGuess <= 9) {
         currentGuess = newGuess;
         updateGuessDisplay();
+        debugLog(`Guess adjusted to ${currentGuess}`);
+    } else {
+        debugLog(`Guess out of bounds: ${newGuess}`);
     }
 }
 
 function clearGuess() {
+    debugLog(`Clearing guess (was ${currentGuess})`);
     currentGuess = 0;
     updateGuessDisplay();
 }
@@ -396,6 +489,7 @@ function updateGuessDisplay() {
     const display = document.getElementById('currentGuessDisplay');
     if (display) {
         display.textContent = currentGuess;
+        debugLog(`Updated guess display to ${currentGuess}`);
     }
 }
 
@@ -403,16 +497,38 @@ function updateGuessDisplay() {
 // Core Game Logic
 // ============================================
 function commitGuess() {
-    if (!currentProblem || currentProblem.finished) return;
+    if (!currentProblem) {
+        debugError('Cannot commit: No current problem');
+        showFeedback('No problem loaded. Click "New Problem"', 'error');
+        return;
+    }
+    
+    if (currentProblem.finished) {
+        debugLog('Cannot commit: Problem already finished');
+        showFeedback('Problem already completed!', 'info');
+        return;
+    }
     
     const p = currentProblem;
+    debugLog(`Committing guess ${currentGuess}`, {
+        currentStep: p.currentStep,
+        currentDigitIndex: p.currentDigitIndex,
+        partial: p.partial,
+        divisor: p.divisor
+    });
     
     if (p.currentStep === 0) {
+        debugLog('Processing quotient input');
         processQuotientInput(p);
     } else if (p.currentStep === 1) {
+        debugLog('Processing subtraction');
         processSubtraction(p);
     } else if (p.currentStep === 2) {
+        debugLog('Processing bring down');
         processBringDown(p);
+    } else {
+        debugError(`Unknown step: ${p.currentStep}`);
+        showFeedback('Something went wrong. Try resetting.', 'error');
     }
 }
 
@@ -420,10 +536,20 @@ function processQuotientInput(problem) {
     const correctDigit = Math.floor(problem.partial / problem.divisor);
     const product = currentGuess * problem.divisor;
     
+    debugLog(`Quotient input processing`, {
+        partial: problem.partial,
+        divisor: problem.divisor,
+        currentGuess,
+        correctDigit,
+        product,
+        condition: product > problem.partial ? 'product > partial' : 'product <= partial'
+    });
+    
     // Validation
     if (product > problem.partial) {
         mistakeCount++;
         currentStreak = 0;
+        debugLog(`Invalid: ${problem.divisor} × ${currentGuess} = ${product} > ${problem.partial}`);
         showFeedback(`Cannot multiply ${problem.divisor} × ${currentGuess} = ${product} (greater than ${problem.partial})`, 'error');
         updateScoreDisplay();
         return;
@@ -432,6 +558,7 @@ function processQuotientInput(problem) {
     if (currentGuess !== correctDigit) {
         mistakeCount++;
         currentStreak = 0;
+        debugLog(`Incorrect: ${problem.partial} ÷ ${problem.divisor} = ${correctDigit}, not ${currentGuess}`);
         showFeedback(`Incorrect. ${problem.partial} ÷ ${problem.divisor} = ${correctDigit}, not ${currentGuess}`, 'error');
         updateScoreDisplay();
         currentGuess = correctDigit;
@@ -449,6 +576,11 @@ function processQuotientInput(problem) {
         stepIndex: problem.currentDigitIndex
     });
     
+    debugLog(`Correct! Updated problem state`, {
+        quotientDigits: problem.quotientDigits,
+        steps: problem.steps
+    });
+    
     // Update grid
     updateQuotientInGrid(problem.currentDigitIndex, currentGuess);
     updateProductInGrid(problem.currentDigitIndex, product);
@@ -459,17 +591,32 @@ function processQuotientInput(problem) {
     problem.currentStep = 1;
     currentGuess = problem.partial - product;
     
+    debugLog(`Moving to step 1 (subtraction). New guess for remainder: ${currentGuess}`);
+    
     updateProblemDisplay();
     updateGuessDisplay();
 }
 
 function processSubtraction(problem) {
     const lastStep = problem.steps[problem.steps.length - 1];
+    if (!lastStep) {
+        debugError('No last step found for subtraction');
+        return;
+    }
+    
     const expectedRemainder = lastStep.subtraction;
+    
+    debugLog(`Subtraction processing`, {
+        partialBefore: lastStep.partialBefore,
+        product: lastStep.product,
+        expectedRemainder,
+        currentGuess
+    });
     
     if (currentGuess !== expectedRemainder) {
         mistakeCount++;
         currentStreak = 0;
+        debugLog(`Incorrect subtraction: guessed ${currentGuess}, expected ${expectedRemainder}`);
         showFeedback(`Incorrect subtraction. ${lastStep.partialBefore} - ${lastStep.product} = ${expectedRemainder}`, 'error');
         updateScoreDisplay();
         currentGuess = expectedRemainder;
@@ -481,11 +628,15 @@ function processSubtraction(problem) {
     updateRemainderInGrid(problem.currentDigitIndex, expectedRemainder);
     
     problem.partial = expectedRemainder;
+    debugLog(`Correct subtraction. New partial: ${problem.partial}`);
+    
     showFeedback(`Correct! Remainder is ${expectedRemainder}`, 'success');
     
     // Move to next step
     problem.currentStep = 2;
     problem.currentDigitIndex++;
+    
+    debugLog(`Moving to step 2 (bring down). Current digit index: ${problem.currentDigitIndex}, n: ${problem.n}`);
     
     updateProblemDisplay();
     currentGuess = 0;
@@ -493,7 +644,15 @@ function processSubtraction(problem) {
 }
 
 function processBringDown(problem) {
+    debugLog(`Bring down processing`, {
+        currentDigitIndex: problem.currentDigitIndex,
+        n: problem.n,
+        digits: problem.digits,
+        partial: problem.partial
+    });
+    
     if (problem.currentDigitIndex >= problem.n) {
+        debugLog(`No more digits to bring down. Completing problem.`);
         completeProblem(problem);
         return;
     }
@@ -502,11 +661,15 @@ function processBringDown(problem) {
     const nextDigit = problem.digits[problem.currentDigitIndex];
     problem.partial = problem.partial * 10 + nextDigit;
     
+    debugLog(`Brought down ${nextDigit}. New partial: ${problem.partial}`);
+    
     // Update instruction
     showFeedback(`Brought down ${nextDigit}. New number: ${problem.partial}`, 'success');
     
     // Move to next quotient step
     problem.currentStep = 0;
+    
+    debugLog(`Moving to step 0 (new quotient). New partial: ${problem.partial}`);
     
     updateProblemDisplay();
     currentGuess = 0;
@@ -518,12 +681,17 @@ function completeProblem(problem) {
     
     // Update final remainder in answer grid
     const finalRemainder = problem.steps[problem.steps.length - 1]?.subtraction || 0;
-    gridCells['ans-rem'].textContent = finalRemainder;
+    if (gridCells['ans-rem']) {
+        gridCells['ans-rem'].textContent = finalRemainder;
+        debugLog(`Set final remainder to ${finalRemainder} in ans-rem cell`);
+    }
     
     solvedCount++;
     currentStreak++;
     
     const quotient = problem.quotientDigits.join('').replace(/^0+/, '') || '0';
+    debugLog(`Problem completed! Quotient: ${quotient}, Remainder: ${finalRemainder}`);
+    
     showFeedback(`Perfect! Answer: ${quotient} R ${finalRemainder}`, 'success');
     
     updateScoreDisplay();
@@ -536,20 +704,33 @@ function completeProblem(problem) {
 function updateQuotientInGrid(digitIndex, value) {
     const quotientCellIds = ['ans-q0', 'ans-q1', 'ans-q2'];
     if (digitIndex < quotientCellIds.length) {
-        const cell = gridCells[quotientCellIds[digitIndex]];
+        const cellId = quotientCellIds[digitIndex];
+        const cell = gridCells[cellId];
         if (cell) {
             cell.textContent = value;
+            debugLog(`Updated quotient cell ${cellId} to ${value}`);
+        } else {
+            debugError(`Quotient cell ${cellId} not found`);
         }
+    } else {
+        debugError(`Digit index ${digitIndex} out of range for quotient cells`);
     }
 }
 
 function updateProductInGrid(digitIndex, product) {
+    debugLog(`Updating product in grid`, {
+        digitIndex,
+        product,
+        productStr: String(product)
+    });
+    
     // Map digit index to row (0 → row 3, 1 → row 5, 2 → row 7)
     const rowMap = {0: 3, 1: 5, 2: 7};
     const row = rowMap[digitIndex];
     
     if (row) {
         const productStr = String(product).padStart(digitIndex + 1, '0');
+        debugLog(`Product string: "${productStr}" (padded to length ${digitIndex + 1})`);
         
         // Update product cells from right to left
         for (let i = 0; i < productStr.length; i++) {
@@ -558,18 +739,30 @@ function updateProductInGrid(digitIndex, product) {
             const cell = gridCells[cellId];
             if (cell) {
                 cell.textContent = productStr[i];
+                debugLog(`Set product cell ${cellId} to ${productStr[i]}`);
+            } else {
+                debugError(`Product cell ${cellId} not found`);
             }
         }
+    } else {
+        debugError(`No row mapping for digit index ${digitIndex}`);
     }
 }
 
 function updateRemainderInGrid(digitIndex, remainder) {
+    debugLog(`Updating remainder in grid`, {
+        digitIndex,
+        remainder,
+        remainderStr: String(remainder)
+    });
+    
     // Map digit index to row (0 → row 4, 1 → row 6, 2 → row 8)
     const rowMap = {0: 4, 1: 6, 2: 8};
     const row = rowMap[digitIndex];
     
     if (row) {
         const remainderStr = String(remainder).padStart(digitIndex + 1, '0');
+        debugLog(`Remainder string: "${remainderStr}" (padded to length ${digitIndex + 1})`);
         
         // Update remainder cells from right to left
         for (let i = 0; i < remainderStr.length; i++) {
@@ -578,8 +771,13 @@ function updateRemainderInGrid(digitIndex, remainder) {
             const cell = gridCells[cellId];
             if (cell) {
                 cell.textContent = remainderStr[i];
+                debugLog(`Set remainder cell ${cellId} to ${remainderStr[i]}`);
+            } else {
+                debugError(`Remainder cell ${cellId} not found`);
             }
         }
+    } else {
+        debugError(`No row mapping for digit index ${digitIndex}`);
     }
 }
 
@@ -587,11 +785,19 @@ function updateRemainderInGrid(digitIndex, remainder) {
 // Feedback & UI Helpers
 // ============================================
 function showFeedback(message, type = 'error') {
+    debugLog(`Showing feedback: ${type} - ${message}`);
+    
     const feedbackArea = document.querySelector('.number-buttons-container');
-    if (!feedbackArea) return;
+    if (!feedbackArea) {
+        debugError('Feedback area not found');
+        return;
+    }
     
     const existingFeedback = feedbackArea.querySelector('.feedback-message');
-    if (existingFeedback) existingFeedback.remove();
+    if (existingFeedback) {
+        debugLog('Removing existing feedback');
+        existingFeedback.remove();
+    }
     
     const feedbackMsg = document.createElement('div');
     feedbackMsg.className = `feedback-message feedback-${type}`;
@@ -601,18 +807,25 @@ function showFeedback(message, type = 'error') {
     setTimeout(() => {
         if (feedbackMsg.parentNode) {
             feedbackMsg.remove();
+            debugLog('Auto-removed feedback message');
         }
     }, type === 'error' ? 4000 : 3000);
 }
 
 function clearFeedback() {
+    debugLog('Clearing feedback');
     const feedbackMsg = document.querySelector('.feedback-message');
-    if (feedbackMsg) feedbackMsg.remove();
+    if (feedbackMsg) {
+        feedbackMsg.remove();
+    }
 }
 
 function resetCurrentProblem() {
     if (currentProblem) {
+        debugLog(`Resetting current problem: ${currentProblem.dividend} ÷ ${currentProblem.divisor}`);
         initializeDivisionState(currentProblem.dividend, currentProblem.divisor);
+    } else {
+        debugLog('No current problem to reset');
     }
 }
 
@@ -620,6 +833,12 @@ function resetCurrentProblem() {
 // Score Management
 // ============================================
 function updateScoreDisplay() {
+    debugLog(`Updating score display`, {
+        solvedCount,
+        mistakeCount,
+        currentStreak
+    });
+    
     solvedCountEl.textContent = solvedCount;
     mistakeCountEl.textContent = mistakeCount;
     currentStreakEl.textContent = currentStreak;
@@ -635,6 +854,7 @@ function updateScoreDisplay() {
 }
 
 function resetAllScores() {
+    debugLog('Resetting all scores');
     solvedCount = 0;
     mistakeCount = 0;
     currentStreak = 0;
