@@ -1,6 +1,8 @@
-// division.js
+// division.js - Complete Reconstruction
 
+// ============================================
 // DOM Elements
+// ============================================
 const problemDisplay = document.getElementById('problemdisplay');
 const workStageContainer = document.getElementById('workStageContainer');
 const workFeedback = document.getElementById('workFeedback');
@@ -12,23 +14,27 @@ const divisionAccuracyEl = document.getElementById('divisionAccuracy');
 const currentStreakEl = document.getElementById('currentStreak');
 const resetScoresBtn = document.getElementById('resetDivisionScores');
 
-// State variables
+// ============================================
+// State Management
+// ============================================
 let currentProblem = null;
 let currentGuess = 0;
 let solvedCount = parseInt(localStorage.getItem('divisionSolvedCount')) || 0;
 let mistakeCount = parseInt(localStorage.getItem('divisionMistakeCount')) || 0;
 let currentStreak = parseInt(localStorage.getItem('divisionCurrentStreak')) || 0;
 
-// Color constants matching your scheme
+// Color scheme
 const COLORS = {
     BLUE: 'blue',     // divisor
     ORANGE: 'orange', // dividend digits
-    YELLOW: 'yellow', // deterministic values
-    PINK: 'pink',     // user input
+    YELLOW: 'yellow', // remainders & brought-down digits
+    PINK: 'pink',     // user input (products)
     GREEN: 'green'    // answer
 };
 
-// Initialize the page
+// ============================================
+// Initialization
+// ============================================
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Division practice initialized');
     updateScoreDisplay();
@@ -39,11 +45,13 @@ document.addEventListener('DOMContentLoaded', () => {
     resetProblemBtn.addEventListener('click', resetCurrentProblem);
     resetScoresBtn.addEventListener('click', resetAllScores);
     
-    // Create number buttons after DOM is loaded
+    // Create number buttons
     createNumberButtons();
 });
 
-// Generate a new division problem
+// ============================================
+// Problem Generation
+// ============================================
 function generateNewProblem() {
     let divisor = Math.floor(Math.random() * 15) + 1;
     let dividend;
@@ -53,180 +61,394 @@ function generateNewProblem() {
     } while (dividend <= divisor);
     
     initializeDivisionState(dividend, divisor);
-    displayProblem();
 }
 
-// Initialize the division state machine
 function initializeDivisionState(dividend, divisor) {
     const digits = String(dividend).split('').map(Number);
     const n = digits.length;
     
+    // Create COMPLETE 2n+1 grid structure
+    const { workGrid, answerGrid } = createCompleteGrid(digits, divisor);
+    
     currentProblem = {
+        // Basic problem info
         dividend: dividend,
         divisor: divisor,
         digits: digits,
-        n: n, // number of digits
-        stepIndex: 0,
-        partial: 0,
-        quotientDigits: [],
-        steps: [], // Array to store each step for display
+        n: n,
+        
+        // Current solving state
+        currentDigit: 0,          // Which digit we're working on (0 to n-1)
+        currentRow: 1,            // Which grid row we're filling next (1, 3, 5...)
+        partial: digits[0],       // Current working number
+        quotientDigits: [],       // Quotient digits found so far
+        steps: [],                // Steps taken
         finished: false,
-        // Grid state
-        workGrid: createEmptyWorkGrid(n),
-        answerGrid: createEmptyAnswerGrid(n)
+        
+        // Grid structure - COMPLETE and pre-calculated
+        workGrid: workGrid,       // 2D array [2n+1][n] - ALL cells exist
+        answerGrid: answerGrid,   // 1D array [n+2]
+        totalRows: 2 * n + 1,
+        totalCols: n,
+        
+        // Current step info for problem display
+        currentStep: 0,           // 0 = start, 1 = find quotient, 2 = subtract
+        needsBringDown: false
     };
     
-    // Initialize grid with deterministic values
-    initializeDeterministicGrid(currentProblem);
-    
-    // Initialize with first digit
-    currentProblem.partial = digits[0];
     currentGuess = 0;
-    renderWorkArea();
+    updateProblemDisplay();
+    renderGrid();
     renderNumberButtons();
     clearFeedback();
 }
 
-// Create empty work grid with 2n + 3 rows
-function createEmptyWorkGrid(n) {
-    const rows = 2 * n + 3;
-    const cols = n;
-    const grid = [];
+// ============================================
+// Grid Creation - 2n+1 Structure
+// ============================================
+function createCompleteGrid(digits, divisor) {
+    const n = digits.length;
+    const totalRows = 2 * n + 1;
+    const totalCols = n;
     
-    for (let row = 0; row < rows; row++) {
-        grid[row] = [];
-        for (let col = 0; col < cols; col++) {
-            grid[row][col] = {
-                value: '',
-                color: '',
-                isDeterministic: false,
-                isUserInput: false,
-                isAnswer: false,
-                colSpan: 1
-            };
-        }
-    }
+    // Create empty work grid
+    const workGrid = Array(totalRows).fill().map(() => Array(totalCols).fill(null));
     
-    return grid;
-}
-
-// Create empty answer grid with n + 2 columns
-function createEmptyAnswerGrid(n) {
-    const cols = n + 2; // n quotient digits + "R" + remainder
-    const grid = [];
+    // Create answer grid (n quotient digits + "R" + remainder)
+    const answerGrid = Array(n + 2).fill().map((_, i) => ({
+        value: '',
+        color: COLORS.GREEN,
+        revealed: false,
+        type: i < n ? 'quotient' : (i === n ? 'remainder_label' : 'remainder_value')
+    }));
+    answerGrid[n].value = 'R';
+    answerGrid[n].revealed = true;
     
-    // Answer grid has only 1 row
-    grid[0] = [];
-    for (let col = 0; col < cols; col++) {
-        grid[0][col] = {
-            value: '',
-            color: COLORS.GREEN,
-            isDeterministic: true,
-            isAnswer: true
-        };
-    }
-    
-    return grid;
-}
-
-// Initialize deterministic cells in work grid
-function initializeDeterministicGrid(problem) {
-    const { workGrid, answerGrid, n, digits, divisor } = problem;
-    
-    // Row calculations
-    const totalRows = 2 * n + 3;
-    
-    // Step 1: Original dividend (Orange - row 0)
+    // --------------------------------------------------
+    // Row 0: DIVIDEND (Orange)
+    // --------------------------------------------------
     for (let col = 0; col < n; col++) {
         workGrid[0][col] = {
             value: digits[col],
             color: COLORS.ORANGE,
-            isDeterministic: true
+            type: 'dividend',
+            digitIndex: col,
+            revealed: true,
+            row: 0,
+            col: col
         };
     }
     
-    // Step 2: Placeholder for quotient digits in answer grid
-    for (let col = 0; col < n; col++) {
-        answerGrid[0][col] = {
-            value: '?',
-            color: COLORS.GREEN,
-            isDeterministic: false,
-            isAnswer: true
-        };
+    // --------------------------------------------------
+    // Rows 1, 3, 5...: PRODUCT rows (Pink - user input)
+    // --------------------------------------------------
+    for (let step = 0; step < n; step++) {
+        const productRow = 2 * step + 1;
+        
+        // Determine which columns this product will occupy
+        // For step 0: under first digit (column n-1)
+        // For step 1: under first two digits if remainder was 2+ digits
+        const partialLength = Math.min(step + 1, n); // Max columns this product could need
+        const startCol = totalCols - partialLength;
+        
+        for (let colOffset = 0; colOffset < partialLength; colOffset++) {
+            const col = startCol + colOffset;
+            if (col < totalCols) {
+                workGrid[productRow][col] = {
+                    value: '',
+                    color: COLORS.PINK,
+                    type: 'product',
+                    step: step,
+                    position: colOffset,
+                    revealed: false,
+                    isInput: colOffset === (partialLength - 1), // Rightmost digit is user input
+                    row: productRow,
+                    col: col
+                };
+            }
+        }
     }
     
-    // "R" in answer grid
-    answerGrid[0][n] = {
-        value: 'R',
-        color: COLORS.GREEN,
-        isDeterministic: true,
-        isAnswer: true
-    };
-    
-    // Remainder placeholder
-    answerGrid[0][n + 1] = {
-        value: '?',
-        color: COLORS.GREEN,
-        isDeterministic: false,
-        isAnswer: true
-    };
-    
-    // Step 3: Deterministic intermediate rows (Yellow)
-    // These will be populated as the user progresses
-    // The pattern: rows 2, 4, 6... up to 2n-2 are deterministic
-    
-    for (let digitIdx = 1; digitIdx < n; digitIdx++) {
-        const deterministicRow = 2 * digitIdx;
-        workGrid[deterministicRow][digitIdx] = {
-            value: '', // Will be filled when brought down
-            color: COLORS.YELLOW,
-            isDeterministic: true
-        };
+    // --------------------------------------------------
+    // Rows 2, 4, 6...: REMAINDER rows (Yellow - deterministic)
+    // Also contain BROUGHT-DOWN digits
+    // --------------------------------------------------
+    for (let step = 0; step < n; step++) {
+        const remainderRow = 2 * step + 2;
+        
+        if (remainderRow < totalRows) {
+            // Remainder cells (will be filled after subtraction)
+            const partialLength = Math.min(step + 1, n);
+            const startCol = totalCols - partialLength;
+            
+            for (let colOffset = 0; colOffset < partialLength; colOffset++) {
+                const col = startCol + colOffset;
+                if (col < totalCols) {
+                    workGrid[remainderRow][col] = {
+                        value: '',
+                        color: COLORS.YELLOW,
+                        type: 'remainder',
+                        step: step,
+                        position: colOffset,
+                        revealed: false,
+                        row: remainderRow,
+                        col: col
+                    };
+                }
+            }
+            
+            // Brought-down digit (if not last step)
+            if (step < n - 1) {
+                const broughtDownCol = step + 1; // Next digit position
+                const existingCell = workGrid[remainderRow][broughtDownCol];
+                
+                if (existingCell) {
+                    existingCell.hasBroughtDown = true;
+                    existingCell.broughtDownDigit = digits[step + 1];
+                } else {
+                    workGrid[remainderRow][broughtDownCol] = {
+                        value: digits[step + 1],
+                        color: COLORS.YELLOW,
+                        type: 'brought_down',
+                        step: step,
+                        revealed: false,
+                        row: remainderRow,
+                        col: broughtDownCol,
+                        broughtDownDigit: digits[step + 1]
+                    };
+                }
+            }
+        }
     }
     
-    // Step 4: Final remainder rows (last 3 rows)
-    const remainderRow = totalRows - 3; // Row 2n
-    const validationRow = totalRows - 2; // Row 2n + 1
-    const answerBaselineRow = totalRows - 1; // Row 2n + 2
-    
-    // Remainder formation
-    workGrid[remainderRow][n - 1] = {
-        value: '', // Will be final remainder
-        color: COLORS.YELLOW,
-        isDeterministic: true
-    };
-    
-    // Remainder validation
-    workGrid[validationRow][n - 1] = {
-        value: '', // User inputs final check
-        color: COLORS.PINK,
-        isDeterministic: false,
-        isUserInput: true
-    };
-    
-    // Answer baseline (empty row for visual alignment)
-    // This row stays empty
-    
-    return workGrid;
+    return { workGrid, answerGrid };
 }
 
-// Display the problem
-function displayProblem() {
+// ============================================
+// Problem Display (Left Panel)
+// ============================================
+function updateProblemDisplay() {
     if (!currentProblem) return;
     
-    const dividend = currentProblem.dividend;
-    const divisor = currentProblem.divisor;
+    const p = currentProblem;
+    const dividend = p.dividend;
+    const divisor = p.divisor;
+    
+    let currentSubProblem = '';
+    let instruction = '';
+    
+    if (p.finished) {
+        const quotient = p.quotientDigits.join('').replace(/^0+/, '') || '0';
+        const remainder = p.steps[p.steps.length - 1]?.subtraction || 0;
+        currentSubProblem = `${dividend} ÷ ${divisor} = ${quotient} R ${remainder}`;
+        instruction = 'Problem completed!';
+    } else {
+        // Show current sub-problem
+        switch (p.currentStep) {
+            case 0: // Starting
+                currentSubProblem = `${p.partial} ÷ ${divisor} = ?`;
+                instruction = `Start with the first digit: ${p.partial} ÷ ${divisor}`;
+                break;
+                
+            case 1: // Just found quotient, need to subtract
+                const lastStep = p.steps[p.steps.length - 1];
+                if (lastStep) {
+                    currentSubProblem = `${lastStep.partialBefore} - (${divisor} × ${lastStep.digit}) = ${lastStep.partialBefore} - ${lastStep.product}`;
+                    instruction = `Subtract ${lastStep.product} from ${lastStep.partialBefore}`;
+                }
+                break;
+                
+            case 2: // Just subtracted, need to bring down
+                const lastRemainder = p.steps[p.steps.length - 1]?.subtraction || p.partial;
+                if (p.currentDigit < p.n - 1) {
+                    const nextDigit = p.digits[p.currentDigit + 1];
+                    currentSubProblem = `Bring down ${nextDigit}: ${lastRemainder}${nextDigit}`;
+                    instruction = `Bring down the next digit (${nextDigit})`;
+                    p.needsBringDown = true;
+                }
+                break;
+        }
+    }
     
     problemDisplay.innerHTML = `
-        <div class="equation-display">
+        <div class="main-problem-display">
             <div class="large-equation">
                 ${dividend} ÷ ${divisor}
             </div>
+            
+            ${!p.finished ? `
+            <div class="current-subproblem">
+                <div class="subproblem-title">Current Step:</div>
+                <div class="subproblem-equation">${currentSubProblem}</div>
+                <div class="instruction">${instruction}</div>
+                ${p.currentStep === 0 ? `
+                <div class="hint">How many times does ${divisor} go into ${p.partial}?</div>
+                ` : ''}
+            </div>
+            ` : `
+            <div class="solution-display">
+                <div class="solution-title">Solution:</div>
+                <div class="final-answer">
+                    ${dividend} ÷ ${divisor} = 
+                    ${p.quotientDigits.join('').replace(/^0+/, '') || '0'} 
+                    R ${p.steps[p.steps.length - 1]?.subtraction || 0}
+                </div>
+            </div>
+            `}
         </div>
     `;
 }
 
-// Create number buttons in the feedback area
+// ============================================
+// Grid Rendering (Right Panel)
+// ============================================
+function renderGrid() {
+    if (!currentProblem) return;
+    
+    const p = currentProblem;
+    const totalRows = p.totalRows;
+    const totalCols = p.totalCols;
+    
+    let html = `
+    <div class="long-division-grid">
+        <style>
+            .division-grid {
+                display: inline-grid;
+                grid-template-columns: 60px repeat(${totalCols + 2}, 40px);
+                grid-template-rows: 40px repeat(${totalRows}, 40px);
+                gap: 1px;
+                background: #f0f0f0;
+                border: 2px solid #333;
+                padding: 10px;
+                font-family: 'Courier New', monospace;
+            }
+            .grid-cell {
+                background: white;
+                border: 1px solid #ccc;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 18px;
+                font-weight: bold;
+                min-width: 40px;
+                min-height: 40px;
+            }
+            .grid-cell.orange { background: #ff8c2a; }
+            .grid-cell.yellow { background: #ffee00; }
+            .grid-cell.pink { background: #ffb6c1; }
+            .grid-cell.green { background: #2db84d; color: white; }
+            .grid-cell.blue { background: #00a6e6; color: white; }
+            .grid-cell.empty { background: transparent; border: none; }
+            .grid-cell.input-active { 
+                box-shadow: 0 0 0 2px #007bff;
+                cursor: pointer;
+            }
+        </style>
+        
+        <div class="division-grid">
+    `;
+    
+    // --------------------------------------------------
+    // Column 0: DIVISOR (Blue) - spans all rows
+    // --------------------------------------------------
+    html += `<div class="grid-cell blue" style="grid-column: 1; grid-row: 1 / span ${totalRows + 1}">
+        ${p.divisor}
+    </div>`;
+    
+    // --------------------------------------------------
+    // Row 0: ANSWER GRID (Green)
+    // --------------------------------------------------
+    for (let col = 0; col < p.answerGrid.length; col++) {
+        const cell = p.answerGrid[col];
+        const gridCol = col + 2; // +1 for divisor column
+        
+        let displayValue = cell.value;
+        if (!cell.revealed) {
+            if (cell.type === 'quotient') displayValue = '?';
+            else if (cell.type === 'remainder_value') displayValue = '';
+        }
+        
+        html += `<div class="grid-cell green" style="grid-column: ${gridCol}; grid-row: 1">
+            ${displayValue}
+        </div>`;
+    }
+    
+    // --------------------------------------------------
+    // Rows 1 through 2n: WORK GRID
+    // --------------------------------------------------
+    for (let row = 0; row < totalRows; row++) {
+        const cssRow = row + 2; // +1 for answer row
+        
+        for (let col = 0; col < totalCols; col++) {
+            const cell = p.workGrid[row][col];
+            const cssCol = col + 2; // +1 for divisor column
+            
+            if (cell) {
+                const isActiveInput = !p.finished && 
+                                    cell.type === 'product' && 
+                                    cell.isInput && 
+                                    !cell.revealed &&
+                                    row === p.currentRow;
+                
+                const cellClass = `grid-cell ${cell.color} ${isActiveInput ? 'input-active' : ''}`;
+                const displayValue = cell.revealed ? cell.value : '';
+                
+                html += `<div class="${cellClass}" 
+                         style="grid-column: ${cssCol}; grid-row: ${cssRow}"
+                         data-row="${row}" 
+                         data-col="${col}"
+                         title="${cell.type}">
+                    ${displayValue}
+                </div>`;
+            } else {
+                // Empty cell for visual spacing
+                html += `<div class="grid-cell empty" 
+                         style="grid-column: ${cssCol}; grid-row: ${cssRow}"></div>`;
+            }
+        }
+    }
+    
+    // --------------------------------------------------
+    // DIVISION SYMBOL (overlay)
+    // --------------------------------------------------
+    html += `<div class="division-symbol" style="
+        grid-column: 2;
+        grid-row: 2 / span ${totalRows};
+        border-left: 3px solid black;
+        position: relative;
+        margin-left: -15px;
+        pointer-events: none;
+    ">
+        <div style="
+            position: absolute;
+            top: -3px;
+            left: -15px;
+            width: ${totalCols * 40 + 25}px;
+            height: 3px;
+            background: black;
+        "></div>
+    </div>`;
+    
+    html += `</div></div>`;
+    
+    // Add click handlers for input cells
+    html += `<script>
+        document.querySelectorAll('.grid-cell.input-active').forEach(cell => {
+            cell.addEventListener('click', function() {
+                const row = this.dataset.row;
+                const col = this.dataset.col;
+                console.log('Cell clicked:', row, col);
+                // Input handling would go here
+            });
+        });
+    </script>`;
+    
+    workStageContainer.innerHTML = html;
+}
+
+// ============================================
+// User Input & Number Buttons
+// ============================================
 function createNumberButtons() {
     const numberButtonsHTML = `
         <div class="number-buttons-container">
@@ -242,10 +464,8 @@ function createNumberButtons() {
         </div>
     `;
     
-    // Clear existing content
     workFeedback.innerHTML = numberButtonsHTML;
     
-    // Add event listeners to number buttons
     document.querySelectorAll('.number-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             if (!currentProblem || currentProblem.finished) return;
@@ -260,41 +480,24 @@ function createNumberButtons() {
         });
     });
     
-    // Add event listener to commit button
     document.getElementById('commitGuessBtn').addEventListener('click', commitGuess);
 }
 
-// Render number buttons (show/hide based on state)
-function renderNumberButtons() {
-    const container = document.querySelector('.number-buttons-container');
-    if (!currentProblem || currentProblem.finished) {
-        if (container) container.style.display = 'none';
-    } else {
-        if (container) container.style.display = 'block';
-        updateGuessDisplay();
-    }
-}
-
-// Adjust the current guess - NO RESTRICTIONS
 function adjustGuess(delta) {
     if (!currentProblem || currentProblem.finished) return;
     
     const newGuess = currentGuess + delta;
-    
-    // Allow any digit from 0-9 (single digit only)
     if (newGuess >= 0 && newGuess <= 9) {
         currentGuess = newGuess;
         updateGuessDisplay();
     }
 }
 
-// Clear the current guess
 function clearGuess() {
     currentGuess = 0;
     updateGuessDisplay();
 }
 
-// Update the guess display
 function updateGuessDisplay() {
     const display = document.getElementById('currentGuessDisplay');
     if (display) {
@@ -302,331 +505,215 @@ function updateGuessDisplay() {
     }
 }
 
-// Show feedback message with type
-function showFeedback(message, type = 'error') {
-    const feedbackArea = document.querySelector('.number-buttons-container');
-    if (feedbackArea) {
-        // Remove any existing feedback
-        const existingFeedback = feedbackArea.querySelector('.feedback-message');
-        if (existingFeedback) {
-            existingFeedback.remove();
-        }
-        
-        const feedbackMsg = document.createElement('div');
-        feedbackMsg.className = `feedback-message feedback-${type}`;
-        feedbackMsg.textContent = message;
-        
-        feedbackArea.appendChild(feedbackMsg);
-        
-        // Auto-remove after appropriate time
-        const removeTime = type === 'error' ? 4000 : 3000;
-        setTimeout(() => {
-            if (feedbackMsg.parentNode) {
-                feedbackMsg.remove();
-            }
-        }, removeTime);
-    }
-}
-
-// Clear feedback
-function clearFeedback() {
-    const feedbackMsg = document.querySelector('.feedback-message');
-    if (feedbackMsg) {
-        feedbackMsg.remove();
-    }
-}
-
-// Commit the current guess as the next quotient digit
+// ============================================
+// Core Game Logic
+// ============================================
 function commitGuess() {
     if (!currentProblem || currentProblem.finished) return;
     
     const p = currentProblem;
     
-    // Calculate the CORRECT digit for this step
+    if (p.currentStep === 0) {
+        // Step 1: Finding quotient digit
+        processQuotientInput();
+    } else if (p.currentStep === 1) {
+        // Step 2: Confirming subtraction
+        processSubtraction();
+    } else if (p.currentStep === 2 && p.needsBringDown) {
+        // Step 3: Bringing down next digit
+        processBringDown();
+    }
+}
+
+function processQuotientInput() {
+    const p = currentProblem;
     const correctDigit = Math.floor(p.partial / p.divisor);
     const product = currentGuess * p.divisor;
     
-    // Check if guess is mathematically valid (product <= partial)
+    // Validation
     if (product > p.partial) {
         mistakeCount++;
         currentStreak = 0;
-        showFeedback(`Cannot multiply ${p.divisor} × ${currentGuess} = ${product} because it's greater than ${p.partial}. Try a smaller digit.`, 'error');
+        showFeedback(`Cannot multiply ${p.divisor} × ${currentGuess} = ${product} (greater than ${p.partial})`, 'error');
         updateScoreDisplay();
         return;
     }
     
-    // Check if guess equals the correct digit
-    if (currentGuess === correctDigit) {
-        // CORRECT! Create step record
-        const step = {
-            digit: currentGuess,
-            partialBefore: p.partial,
-            product: product,
-            subtraction: p.partial - product,
-            broughtDown: null,
-            isCorrect: true,
-            stepIndex: p.stepIndex,
-            rowIndex: p.stepIndex * 2 // Each step takes 2 rows
-        };
-        
-        p.quotientDigits.push(currentGuess);
-        p.steps.push(step);
-        
-        // Update the grid with this step
-        updateGridWithStep(p, step);
-        
-        // Update partial
-        p.partial = step.subtraction;
-        
-        // Bring down next digit if available
-        if (p.stepIndex < p.digits.length - 1) {
-            p.stepIndex++;
-            const nextDigit = p.digits[p.stepIndex];
-            p.partial = p.partial * 10 + nextDigit;
-            step.broughtDown = nextDigit;
-            
-            // Update grid with brought down digit
-            updateGridWithBroughtDownDigit(p, step);
-            
-            showFeedback(`Correct! ${p.divisor} × ${currentGuess} = ${product}. ${step.partialBefore} - ${product} = ${step.subtraction}. Bringing down ${nextDigit} gives ${step.subtraction}${nextDigit}.`, 'success');
-        } else {
-            // No more digits to bring down - problem is finished
-            p.finished = true;
-            completeProblem(p);
-        }
-        
-        currentGuess = 0;
-        renderWorkArea();
-        renderNumberButtons();
-        
-    } else {
-        // INCORRECT - but mathematically valid (product <= partial)
+    if (currentGuess !== correctDigit) {
         mistakeCount++;
         currentStreak = 0;
-        
-        showFeedback(`Incorrect. ${p.partial} ÷ ${p.divisor} = ${correctDigit}, not ${currentGuess}. The calculation ${p.divisor} × ${currentGuess} = ${product} is valid, but ${correctDigit} would give ${p.divisor} × ${correctDigit} = ${correctDigit * p.divisor}. Try again.`, 'error');
-        
+        showFeedback(`Incorrect. ${p.partial} ÷ ${p.divisor} = ${correctDigit}, not ${currentGuess}`, 'error');
         updateScoreDisplay();
-        
-        // Clear guess but don't progress
-        currentGuess = 0;
+        currentGuess = correctDigit; // Show correct answer
         updateGuessDisplay();
+        return;
     }
-}
-
-// Update grid with completed step
-function updateGridWithStep(problem, step) {
-    const { workGrid, answerGrid, stepIndex } = problem;
-    const rowBase = stepIndex * 2; // 0, 2, 4, ...
     
-    // 1. Update quotient digit in answer grid
-    answerGrid[0][stepIndex].value = step.digit;
-    answerGrid[0][stepIndex].isDeterministic = true;
+    // CORRECT - Update state
+    p.quotientDigits.push(currentGuess);
+    p.steps.push({
+        digit: currentGuess,
+        partialBefore: p.partial,
+        product: product,
+        subtraction: p.partial - product,
+        stepIndex: p.currentDigit
+    });
     
-    // 2. Update product row (user input - PINK)
-    // Product goes in row (rowBase + 1), columns aligned based on partialBefore length
-    const partialStr = String(step.partialBefore);
-    const startCol = problem.n - partialStr.length + stepIndex;
+    // Update answer grid
+    p.answerGrid[p.currentDigit].value = currentGuess;
+    p.answerGrid[p.currentDigit].revealed = true;
     
-    // Write product digits
-    const productStr = String(step.product);
+    // Update work grid with product
+    const productRow = p.currentRow;
+    const partialStr = String(p.partial);
+    const startCol = p.totalCols - partialStr.length;
+    const productStr = String(product).padStart(partialStr.length, '0');
+    
     for (let i = 0; i < productStr.length; i++) {
         const col = startCol + i;
-        if (col < problem.n) {
-            workGrid[rowBase + 1][col] = {
-                value: productStr[i],
-                color: COLORS.PINK,
-                isDeterministic: false,
-                isUserInput: true
-            };
+        const cell = p.workGrid[productRow][col];
+        if (cell && cell.type === 'product') {
+            cell.value = productStr[i];
+            cell.revealed = true;
         }
     }
     
-    // 3. Update subtraction result row (deterministic - YELLOW)
-    // This goes in row (rowBase + 2)
-    const subtractionStr = String(step.subtraction);
-    for (let i = 0; i < subtractionStr.length; i++) {
-        const col = startCol + i;
-        if (col < problem.n) {
-            workGrid[rowBase + 2][col] = {
-                value: subtractionStr[i],
-                color: COLORS.YELLOW,
-                isDeterministic: true
-            };
-        }
+    showFeedback(`Correct! ${p.divisor} × ${currentGuess} = ${product}`, 'success');
+    
+    // Move to next step
+    p.currentStep = 1;
+    currentGuess = p.partial - product;
+    
+    updateProblemDisplay();
+    renderGrid();
+    updateGuessDisplay();
+}
+
+function processSubtraction() {
+    const p = currentProblem;
+    const lastStep = p.steps[p.steps.length - 1];
+    const expectedRemainder = lastStep.subtraction;
+    
+    if (currentGuess !== expectedRemainder) {
+        mistakeCount++;
+        currentStreak = 0;
+        showFeedback(`Incorrect subtraction. ${lastStep.partialBefore} - ${lastStep.product} = ${expectedRemainder}`, 'error');
+        updateScoreDisplay();
+        currentGuess = expectedRemainder;
+        updateGuessDisplay();
+        return;
     }
-}
-
-// Update grid with brought down digit
-function updateGridWithBroughtDownDigit(problem, step) {
-    if (!step.broughtDown) return;
     
-    const { workGrid, stepIndex } = problem;
-    const rowBase = stepIndex * 2; // Next row to fill
+    // CORRECT - Update work grid with remainder
+    const remainderRow = p.currentRow + 1;
+    const partialStr = String(lastStep.partialBefore);
+    const startCol = p.totalCols - partialStr.length;
+    const remainderStr = String(expectedRemainder).padStart(partialStr.length, '0');
     
-    // Find where to place the brought down digit
-    // It goes in the deterministic row for this step
-    workGrid[rowBase][stepIndex] = {
-        value: step.broughtDown,
-        color: COLORS.YELLOW,
-        isDeterministic: true
-    };
-}
-
-// Complete the problem (all digits processed)
-function completeProblem(problem) {
-    const lastStep = problem.steps[problem.steps.length - 1];
-    
-    // Update final remainder in grid
-    const remainderRow = 2 * problem.n; // Row 2n
-    const remainderStr = String(lastStep.subtraction);
-    
-    // Place remainder in last columns
     for (let i = 0; i < remainderStr.length; i++) {
-        const col = problem.n - remainderStr.length + i;
-        problem.workGrid[remainderRow][col] = {
-            value: remainderStr[i],
-            color: COLORS.YELLOW,
-            isDeterministic: true
-        };
+        const col = startCol + i;
+        const cell = p.workGrid[remainderRow][col];
+        if (cell && (cell.type === 'remainder' || cell.type === 'brought_down')) {
+            cell.value = remainderStr[i];
+            cell.revealed = true;
+        }
     }
     
-    // Update answer grid remainder
-    problem.answerGrid[0][problem.n + 1].value = lastStep.subtraction;
-    problem.answerGrid[0][problem.n + 1].isDeterministic = true;
+    // Update partial
+    p.partial = expectedRemainder;
     
-    // Problem completed successfully
-    solvedCount++;
-    currentStreak++;
-    showFeedback(`Perfect! ${problem.dividend} ÷ ${problem.divisor} = ${problem.quotientDigits.join('').replace(/^0+/, '') || '0'} remainder ${lastStep.subtraction}`, 'success');
-    updateScoreDisplay();
+    showFeedback(`Correct! Remainder is ${expectedRemainder}`, 'success');
+    
+    // Move to next step
+    p.currentStep = 2;
+    p.currentDigit++;
+    
+    updateProblemDisplay();
+    renderGrid();
+    currentGuess = 0;
+    updateGuessDisplay();
 }
 
-// Render the work area with grid layout
-function renderWorkArea() {
-    if (!currentProblem) return;
-    
+function processBringDown() {
     const p = currentProblem;
     
-    // Display the problem
-    displayProblem();
+    if (p.currentDigit >= p.n) {
+        // No more digits - problem complete
+        completeProblem();
+        return;
+    }
     
-    // Generate grid-based HTML
-    const gridHTML = generateGridHTML(p);
+    // Bring down next digit
+    const nextDigit = p.digits[p.currentDigit];
+    p.partial = p.partial * 10 + nextDigit;
     
-    // Display in work area
-    workStageContainer.innerHTML = `
-        <div class="grid-long-division">
-            ${gridHTML}
-        </div>
-    `;
+    // Move to next product row
+    p.currentRow += 2;
+    p.currentStep = 0;
+    p.needsBringDown = false;
+    
+    showFeedback(`Brought down ${nextDigit}. New number: ${p.partial}`, 'success');
+    
+    updateProblemDisplay();
+    renderGrid();
+    currentGuess = 0;
+    updateGuessDisplay();
 }
 
-// Generate HTML for the grid-based layout
-function generateGridHTML(problem) {
-    const { divisor, workGrid, answerGrid, n } = problem;
-    const totalRows = 2 * n + 3;
+function completeProblem() {
+    const p = currentProblem;
+    p.finished = true;
     
-    let html = '<div class="division-grid-wrapper">';
+    // Update final remainder in answer grid
+    const finalRemainder = p.steps[p.steps.length - 1]?.subtraction || 0;
+    p.answerGrid[p.n + 1].value = finalRemainder;
+    p.answerGrid[p.n + 1].revealed = true;
     
-    // Add CSS for grid
-    html += `<style>
-        .division-grid {
-            display: grid;
-            grid-template-columns: repeat(${n + 1}, 50px);
-            grid-template-rows: repeat(${totalRows + 1}, 50px);
-            gap: 2px;
-            position: relative;
-        }
-        .grid-cell {
-            width: 50px;
-            height: 50px;
-            border: 2px solid #333;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            font-weight: bold;
-        }
-        .blue { background-color: #00a6e6; color: white; }
-        .orange { background-color: #ff8c2a; }
-        .yellow { background-color: #ffee00; }
-        .pink { background-color: #ffb6c1; }
-        .green { background-color: #2db84d; color: white; }
-        .empty { background-color: transparent; }
+    solvedCount++;
+    currentStreak++;
+    
+    const quotient = p.quotientDigits.join('').replace(/^0+/, '') || '0';
+    showFeedback(`Perfect! Answer: ${quotient} R ${finalRemainder}`, 'success');
+    
+    updateScoreDisplay();
+    updateProblemDisplay();
+    renderGrid();
+}
+
+// ============================================
+// Feedback & UI Helpers
+// ============================================
+function showFeedback(message, type = 'error') {
+    const feedbackArea = document.querySelector('.number-buttons-container');
+    if (feedbackArea) {
+        const existingFeedback = feedbackArea.querySelector('.feedback-message');
+        if (existingFeedback) existingFeedback.remove();
         
-        .division-symbol {
-            position: absolute;
-            left: 45px;
-            top: 50px;
-            width: 5px;
-            height: ${(totalRows - 2) * 50}px;
-            background: black;
-        }
-        .division-symbol::before {
-            content: "";
-            position: absolute;
-            top: -5px;
-            left: -20px;
-            right: 0;
-            height: 5px;
-            background: black;
-        }
-    </style>`;
-    
-    // Start grid container
-    html += '<div class="division-grid">';
-    
-    // Column 0: Divisor column
-    html += `<div class="grid-cell blue" style="grid-row: 1 / span ${totalRows};">${divisor}</div>`;
-    
-    // Columns 1-n: Answer and work grids
-    // Row 0: Answer grid
-    for (let col = 0; col < n + 2; col++) {
-        const cell = answerGrid[0][col];
-        html += `<div class="grid-cell ${cell.color}" 
-                style="grid-column: ${col + 2}; grid-row: 1;">
-                ${cell.value}
-            </div>`;
+        const feedbackMsg = document.createElement('div');
+        feedbackMsg.className = `feedback-message feedback-${type}`;
+        feedbackMsg.textContent = message;
+        feedbackArea.appendChild(feedbackMsg);
+        
+        setTimeout(() => {
+            if (feedbackMsg.parentNode) feedbackMsg.remove();
+        }, type === 'error' ? 4000 : 3000);
     }
-    
-    // Rows 1-totalRows: Work grid
-    for (let row = 0; row < totalRows; row++) {
-        for (let col = 0; col < n; col++) {
-            const cell = workGrid[row][col];
-            const gridRow = row + 2; // +1 for answer row, +1 for 1-indexed grid
-            
-            if (cell.value !== '' || cell.color !== '') {
-                html += `<div class="grid-cell ${cell.color}" 
-                        style="grid-column: ${col + 2}; grid-row: ${gridRow};">
-                        ${cell.value}
-                    </div>`;
-            } else {
-                // Empty cell (for spacing)
-                html += `<div class="grid-cell empty" 
-                        style="grid-column: ${col + 2}; grid-row: ${gridRow};">
-                    </div>`;
-            }
-        }
-    }
-    
-    // Division symbol overlay
-    html += '<div class="division-symbol"></div>';
-    
-    html += '</div>'; // Close division-grid
-    html += '</div>'; // Close division-grid-wrapper
-    
-    return html;
 }
 
-// Reset current problem
+function clearFeedback() {
+    const feedbackMsg = document.querySelector('.feedback-message');
+    if (feedbackMsg) feedbackMsg.remove();
+}
+
 function resetCurrentProblem() {
     if (currentProblem) {
         initializeDivisionState(currentProblem.dividend, currentProblem.divisor);
     }
 }
 
-// Update score display
+// ============================================
+// Score Management
+// ============================================
 function updateScoreDisplay() {
     solvedCountEl.textContent = solvedCount;
     mistakeCountEl.textContent = mistakeCount;
@@ -642,7 +729,6 @@ function updateScoreDisplay() {
     localStorage.setItem('divisionCurrentStreak', currentStreak);
 }
 
-// Reset all scores
 function resetAllScores() {
     solvedCount = 0;
     mistakeCount = 0;
