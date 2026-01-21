@@ -412,8 +412,8 @@ function updateProblemDisplay() {
                 break;
             case 2:
                 const lastRemainder = p.steps[p.steps.length - 1]?.subtraction || p.partial;
-                if (p.currentDigitIndex < p.n - 1) {
-                    const nextDigit = p.digits[p.currentDigitIndex + 1];
+                if (p.currentDigitIndex < p.n) {
+                    const nextDigit = p.digits[p.currentDigitIndex];
                     currentStep = `Bring down ${nextDigit}`;
                     instruction = `New number: ${lastRemainder}${nextDigit}`;
                     debugLog(`Step 2: Bringing down ${nextDigit}, new partial: ${lastRemainder}${nextDigit}`);
@@ -639,8 +639,14 @@ function processBringDown(problem) {
         return;
     }
     
-    // Bring down next digit
+    // Bring down the NEXT digit (currentDigitIndex was incremented in subtraction step)
     const nextDigit = problem.digits[problem.currentDigitIndex];
+    if (nextDigit === undefined) {
+        debugLog(`No more digits at index ${problem.currentDigitIndex}`);
+        completeProblem(problem);
+        return;
+    }
+    
     problem.partial = problem.partial * 10 + nextDigit;
     
     debugLog(`Brought down ${nextDigit}. New partial: ${problem.partial}`);
@@ -648,7 +654,7 @@ function processBringDown(problem) {
     // Update instruction
     showFeedback(`Brought down ${nextDigit}. New number: ${problem.partial}`, 'success');
     
-    // Move to next quotient step
+    // Move to next quotient step (don't increment currentDigitIndex here)
     problem.currentStep = 0;
     
     debugLog(`Moving to step 0 (new quotient). New partial: ${problem.partial}`);
@@ -711,26 +717,25 @@ function updateProductInGrid(digitIndex, product) {
     const row = rowMap[digitIndex];
     
     if (row !== undefined) {
-        // For digit index 0, pad to 1 digit; index 1 pad to 2 digits; etc.
-        const padding = digitIndex + 1;
-        const productStr = String(product).padStart(padding, '0');
-        debugLog(`Product string: "${productStr}" (padded to length ${padding})`);
+        // Calculate the rightmost column for alignment
+        // For 3-digit dividend: digit 0 aligns under col 3, digit 1 under col 3, digit 2 under col 3
+        // But we need to consider the length of the product
+        const productStr = String(product);
+        const productLength = productStr.length;
         
-        // Update product cells from right to left
-        // Start column is 3 for 1-digit, 2 for 2-digit, 1 for 3-digit
-        const startCol = 3 - digitIndex;
+        // Start from the rightmost column (col 3 for 3-digit numbers)
+        const rightmostCol = 3; // This aligns with the rightmost digit of the dividend
         
-        for (let i = 0; i < productStr.length; i++) {
-            const col = startCol + i;
-            if (col >= 1 && col <= 5) {  // Only update valid columns
-                const cellId = `r${row}c${col}`;
-                const cell = gridCells[cellId];
-                if (cell) {
-                    cell.textContent = productStr[i];
-                    debugLog(`Set product cell ${cellId} to ${productStr[i]}`);
-                } else {
-                    debugError(`Product cell ${cellId} not found`);
-                }
+        for (let i = 0; i < productLength; i++) {
+            // Place from right to left
+            const col = rightmostCol - (productLength - 1) + i;
+            const cellId = `r${row}c${col}`;
+            const cell = gridCells[cellId];
+            if (cell) {
+                cell.textContent = productStr[i];
+                debugLog(`Set product cell ${cellId} to ${productStr[i]}`);
+            } else {
+                debugError(`Product cell ${cellId} not found`);
             }
         }
     } else {
@@ -750,26 +755,22 @@ function updateRemainderInGrid(digitIndex, remainder) {
     const row = rowMap[digitIndex];
     
     if (row !== undefined) {
-        // For digit index 0, pad to 1 digit; index 1 pad to 2 digits; etc.
-        const padding = digitIndex + 1;
-        const remainderStr = String(remainder).padStart(padding, '0');
-        debugLog(`Remainder string: "${remainderStr}" (padded to length ${padding})`);
+        const remainderStr = String(remainder);
+        const remainderLength = remainderStr.length;
         
-        // Update remainder cells from right to left
-        // Start column is 3 for 1-digit, 2 for 2-digit, 1 for 3-digit
-        const startCol = 3 - digitIndex;
+        // Start from the rightmost column (col 3 for 3-digit numbers)
+        const rightmostCol = 3; // This aligns with the rightmost digit of the dividend
         
-        for (let i = 0; i < remainderStr.length; i++) {
-            const col = startCol + i;
-            if (col >= 1 && col <= 5) {  // Only update valid columns
-                const cellId = `r${row}c${col}`;
-                const cell = gridCells[cellId];
-                if (cell) {
-                    cell.textContent = remainderStr[i];
-                    debugLog(`Set remainder cell ${cellId} to ${remainderStr[i]}`);
-                } else {
-                    debugError(`Remainder cell ${cellId} not found`);
-                }
+        for (let i = 0; i < remainderLength; i++) {
+            // Place from right to left
+            const col = rightmostCol - (remainderLength - 1) + i;
+            const cellId = `r${row}c${col}`;
+            const cell = gridCells[cellId];
+            if (cell) {
+                cell.textContent = remainderStr[i];
+                debugLog(`Set remainder cell ${cellId} to ${remainderStr[i]}`);
+            } else {
+                debugError(`Remainder cell ${cellId} not found`);
             }
         }
     } else {
