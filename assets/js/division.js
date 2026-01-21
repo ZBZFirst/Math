@@ -656,8 +656,9 @@ function processBringDown(problem) {
     
     debugLog(`Brought down ${nextDigit}. New partial: ${problem.partial}`);
     
-
-    updateBringDownInGrid(problem.currentDigitIndex - 1, nextDigit, problem.partial);
+    // UPDATE THE GRID WITH THE BROUGHT DOWN DIGIT
+    // Append the brought-down digit to the existing remainder
+    updateBringDownInGrid(problem.currentDigitIndex - 1, nextDigit);
     
     // Update instruction
     showFeedback(`Brought down ${nextDigit}. New number: ${problem.partial}`, 'success');
@@ -672,41 +673,37 @@ function processBringDown(problem) {
     updateGuessDisplay();
 }
 
-function updateBringDownInGrid(digitIndex, newPartial) {
+function updateBringDownInGrid(digitIndex, nextDigit) {
     debugLog(`Updating bring down in grid`, {
         digitIndex,
-        newPartial
+        nextDigit
     });
     
     const remainderRowMap = {0: 3, 1: 5, 2: 7};
     const row = remainderRowMap[digitIndex];
     
     if (row !== undefined) {
-        const partialStr = String(newPartial);
+        // DO NOT clear the entire row!
+        // We need to find the next empty column AFTER the existing remainder
         
-        // Clear the row first
+        // Count how many digits are already in this row
+        let existingDigits = 0;
         for (let col = 1; col <= 5; col++) {
             const cellId = `r${row}c${col}`;
             const cell = gridCells[cellId];
-            if (cell) {
-                cell.textContent = '';
+            if (cell && cell.textContent !== '') {
+                existingDigits++;
             }
         }
         
-        // SIMPLER APPROACH: Always start from column 1 + digitIndex
-        // digitIndex 0: start at column 1 (for "58")
-        // digitIndex 1: start at column 2 (for "63")
-        // digitIndex 2: start at column 3 (for 4-digit problems)
-        const startCol = digitIndex + 1;
+        // The brought-down digit goes in the NEXT column after existing digits
+        const targetCol = existingDigits + 1;
+        const cellId = `r${row}c${targetCol}`;
+        const cell = gridCells[cellId];
         
-        for (let i = 0; i < partialStr.length; i++) {
-            const col = startCol + i;
-            const cellId = `r${row}c${col}`;
-            const cell = gridCells[cellId];
-            if (cell) {
-                cell.textContent = partialStr[i];
-                debugLog(`Set bring down cell ${cellId} to ${partialStr[i]}`);
-            }
+        if (cell) {
+            cell.textContent = nextDigit;
+            debugLog(`Appended brought down digit ${nextDigit} to ${cellId} (column ${targetCol})`);
         }
     }
 }
