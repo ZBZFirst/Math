@@ -554,8 +554,6 @@ function processQuotientInput(problem) {
         debugLog(`Incorrect: ${problem.partial} ÷ ${problem.divisor} = ${correctDigit}, not ${currentGuess}`);
         showFeedback(`Incorrect. ${problem.partial} ÷ ${problem.divisor} = ${correctDigit}, not ${currentGuess}`, 'error');
         updateScoreDisplay();
-        currentGuess = correctDigit;
-        updateGuessDisplay();
         return;
     }
     
@@ -612,8 +610,6 @@ function processSubtraction(problem) {
         debugLog(`Incorrect subtraction: guessed ${currentGuess}, expected ${expectedRemainder}`);
         showFeedback(`Incorrect subtraction. ${lastStep.partialBefore} - ${lastStep.product} = ${expectedRemainder}`, 'error');
         updateScoreDisplay();
-        currentGuess = expectedRemainder;
-        updateGuessDisplay();
         return;
     }
     
