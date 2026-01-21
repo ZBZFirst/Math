@@ -84,7 +84,7 @@ function initializeGridReferences() {
         // Work grid cells - organized by row and column
         'r2c1': document.getElementById('r2c1'),
         'r2c2': document.getElementById('r2c2'),
-        'r2c3': document.getElementById('r2c2'),
+        'r2c3': document.getElementById('r2c3'),
         'r2c4': document.getElementById('r2c4'),
         'r2c5': document.getElementById('r2c5'),
         
@@ -175,26 +175,13 @@ function setupButtonHandlers() {
 // Control Buttons Creation
 // ============================================
 function createControlButtons() {
-    debugLog('Creating control buttons');
+    debugLog('Setting up existing control buttons');
     
-    const controlButtonsHTML = `
-        <div class="control-grid">
-            <button class="grid-btn decrement" data-change="-5">-5</button>
-            <button class="grid-btn decrement" data-change="-1">-1</button>
-            <button class="grid-btn clear" id="clearGuess">C</button>
-            <button class="grid-btn increment" data-change="+1">+1</button>
-            <button class="grid-btn increment" data-change="+5">+5</button>
-        </div>
-        <div class="number-display">
-            Current guess: <span id="currentGuessDisplay">0</span>
-        </div>
-        <button id="commitGuessBtn" class="commit-btn">✓ Confirm This Digit</button>
-    `;
-    
-    workFeedback.innerHTML = controlButtonsHTML;
-    
-    // Add event listeners to control buttons
+    // The buttons already exist in HTML, just add listeners
     setupControlButtonListeners();
+    
+    // Also update the guess display
+    updateGuessDisplay();
 }
 
 function setupControlButtonListeners() {
@@ -302,34 +289,29 @@ function resetGrid() {
         debugLog('Reset remainder cell to ?');
     }
     
-    // Clear all work grid cells
+    // Clear all work grid cells and set proper initial state
     for (let row = 2; row <= 11; row++) {
         for (let col = 1; col <= 5; col++) {
             const cellId = `r${row}c${col}`;
             const cell = gridCells[cellId];
             if (cell) {
                 // Reset to initial values from HTML
-                let newValue = '';
-                switch (row) {
-                    case 2:
-                        if (col <= 3) newValue = '';
-                        else newValue = '';
-                        break;
-                    case 4:
-                        if (col === 2) newValue = '2';
-                        else if (col !== 1) newValue = '';
-                        break;
-                    case 6:
-                        if (col === 3) newValue = '3';
-                        else newValue = '';
-                        break;
-                    default:
-                        newValue = '';
+                if (row === 4 && col === 2) {
+                    cell.textContent = '2';
+                } else if (row === 6 && col === 3) {
+                    cell.textContent = '3';
+                } else {
+                    cell.textContent = '';
                 }
-                cell.textContent = newValue;
-                debugLog(`Reset cell ${cellId} to "${newValue}"`);
+                cell.style.display = (row <= 8) ? 'flex' : 'none'; // Default hide extra rows
+                debugLog(`Reset cell ${cellId} to "${cell.textContent}"`);
             }
         }
+    }
+    
+    // Hide the divisor cell initially (will be shown when problem is loaded)
+    if (gridCells['divisor']) {
+        gridCells['divisor'].textContent = '?';
     }
 }
 
@@ -728,20 +710,27 @@ function updateProductInGrid(digitIndex, product) {
     const rowMap = {0: 3, 1: 5, 2: 7};
     const row = rowMap[digitIndex];
     
-    if (row) {
-        const productStr = String(product).padStart(digitIndex + 1, '0');
-        debugLog(`Product string: "${productStr}" (padded to length ${digitIndex + 1})`);
+    if (row !== undefined) {
+        // For digit index 0, pad to 1 digit; index 1 pad to 2 digits; etc.
+        const padding = digitIndex + 1;
+        const productStr = String(product).padStart(padding, '0');
+        debugLog(`Product string: "${productStr}" (padded to length ${padding})`);
         
         // Update product cells from right to left
+        // Start column is 3 for 1-digit, 2 for 2-digit, 1 for 3-digit
+        const startCol = 3 - digitIndex;
+        
         for (let i = 0; i < productStr.length; i++) {
-            const col = 2 - digitIndex + i; // Align under current partial
-            const cellId = `r${row}c${col}`;
-            const cell = gridCells[cellId];
-            if (cell) {
-                cell.textContent = productStr[i];
-                debugLog(`Set product cell ${cellId} to ${productStr[i]}`);
-            } else {
-                debugError(`Product cell ${cellId} not found`);
+            const col = startCol + i;
+            if (col >= 1 && col <= 5) {  // Only update valid columns
+                const cellId = `r${row}c${col}`;
+                const cell = gridCells[cellId];
+                if (cell) {
+                    cell.textContent = productStr[i];
+                    debugLog(`Set product cell ${cellId} to ${productStr[i]}`);
+                } else {
+                    debugError(`Product cell ${cellId} not found`);
+                }
             }
         }
     } else {
@@ -760,20 +749,27 @@ function updateRemainderInGrid(digitIndex, remainder) {
     const rowMap = {0: 4, 1: 6, 2: 8};
     const row = rowMap[digitIndex];
     
-    if (row) {
-        const remainderStr = String(remainder).padStart(digitIndex + 1, '0');
-        debugLog(`Remainder string: "${remainderStr}" (padded to length ${digitIndex + 1})`);
+    if (row !== undefined) {
+        // For digit index 0, pad to 1 digit; index 1 pad to 2 digits; etc.
+        const padding = digitIndex + 1;
+        const remainderStr = String(remainder).padStart(padding, '0');
+        debugLog(`Remainder string: "${remainderStr}" (padded to length ${padding})`);
         
         // Update remainder cells from right to left
+        // Start column is 3 for 1-digit, 2 for 2-digit, 1 for 3-digit
+        const startCol = 3 - digitIndex;
+        
         for (let i = 0; i < remainderStr.length; i++) {
-            const col = 2 - digitIndex + i; // Align under current partial
-            const cellId = `r${row}c${col}`;
-            const cell = gridCells[cellId];
-            if (cell) {
-                cell.textContent = remainderStr[i];
-                debugLog(`Set remainder cell ${cellId} to ${remainderStr[i]}`);
-            } else {
-                debugError(`Remainder cell ${cellId} not found`);
+            const col = startCol + i;
+            if (col >= 1 && col <= 5) {  // Only update valid columns
+                const cellId = `r${row}c${col}`;
+                const cell = gridCells[cellId];
+                if (cell) {
+                    cell.textContent = remainderStr[i];
+                    debugLog(`Set remainder cell ${cellId} to ${remainderStr[i]}`);
+                } else {
+                    debugError(`Remainder cell ${cellId} not found`);
+                }
             }
         }
     } else {
@@ -787,7 +783,7 @@ function updateRemainderInGrid(digitIndex, remainder) {
 function showFeedback(message, type = 'error') {
     debugLog(`Showing feedback: ${type} - ${message}`);
     
-    const feedbackArea = document.querySelector('.number-buttons-container');
+    const feedbackArea = document.getElementById('workFeedback');
     if (!feedbackArea) {
         debugError('Feedback area not found');
         return;
