@@ -65,6 +65,20 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Control Buttons -->
+                    <div class="work-feedback" id="workFeedback">
+                        <div class="control-grid">
+                            <button class="grid-btn decrement" data-change="-5">-5</button>
+                            <button class="grid-btn decrement" data-change="-1">-1</button>
+                            <button class="grid-btn clear" id="clearGuess">C</button>
+                            <button class="grid-btn increment" data-change="+1">+1</button>
+                            <button class="grid-btn increment" data-change="+5">+5</button>
+                        </div>
+                        <div class="number-display">
+                            Current guess: <span id="currentGuessDisplay">0</span>
+                        </div>
+                        <button id="commitGuessBtn" class="commit-btn">✓ Confirm This Digit</button>
+                    </div>
                 </div>
                 
                 <!-- RIGHT: Work Area -->
@@ -164,21 +178,6 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <!-- Control Buttons -->
-                    <div class="work-feedback" id="workFeedback">
-                        <div class="control-grid">
-                            <button class="grid-btn decrement" data-change="-5">-5</button>
-                            <button class="grid-btn decrement" data-change="-1">-1</button>
-                            <button class="grid-btn clear" id="clearGuess">C</button>
-                            <button class="grid-btn increment" data-change="+1">+1</button>
-                            <button class="grid-btn increment" data-change="+5">+5</button>
-                        </div>
-                        <div class="number-display">
-                            Current guess: <span id="currentGuessDisplay">0</span>
-                        </div>
-                        <button id="commitGuessBtn" class="commit-btn">✓ Confirm This Digit</button>
                     </div>
                 </div>
             </div>
