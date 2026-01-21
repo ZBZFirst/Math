@@ -283,7 +283,7 @@
 .divisor-section {
     position: absolute;
     left: 0;
-    top: 50px; /* Align with first row of work grid */
+    top: 62px; /* Align with first row of work grid */
     width: 50px;
     height: 500px;
     display: flex;
