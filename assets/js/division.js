@@ -410,7 +410,7 @@ function updateProblemDisplay() {
         switch (p.currentStep) {
             case 0:
                 currentStep = `${p.partial} ÷ ${divisor} = ?`;
-                instruction = `What's the largest number × ${divisor} ≤ ${p.partial}?`;
+                instruction = `What's the largest number that can go into ${p.partial} and is a multiple of  ${divisor}?`;
                 debugLog(`Step 0: Finding quotient for ${p.partial} ÷ ${divisor}`);
                 break;
             case 1:
