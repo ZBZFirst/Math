@@ -463,7 +463,7 @@ function adjustGuess(delta) {
     }
     
     const newGuess = currentGuess + delta;
-    if (newGuess >= 0 && newGuess <= 9) {
+    if (newGuess >= 0 && newGuess <= 99) {
         currentGuess = newGuess;
         updateGuessDisplay();
         debugLog(`Guess adjusted to ${currentGuess}`);
