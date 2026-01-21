@@ -399,7 +399,7 @@ function updateProblemDisplay() {
         switch (p.currentStep) {
             case 0:
                 currentStep = `${p.partial} ÷ ${divisor} = ?`;
-                instruction = `How many times does ${divisor} go into ${p.partial}?`;
+                instruction = `How many times does ${divisor} go into ${p.partial} without going over??`;
                 debugLog(`Step 0: Finding quotient for ${p.partial} ÷ ${divisor}`);
                 break;
             case 1:
