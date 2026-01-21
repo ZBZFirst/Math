@@ -1,4 +1,4 @@
-// division.js - Using Static HTML Grid (Debug Version)
+// division.js - Using new HTML structure (Debug Version)
 
 // ============================================
 // Debug Configuration
@@ -71,76 +71,86 @@ function initializeGridReferences() {
     
     // Map all grid cells by their IDs
     gridCells = {
-        // Answer cells
+        // Answer cells (from answer-section)
         'ans-q0': document.getElementById('ans-q0'),
         'ans-q1': document.getElementById('ans-q1'),
         'ans-q2': document.getElementById('ans-q2'),
         'ans-r': document.getElementById('ans-r'),
         'ans-rem': document.getElementById('ans-rem'),
         
-        // Divisor cell
+        // Divisor cell (from divisor-section)
         'divisor': document.getElementById('divisor'),
         
-        // Work grid cells - organized by row and column
+        // Work grid cells - NEW STRUCTURE: 10 rows × 5 columns (r1c1 to r10c5)
+        // Row 1: Dividend
+        'r1c1': document.getElementById('r1c1'),
+        'r1c2': document.getElementById('r1c2'),
+        'r1c3': document.getElementById('r1c3'),
+        'r1c4': document.getElementById('r1c4'),
+        'r1c5': document.getElementById('r1c5'),
+        
+        // Row 2: Step 1 Product
         'r2c1': document.getElementById('r2c1'),
         'r2c2': document.getElementById('r2c2'),
         'r2c3': document.getElementById('r2c3'),
         'r2c4': document.getElementById('r2c4'),
         'r2c5': document.getElementById('r2c5'),
         
+        // Row 3: Step 1 Remainder
         'r3c1': document.getElementById('r3c1'),
         'r3c2': document.getElementById('r3c2'),
         'r3c3': document.getElementById('r3c3'),
         'r3c4': document.getElementById('r3c4'),
         'r3c5': document.getElementById('r3c5'),
         
+        // Row 4: Step 2 Product
         'r4c1': document.getElementById('r4c1'),
         'r4c2': document.getElementById('r4c2'),
         'r4c3': document.getElementById('r4c3'),
         'r4c4': document.getElementById('r4c4'),
         'r4c5': document.getElementById('r4c5'),
         
+        // Row 5: Step 2 Remainder
         'r5c1': document.getElementById('r5c1'),
         'r5c2': document.getElementById('r5c2'),
         'r5c3': document.getElementById('r5c3'),
         'r5c4': document.getElementById('r5c4'),
         'r5c5': document.getElementById('r5c5'),
         
+        // Row 6: Step 3 Product
         'r6c1': document.getElementById('r6c1'),
         'r6c2': document.getElementById('r6c2'),
         'r6c3': document.getElementById('r6c3'),
         'r6c4': document.getElementById('r6c4'),
         'r6c5': document.getElementById('r6c5'),
         
+        // Row 7: Step 3 Remainder
         'r7c1': document.getElementById('r7c1'),
         'r7c2': document.getElementById('r7c2'),
         'r7c3': document.getElementById('r7c3'),
         'r7c4': document.getElementById('r7c4'),
         'r7c5': document.getElementById('r7c5'),
         
+        // Row 8: Extra (for 4-digit)
         'r8c1': document.getElementById('r8c1'),
         'r8c2': document.getElementById('r8c2'),
         'r8c3': document.getElementById('r8c3'),
         'r8c4': document.getElementById('r8c4'),
         'r8c5': document.getElementById('r8c5'),
         
+        // Row 9: Extra (for 5-digit)
         'r9c1': document.getElementById('r9c1'),
         'r9c2': document.getElementById('r9c2'),
         'r9c3': document.getElementById('r9c3'),
         'r9c4': document.getElementById('r9c4'),
         'r9c5': document.getElementById('r9c5'),
         
+        // Row 10: Extra (baseline)
         'r10c1': document.getElementById('r10c1'),
         'r10c2': document.getElementById('r10c2'),
         'r10c3': document.getElementById('r10c3'),
         'r10c4': document.getElementById('r10c4'),
-        'r10c5': document.getElementById('r10c5'),
-        
-        'r11c1': document.getElementById('r11c1'),
-        'r11c2': document.getElementById('r11c2'),
-        'r11c3': document.getElementById('r11c3'),
-        'r11c4': document.getElementById('r11c4'),
-        'r11c5': document.getElementById('r11c5')
+        'r10c5': document.getElementById('r10c5')
     };
     
     // Log which cells were found
@@ -248,7 +258,7 @@ function initializeDivisionState(dividend, divisor) {
         // Current solving state
         currentStep: 0,           // 0: find quotient, 1: subtract, 2: bring down
         currentDigitIndex: 0,     // Which digit we're working on
-        partial: digits[0],       // Current working number
+        partial: digits[0],       // Current working number (first digit)
         quotientDigits: [],       // Quotient digits found so far
         steps: [],                // Steps taken
         finished: false,
@@ -272,7 +282,7 @@ function initializeDivisionState(dividend, divisor) {
 }
 
 // ============================================
-// Grid Management (using static HTML)
+// Grid Management (using new HTML structure)
 // ============================================
 function resetGrid() {
     debugLog('Resetting grid to initial state');
@@ -290,21 +300,16 @@ function resetGrid() {
     }
     
     // Clear all work grid cells and set proper initial state
-    for (let row = 2; row <= 11; row++) {
+    // Note: We have 10 rows (r1 to r10) and 5 columns (c1 to c5)
+    for (let row = 1; row <= 10; row++) {
         for (let col = 1; col <= 5; col++) {
             const cellId = `r${row}c${col}`;
             const cell = gridCells[cellId];
             if (cell) {
-                // Reset to initial values from HTML
-                if (row === 4 && col === 2) {
-                    cell.textContent = '2';
-                } else if (row === 6 && col === 3) {
-                    cell.textContent = '3';
-                } else {
-                    cell.textContent = '';
-                }
-                cell.style.display = (row <= 8) ? 'flex' : 'none'; // Default hide extra rows
-                debugLog(`Reset cell ${cellId} to "${cell.textContent}"`);
+                // Reset to empty
+                cell.textContent = '';
+                cell.classList.remove('hidden');
+                debugLog(`Reset cell ${cellId} to ""`);
             }
         }
     }
@@ -325,9 +330,9 @@ function updateDivisor(divisor) {
 function updateDividend(digits) {
     debugLog(`Updating dividend cells with digits: ${digits}`);
     
-    // Update the dividend row (row 2)
+    // Update the dividend row (row 1 - NEW STRUCTURE)
     for (let i = 0; i < 5; i++) {
-        const cellId = `r2c${i + 1}`;
+        const cellId = `r1c${i + 1}`; // Note: r1c1, r1c2, r1c3, etc.
         const cell = gridCells[cellId];
         if (cell) {
             if (i < digits.length) {
@@ -348,14 +353,20 @@ function updateVisibleRows(n) {
     debugLog(`Showing ${visibleRows} rows for n=${n} (2n+1)`);
     
     // Show/hide rows based on n
-    for (let row = 2; row <= 11; row++) {
-        const shouldShow = row <= (visibleRows + 1); // +1 because row 2 is the first work row
+    // We have 10 rows total in our work grid (r1 to r10)
+    // But we need to account for the fact that row 1 is the dividend
+    // So visible rows should start from row 2 for work area
+    for (let row = 1; row <= 10; row++) {
+        const shouldShow = row <= (visibleRows + 1); // +1 because row 1 is dividend
         
         for (let col = 1; col <= 5; col++) {
             const cellId = `r${row}c${col}`;
             const cell = gridCells[cellId];
             if (cell) {
-                cell.style.display = shouldShow ? 'flex' : 'none';
+                // Only hide/show rows 2 and above (row 1 is always shown as dividend)
+                if (row >= 2) {
+                    cell.style.display = shouldShow ? 'flex' : 'none';
+                }
                 if (DEBUG && row <= 8) {
                     debugLog(`${shouldShow ? 'Showing' : 'Hiding'} cell ${cellId}`);
                 }
@@ -399,7 +410,7 @@ function updateProblemDisplay() {
         switch (p.currentStep) {
             case 0:
                 currentStep = `${p.partial} ÷ ${divisor} = ?`;
-                instruction = `How many times does ${divisor} go into ${p.partial} without going over??`;
+                instruction = `How many times does ${divisor} go into ${p.partial}?`;
                 debugLog(`Step 0: Finding quotient for ${p.partial} ÷ ${divisor}`);
                 break;
             case 1:
@@ -639,14 +650,8 @@ function processBringDown(problem) {
         return;
     }
     
-    // Bring down the NEXT digit (currentDigitIndex was incremented in subtraction step)
+    // Bring down the next digit
     const nextDigit = problem.digits[problem.currentDigitIndex];
-    if (nextDigit === undefined) {
-        debugLog(`No more digits at index ${problem.currentDigitIndex}`);
-        completeProblem(problem);
-        return;
-    }
-    
     problem.partial = problem.partial * 10 + nextDigit;
     
     debugLog(`Brought down ${nextDigit}. New partial: ${problem.partial}`);
@@ -654,7 +659,7 @@ function processBringDown(problem) {
     // Update instruction
     showFeedback(`Brought down ${nextDigit}. New number: ${problem.partial}`, 'success');
     
-    // Move to next quotient step (don't increment currentDigitIndex here)
+    // Move to next quotient step
     problem.currentStep = 0;
     
     debugLog(`Moving to step 0 (new quotient). New partial: ${problem.partial}`);
@@ -668,7 +673,7 @@ function completeProblem(problem) {
     problem.finished = true;
     
     // Update final remainder in answer grid
-    const finalRemainder = problem.steps[problem.steps.length - 1]?.subtraction || 0;
+    const finalRemainder = problem.partial;
     if (gridCells['ans-rem']) {
         gridCells['ans-rem'].textContent = finalRemainder;
         debugLog(`Set final remainder to ${finalRemainder} in ans-rem cell`);
@@ -687,7 +692,7 @@ function completeProblem(problem) {
 }
 
 // ============================================
-// Grid Update Helpers
+// Grid Update Helpers - UPDATED FOR NEW STRUCTURE
 // ============================================
 function updateQuotientInGrid(digitIndex, value) {
     const quotientCellIds = ['ans-q0', 'ans-q1', 'ans-q2'];
@@ -708,28 +713,30 @@ function updateQuotientInGrid(digitIndex, value) {
 function updateProductInGrid(digitIndex, product) {
     debugLog(`Updating product in grid`, {
         digitIndex,
-        product,
-        productStr: String(product)
+        product
     });
     
-    // Map digit index to row (0 → row 3, 1 → row 5, 2 → row 7)
-    const rowMap = {0: 3, 1: 5, 2: 7};
+    // NEW MAPPING: 
+    // digitIndex 0 → row 2 (r2cX)
+    // digitIndex 1 → row 4 (r4cX) 
+    // digitIndex 2 → row 6 (r6cX)
+    const rowMap = {0: 2, 1: 4, 2: 6};
     const row = rowMap[digitIndex];
     
     if (row !== undefined) {
-        // Calculate the rightmost column for alignment
-        // For 3-digit dividend: digit 0 aligns under col 3, digit 1 under col 3, digit 2 under col 3
-        // But we need to consider the length of the product
         const productStr = String(product);
-        const productLength = productStr.length;
+        const n = currentProblem?.n || 3;
         
-        // Start from the rightmost column (col 3 for 3-digit numbers)
-        const rightmostCol = 3; // This aligns with the rightmost digit of the dividend
-        
-        for (let i = 0; i < productLength; i++) {
-            // Place from right to left
-            const col = rightmostCol - (productLength - 1) + i;
-            const cellId = `r${row}c${col}`;
+        // Right-align the product under the current partial
+        // For n-digit number, products should be right-aligned
+        for (let i = 0; i < productStr.length; i++) {
+            // Start from the rightmost column based on digitIndex
+            const colOffset = digitIndex;
+            const col = (5 - productStr.length + i + 1) - colOffset;
+            
+            // Ensure we're within bounds
+            const actualCol = Math.max(1, Math.min(5, col));
+            const cellId = `r${row}c${actualCol}`;
             const cell = gridCells[cellId];
             if (cell) {
                 cell.textContent = productStr[i];
@@ -746,25 +753,29 @@ function updateProductInGrid(digitIndex, product) {
 function updateRemainderInGrid(digitIndex, remainder) {
     debugLog(`Updating remainder in grid`, {
         digitIndex,
-        remainder,
-        remainderStr: String(remainder)
+        remainder
     });
     
-    // Map digit index to row (0 → row 4, 1 → row 6, 2 → row 8)
-    const rowMap = {0: 4, 1: 6, 2: 8};
+    // NEW MAPPING:
+    // digitIndex 0 → row 3 (r3cX)
+    // digitIndex 1 → row 5 (r5cX)
+    // digitIndex 2 → row 7 (r7cX)
+    const rowMap = {0: 3, 1: 5, 2: 7};
     const row = rowMap[digitIndex];
     
     if (row !== undefined) {
         const remainderStr = String(remainder);
-        const remainderLength = remainderStr.length;
+        const n = currentProblem?.n || 3;
         
-        // Start from the rightmost column (col 3 for 3-digit numbers)
-        const rightmostCol = 3; // This aligns with the rightmost digit of the dividend
-        
-        for (let i = 0; i < remainderLength; i++) {
-            // Place from right to left
-            const col = rightmostCol - (remainderLength - 1) + i;
-            const cellId = `r${row}c${col}`;
+        // Right-align the remainder under the current partial
+        for (let i = 0; i < remainderStr.length; i++) {
+            // Start from the rightmost column based on digitIndex
+            const colOffset = digitIndex;
+            const col = (5 - remainderStr.length + i + 1) - colOffset;
+            
+            // Ensure we're within bounds
+            const actualCol = Math.max(1, Math.min(5, col));
+            const cellId = `r${row}c${actualCol}`;
             const cell = gridCells[cellId];
             if (cell) {
                 cell.textContent = remainderStr[i];
