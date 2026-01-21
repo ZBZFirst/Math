@@ -189,7 +189,7 @@
     background: #333;
     border: none;
     height: 2px;
-    margin: 2px 0;
+    margin: 2px -3px 2px -1px;
 }
 
 /* Answer Cells */
