@@ -672,16 +672,11 @@ function processBringDown(problem) {
     updateGuessDisplay();
 }
 
-function updateBringDownInGrid(digitIndex, digit, newPartial) {
+function updateBringDownInGrid(digitIndex, newPartial) {
     debugLog(`Updating bring down in grid`, {
         digitIndex,
-        digit,
         newPartial
     });
-    
-    // When we bring down a digit, we need to show the ENTIRE new partial number
-    // For example: remainder was "6", we bring down "8", new partial is "68"
-    // We should show "68" in the current remainder row
     
     const remainderRowMap = {0: 3, 1: 5, 2: 7};
     const row = remainderRowMap[digitIndex];
@@ -698,14 +693,35 @@ function updateBringDownInGrid(digitIndex, digit, newPartial) {
             }
         }
         
-        // Write the entire new partial number
-        for (let i = 0; i < partialStr.length; i++) {
-            const col = i + 1;
+        // CRITICAL FIX: Right-align based on digit position
+        // digitIndex tells us which digit we just finished processing:
+        // - digitIndex 0: processed 1st digit, now bringing down 2nd digit
+        // - digitIndex 1: processed 2nd digit, now bringing down 3rd digit
+        // - digitIndex 2: processed 3rd digit, now bringing down 4th digit (if exists)
+        
+        // For a 3-digit dividend, we need to right-align like this:
+        // First bring down (after processing digit 1): align in columns 1-2
+        // Second bring down (after processing digit 2): align in columns 2-3
+        
+        // The starting column depends on digitIndex:
+        // digitIndex 0: start at column 1 (align under columns 1-2)
+        // digitIndex 1: start at column 2 (align under columns 2-3)
+        // digitIndex 2: start at column 3 (align under column 3 only, for 4-digit problems)
+        
+        const startCol = digitIndex + 1; // digitIndex 0 → col1, digitIndex 1 → col2, digitIndex 2 → col3
+        const workingColumns = 2; // We're always working with 2 columns when bringing down
+        
+        // Right-align within the working columns
+        const partialLength = partialStr.length;
+        
+        for (let i = 0; i < partialLength; i++) {
+            // Calculate right-aligned position within the 2-column window
+            const col = startCol + (workingColumns - partialLength) + i;
             const cellId = `r${row}c${col}`;
             const cell = gridCells[cellId];
             if (cell) {
                 cell.textContent = partialStr[i];
-                debugLog(`Set bring down cell ${cellId} to ${partialStr[i]}`);
+                debugLog(`Set bring down cell ${cellId} to ${partialStr[i]} (right-aligned starting at col ${startCol})`);
             }
         }
     }
@@ -755,51 +771,45 @@ function updateQuotientInGrid(digitIndex, value) {
 function updateProductInGrid(digitIndex, product) {
     debugLog(`Updating product in grid`, {
         digitIndex,
-        product,
-        productStr: String(product)
+        product
     });
     
-    // NEW MAPPING: 
-    // digitIndex 0 → row 2 (r2cX)
-    // digitIndex 1 → row 4 (r4cX) 
-    // digitIndex 2 → row 6 (r6cX)
     const rowMap = {0: 2, 1: 4, 2: 6};
     const row = rowMap[digitIndex];
     
     if (row !== undefined) {
         const productStr = String(product);
-        const n = currentProblem?.n || 3;
         
-        // For the first digit (digitIndex 0), we need to align under the first digit
-        // For the second digit (digitIndex 1), we need to align under the first two digits
-        // For the third digit (digitIndex 2), we need to align under all three digits
+        // Clear the row first
+        for (let col = 1; col <= 5; col++) {
+            const cellId = `r${row}c${col}`;
+            const cell = gridCells[cellId];
+            if (cell) {
+                cell.textContent = '';
+            }
+        }
         
-        // The starting column depends on which digit we're processing
-        // For a 3-digit dividend (columns 1-3):
-        // - digitIndex 0: should be under column 1 (r2c1)
-        // - digitIndex 1: should span columns 1-2 (r4c1, r4c2)  
-        // - digitIndex 2: should span columns 1-3 (r6c1, r6c2, r6c3)
+        // CRITICAL FIX: Right-align based on digit position
+        // Products should be right-aligned under the current working digits
+        // - digitIndex 0: product for 1st digit → align in column 1
+        // - digitIndex 1: product for 2nd digit → align in columns 1-2
+        // - digitIndex 2: product for 3rd digit → align in columns 1-3
         
-        // Actually, let's simplify: products should be left-aligned, not right-aligned
-        // because in long division, you write the product starting from the current position
+        const startCol = 1; // Always start from column 1 for products
+        const workingColumns = digitIndex + 1; // Number of columns we're working with
         
-        // Start from column 1 and write the product digits
-        for (let i = 0; i < productStr.length; i++) {
-            // For digitIndex 0: start at column 1
-            // For digitIndex 1: start at column 1 (but product will be 2 digits)
-            // For digitIndex 2: start at column 1 (but product will be 3 digits)
-            const col = i + 1;
+        // Right-align within the working columns
+        const productLength = productStr.length;
+        
+        for (let i = 0; i < productLength; i++) {
+            const col = startCol + (workingColumns - productLength) + i;
             const cellId = `r${row}c${col}`;
             const cell = gridCells[cellId];
             if (cell) {
                 cell.textContent = productStr[i];
-                debugLog(`Set product cell ${cellId} to ${productStr[i]}`);
-            } else {
-                debugError(`Product cell ${cellId} not found`);
+                debugLog(`Set product cell ${cellId} to ${productStr[i]} (right-aligned in ${workingColumns} columns)`);
             }
         }
-    } else {
-        debugError(`No row mapping for digit index ${digitIndex}`);
     }
 }
 
@@ -809,31 +819,47 @@ function updateRemainderInGrid(digitIndex, remainder) {
         remainder
     });
     
-    // NEW MAPPING:
-    // digitIndex 0 → row 3 (r3cX)
-    // digitIndex 1 → row 5 (r5cX)
-    // digitIndex 2 → row 7 (r7cX)
     const rowMap = {0: 3, 1: 5, 2: 7};
     const row = rowMap[digitIndex];
     
     if (row !== undefined) {
         const remainderStr = String(remainder);
         
-        // Remainders should also be left-aligned
-        // Write remainder digits starting from column 1
-        for (let i = 0; i < remainderStr.length; i++) {
-            const col = i + 1;
+        // Clear the row first
+        for (let col = 1; col <= 5; col++) {
+            const cellId = `r${row}c${col}`;
+            const cell = gridCells[cellId];
+            if (cell) {
+                cell.textContent = '';
+            }
+        }
+        
+        // CRITICAL FIX: Right-align based on digit position
+        // digitIndex tells us which digit(s) we just processed:
+        // - digitIndex 0: processed 1st digit → align in column 1
+        // - digitIndex 1: processed 2nd digit → align in columns 1-2
+        // - digitIndex 2: processed 3rd digit → align in columns 1-3
+        
+        // For remainder alignment:
+        // First remainder (after digit 1): align in column 1
+        // Second remainder (after digits 1-2): align in columns 1-2  
+        // Third remainder (after digits 1-3): align in columns 1-3
+        
+        const startCol = 1; // Always start from column 1 for remainders
+        const workingColumns = digitIndex + 1; // Number of columns we're working with
+        
+        // Right-align within the working columns
+        const remainderLength = remainderStr.length;
+        
+        for (let i = 0; i < remainderLength; i++) {
+            const col = startCol + (workingColumns - remainderLength) + i;
             const cellId = `r${row}c${col}`;
             const cell = gridCells[cellId];
             if (cell) {
                 cell.textContent = remainderStr[i];
-                debugLog(`Set remainder cell ${cellId} to ${remainderStr[i]}`);
-            } else {
-                debugError(`Remainder cell ${cellId} not found`);
+                debugLog(`Set remainder cell ${cellId} to ${remainderStr[i]} (right-aligned in ${workingColumns} columns)`);
             }
         }
-    } else {
-        debugError(`No row mapping for digit index ${digitIndex}`);
     }
 }
 
