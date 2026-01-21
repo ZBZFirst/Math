@@ -563,7 +563,7 @@ function processQuotientInput(problem) {
         mistakeCount++;
         currentStreak = 0;
         debugLog(`Incorrect: Largest multiple of ${problem.divisor} ≤ ${problem.partial} is ${correctProduct}, not ${currentGuess}`);
-        showFeedback(`Incorrect. Largest multiple of ${problem.divisor} ≤ ${problem.partial} is ${correctProduct}`, 'error');
+        showFeedback(`Incorrect.`, 'error');
         updateScoreDisplay();
         return;
     }
@@ -590,7 +590,7 @@ function processQuotientInput(problem) {
     updateQuotientInGrid(problem.currentDigitIndex, quotientDigit);
     updateProductInGrid(problem.currentDigitIndex, currentGuess);
     
-    showFeedback(`Correct! ${problem.divisor} × ${quotientDigit} = ${currentGuess}`, 'success');
+    showFeedback(`Correct!`, 'success');
     
     // Move to next step
     problem.currentStep = 1;
@@ -624,7 +624,7 @@ function processSubtraction(problem) {
         currentStreak = 0;
         debugLog(`Incorrect subtraction: guessed ${currentGuess}, expected ${expectedRemainder}`);
         // NO AUTO-CORRECTION - just show error
-        showFeedback(`Incorrect. ${lastStep.partialBefore} - ${lastStep.product} = ${expectedRemainder}`, 'error');
+        showFeedback(`Incorrect.`, 'error');
         updateScoreDisplay();
         return;
     }
@@ -635,7 +635,7 @@ function processSubtraction(problem) {
     problem.partial = expectedRemainder;
     debugLog(`Correct subtraction. New partial: ${problem.partial}`);
     
-    showFeedback(`Correct! Remainder is ${expectedRemainder}`, 'success');
+    showFeedback(`Correct! The remainder is ${expectedRemainder}`, 'success');
     
     // Move to next step
     problem.currentStep = 2;
