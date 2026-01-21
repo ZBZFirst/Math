@@ -322,25 +322,39 @@
     border: 1px solid #dee2e6;
 }
 
-/* Division symbol */
+/* Position the division symbol container */
 .division-symbol {
     position: absolute;
-    left: -30px;
-    top: 0;
-    width: 3px;
-    height: 500px;
-    background: black;
+    left: 50px; /* Position to the RIGHT of divisor (divisor width) */
+    top: 50px; /* Align with top of work grid (below answer row) */
+    bottom: 0; /* Extend to bottom of work grid */
+    width: 2px; /* Thinner line */
+    background: #333;
     z-index: 1;
 }
 
+/* Create the horizontal line that goes UNDER the answer row */
 .division-symbol::before {
     content: '';
     position: absolute;
-    top: -3px;
-    left: -20px;
-    width: 260px; /* Width of work grid + some extra */
-    height: 3px;
-    background: black;
+    top: -50px; /* Move UP to be under answer row */
+    left: -10px; /* Extend left to create the bracket shape */
+    width: 260px; /* Should match your work grid width */
+    height: 2px;
+    background: #333;
+}
+
+/* Optional: Add a little hook at the end for style */
+.division-symbol::after {
+    content: '';
+    position: absolute;
+    top: -50px;
+    right: -8px;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid #333;
+    border-bottom: 2px solid #333;
+    transform: rotate(45deg);
 }
 
 /* ============================================
