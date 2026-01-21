@@ -614,7 +614,7 @@
     .division-symbol {
         left: -25px;
         height: 400px;
-        transform: translateX(-5px);
+        transform: translateX(20px);
 
     }
     
@@ -684,7 +684,7 @@
     .division-symbol {
         left: -20px;
         height: 350px;
-        transform: translateX(-5px);
+        transform: translateX(15px);
 
     }
     
