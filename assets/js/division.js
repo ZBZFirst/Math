@@ -57,6 +57,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize grid cell references
     initializeGridReferences();
     
+    // Add animation styles
+    addAnimationStyles();
+    
     // Initialize UI
     updateScoreDisplay();
     setupButtonHandlers();
@@ -214,6 +217,94 @@ function setupControlButtonListeners() {
     // Commit button
     document.getElementById('commitGuessBtn').addEventListener('click', commitGuess);
 }
+
+// ============================================
+// ANIMATION: Bring Down Next Digit
+// ============================================
+function animateBringDown(nextDigit, sourceRow, sourceCol, targetRow, targetCol) {
+    debugLog(`Animating bring down of ${nextDigit} from (r${sourceRow}c${sourceCol}) to (r${targetRow}c${targetCol})`);
+    
+    return new Promise((resolve) => {
+        // Create the animation element
+        const animElement = document.createElement('div');
+        animElement.className = 'digit-animation';
+        animElement.textContent = nextDigit;
+        animElement.style.cssText = `
+            position: absolute;
+            font-size: 24px;
+            font-weight: bold;
+            color: #3498db;
+            background: white;
+            border: 2px solid #3498db;
+            border-radius: 5px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 1000;
+            transition: all 0.5s ease-in-out;
+        `;
+        
+        // Get source and target positions
+        const sourceCell = gridCells[`r${sourceRow}c${sourceCol}`];
+        const targetCell = gridCells[`r${targetRow}c${targetCol}`];
+        
+        if (!sourceCell || !targetCell) {
+            debugError('Source or target cell not found for animation');
+            resolve();
+            return;
+        }
+        
+        const sourceRect = sourceCell.getBoundingClientRect();
+        const targetRect = targetCell.getBoundingClientRect();
+        
+        // Position at source
+        animElement.style.left = `${sourceRect.left + sourceRect.width/2 - 20}px`;
+        animElement.style.top = `${sourceRect.top}px`;
+        
+        document.body.appendChild(animElement);
+        
+        // Force reflow
+        animElement.offsetHeight;
+        
+        // Animate to target
+        requestAnimationFrame(() => {
+            animElement.style.left = `${targetRect.left + targetRect.width/2 - 20}px`;
+            animElement.style.top = `${targetRect.top}px`;
+            animElement.style.transform = 'scale(1.2)';
+            animElement.style.backgroundColor = '#e3f2fd';
+            
+            // When animation completes
+            setTimeout(() => {
+                // Add the digit to target cell
+                if (targetCell.textContent === '') {
+                    targetCell.textContent = nextDigit;
+                } else {
+                    targetCell.textContent += nextDigit;
+                }
+                
+                // Add visual feedback to target cell
+                targetCell.classList.add('digit-highlight');
+                targetCell.style.backgroundColor = '#e3f2fd';
+                targetCell.style.border = '2px solid #3498db';
+                
+                // Remove animation element
+                animElement.remove();
+                
+                // Remove highlight after a moment
+                setTimeout(() => {
+                    targetCell.classList.remove('digit-highlight');
+                    targetCell.style.backgroundColor = '';
+                    targetCell.style.border = '';
+                    resolve();
+                }, 500);
+            }, 500);
+        });
+    });
+}
+
 
 // ============================================
 // Problem Generation
@@ -376,7 +467,7 @@ function updateVisibleRows(n) {
 }
 
 // ============================================
-// Problem Display (Left Panel)
+// UPDATED: Problem Display - Better bring down instruction
 // ============================================
 function updateProblemDisplay() {
     if (!currentProblem) {
@@ -410,27 +501,22 @@ function updateProblemDisplay() {
         switch (p.currentStep) {
             case 0:
                 currentStep = `${p.partial} ÷ ${divisor} = ?`;
-                instruction = `What’s the largest multiple of ${divisor} that is less than or equal to ${p.partial}?`;
+                instruction = `Find the largest multiple of ${divisor} ≤ ${p.partial}`;
                 debugLog(`Step 0: Finding subtraction number for ${dividend} ÷ ${divisor}`);
                 break;
             case 1:
                 const lastStep = p.steps[p.steps.length - 1];
                 if (lastStep) {
                     currentStep = `${lastStep.partialBefore} - ${lastStep.product} = ?`;
-                    instruction = `What is ${lastStep.partialBefore} - ${lastStep.product}?`;
+                    instruction = `Subtract ${lastStep.product} from ${lastStep.partialBefore}`;
                     debugLog(`Step 1: Subtracting ${lastStep.product} from ${lastStep.partialBefore}`);
                 }
                 break;
             case 2:
-                const lastRemainder = p.steps[p.steps.length - 1]?.subtraction || p.partial;
-                if (p.currentDigitIndex < p.n) {
-                    const nextDigit = p.digits[p.currentDigitIndex];
-                    currentStep = `Bring down ${nextDigit}`;
-                    instruction = `New number: ${lastRemainder}${nextDigit}`;
-                    debugLog(`Step 2: Bringing down ${nextDigit}, new partial: ${lastRemainder}${nextDigit}`);
-                } else {
-                    debugLog(`Step 2: No more digits to bring down`);
-                }
+                const nextDigit = p.digits[p.currentDigitIndex];
+                currentStep = `Bring down ${nextDigit}`;
+                instruction = `Click "Bring Down" button to bring down ${nextDigit}`;
+                debugLog(`Step 2: Ready to bring down ${nextDigit}`);
                 break;
         }
     }
@@ -451,6 +537,42 @@ function updateProblemDisplay() {
             </div>
         </div>
     `;
+}
+
+// ============================================
+// Add CSS for animations
+// ============================================
+function addAnimationStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes digitPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .digit-highlight {
+            animation: digitPulse 0.5s ease-in-out;
+            background-color: #e3f2fd !important;
+            border: 2px solid #3498db !important;
+        }
+        
+        .bring-down-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(52, 152, 219, 0.4);
+        }
+        
+        .bring-down-icon {
+            font-size: 24px;
+            animation: bounce 1s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+    `;
+    document.head.appendChild(style);
 }
 
 // ============================================
@@ -487,7 +609,7 @@ function updateGuessDisplay() {
 }
 
 // ============================================
-// Core Game Logic - NO AUTO-CORRECTION
+// UPDATED: Commit Guess to handle bring down step differently
 // ============================================
 function commitGuess() {
     if (!currentProblem) {
@@ -648,6 +770,9 @@ function processSubtraction(problem) {
     updateGuessDisplay();
 }
 
+// ============================================
+// UPDATED: Process Bring Down with User Action
+// ============================================
 function processBringDown(problem) {
     debugLog(`Bring down processing`, {
         currentDigitIndex: problem.currentDigitIndex,
@@ -662,21 +787,44 @@ function processBringDown(problem) {
         return;
     }
     
-    // Bring down the next digit
+    // Instead of automatically bringing down, update UI to show what will happen
     const nextDigit = problem.digits[problem.currentDigitIndex];
+    
+    // Update instruction to make it clear what's happening
+    const instruction = `Click "Bring Down" to bring down ${nextDigit} from the dividend`;
+    
+    // Create a special "Bring Down" button
+    showBringDownButton(nextDigit, () => {
+        // Execute the bring down when user clicks
+        executeBringDown(problem, nextDigit);
+    });
+    
+    // Update the instruction
+    showFeedback(instruction, 'info');
+    
+    updateProblemDisplay();
+}
+
+function executeBringDown(problem, nextDigit) {
+    debugLog(`Executing bring down for digit ${nextDigit}`);
+    
+    // Remove the bring down button
+    hideBringDownButton();
+    
+    // Update the partial
     problem.partial = problem.partial * 10 + nextDigit;
     
     debugLog(`Brought down ${nextDigit}. New partial: ${problem.partial}`);
     
-    // UPDATE THE GRID WITH THE BROUGHT DOWN DIGIT
-    // Append the brought-down digit to the existing remainder
+    // Animate and update the grid with the brought down digit
     updateBringDownInGrid(problem.currentDigitIndex - 1, nextDigit);
     
-    // Update instruction
-    showFeedback(`Brought down ${nextDigit}. New number: ${problem.partial}`, 'success');
+    // Show success feedback
+    showFeedback(`✓ Brought down ${nextDigit}. New number: ${problem.partial}`, 'success');
     
     // Move to next quotient step
     problem.currentStep = 0;
+    problem.currentDigitIndex++;
     currentGuess = 0; // Reset guess for next quotient
     
     debugLog(`Moving to step 0 (new quotient). New partial: ${problem.partial}`);
@@ -685,8 +833,75 @@ function processBringDown(problem) {
     updateGuessDisplay();
 }
 
+// ============================================
+// Bring Down Button UI
+// ============================================
+function showBringDownButton(nextDigit, onClick) {
+    // Remove any existing bring down button
+    hideBringDownButton();
+    
+    // Create the bring down button
+    const bringDownBtn = document.createElement('button');
+    bringDownBtn.id = 'bringDownBtn';
+    bringDownBtn.className = 'bring-down-button';
+    bringDownBtn.innerHTML = `
+        <span class="bring-down-icon">↓</span>
+        <span class="bring-down-text">Bring Down ${nextDigit}</span>
+    `;
+    
+    bringDownBtn.style.cssText = `
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 24px;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin: 10px auto;
+        box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3);
+        transition: all 0.3s ease;
+    `;
+    
+    bringDownBtn.onmouseover = () => {
+        bringDownBtn.style.transform = 'translateY(-2px)';
+        bringDownBtn.style.boxShadow = '0 6px 8px rgba(52, 152, 219, 0.4)';
+    };
+    
+    bringDownBtn.onmouseout = () => {
+        bringDownBtn.style.transform = 'translateY(0)';
+        bringDownBtn.style.boxShadow = '0 4px 6px rgba(52, 152, 219, 0.3)';
+    };
+    
+    bringDownBtn.onclick = () => {
+        bringDownBtn.style.background = 'linear-gradient(135deg, #2ecc71, #27ae60)';
+        onClick();
+    };
+    
+    // Add to the work feedback area
+    const feedbackArea = document.getElementById('workFeedback');
+    if (feedbackArea) {
+        feedbackArea.appendChild(bringDownBtn);
+    }
+}
+
+function hideBringDownButton() {
+    const existingBtn = document.getElementById('bringDownBtn');
+    if (existingBtn) {
+        existingBtn.remove();
+    }
+}
+
+// ============================================
+// UPDATED: Grid Update Helpers with Animation
+// ============================================
+
 function updateBringDownInGrid(digitIndex, nextDigit) {
-    debugLog(`Updating bring down in grid`, {
+    debugLog(`Updating bring down in grid with animation`, {
         digitIndex,
         nextDigit
     });
@@ -695,9 +910,11 @@ function updateBringDownInGrid(digitIndex, nextDigit) {
     const row = remainderRowMap[digitIndex];
     
     if (row !== undefined) {
-        // We need to find where the remainder digits end in this row
-        // Remainders are right-aligned, so we need to find the rightmost column with a digit
+        // Find the source (dividend digit above)
+        const sourceRow = 1; // Dividend row
+        const sourceCol = digitIndex + 1; // Column of the digit being brought down
         
+        // We need to find where the remainder digits end in this row
         let rightmostCol = 0;
         for (let col = 1; col <= 5; col++) {
             const cellId = `r${row}c${col}`;
@@ -710,12 +927,12 @@ function updateBringDownInGrid(digitIndex, nextDigit) {
         // The brought-down digit goes in the NEXT column after the rightmost digit
         const targetCol = rightmostCol + 1;
         const cellId = `r${row}c${targetCol}`;
-        const cell = gridCells[cellId];
+        const targetCell = gridCells[cellId];
         
-        if (cell) {
+        if (targetCell) {
             // Check if the cell is empty (it should be)
-            if (cell.textContent !== '') {
-                debugError(`Bring down cell ${cellId} already has value: ${cell.textContent}`);
+            if (targetCell.textContent !== '') {
+                debugError(`Bring down cell ${cellId} already has value: ${targetCell.textContent}`);
                 // Find the next truly empty cell
                 let nextEmptyCol = targetCol;
                 while (nextEmptyCol <= 5 && gridCells[`r${row}c${nextEmptyCol}`] && 
@@ -724,15 +941,16 @@ function updateBringDownInGrid(digitIndex, nextDigit) {
                 }
                 if (nextEmptyCol <= 5) {
                     const newCellId = `r${row}c${nextEmptyCol}`;
-                    const newCell = gridCells[newCellId];
-                    if (newCell) {
-                        newCell.textContent = nextDigit;
-                        debugLog(`Appended brought down digit ${nextDigit} to ${newCellId} (after finding empty at column ${nextEmptyCol})`);
-                    }
+                    // Animate from source to new target
+                    animateBringDown(nextDigit, sourceRow, sourceCol, row, nextEmptyCol).then(() => {
+                        debugLog(`Animation complete, digit ${nextDigit} appended to ${newCellId}`);
+                    });
                 }
             } else {
-                cell.textContent = nextDigit;
-                debugLog(`Appended brought down digit ${nextDigit} to ${cellId} (column ${targetCol})`);
+                // Animate from source to target
+                animateBringDown(nextDigit, sourceRow, sourceCol, row, targetCol).then(() => {
+                    debugLog(`Animation complete, digit ${nextDigit} added to ${cellId}`);
+                });
             }
         }
     }
