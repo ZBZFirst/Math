@@ -410,7 +410,7 @@ function updateProblemDisplay() {
         switch (p.currentStep) {
             case 0:
                 currentStep = `${p.partial} ÷ ${divisor} = ?`;
-                instruction = `How many times does ${divisor} go into ${p.partial}?`;
+                instruction = `What's the largest number × ${divisor} ≤ ${p.partial}?`;
                 debugLog(`Step 0: Finding quotient for ${p.partial} ÷ ${divisor}`);
                 break;
             case 1:
@@ -487,7 +487,7 @@ function updateGuessDisplay() {
 }
 
 // ============================================
-// Core Game Logic
+// Core Game Logic - NO AUTO-CORRECTION
 // ============================================
 function commitGuess() {
     if (!currentProblem) {
@@ -538,21 +538,23 @@ function processQuotientInput(problem) {
         condition: product > problem.partial ? 'product > partial' : 'product <= partial'
     });
     
-    // Validation
+    // Validation - product cannot exceed partial
     if (product > problem.partial) {
         mistakeCount++;
         currentStreak = 0;
         debugLog(`Invalid: ${problem.divisor} × ${currentGuess} = ${product} > ${problem.partial}`);
-        showFeedback(`Cannot multiply ${problem.divisor} × ${currentGuess} = ${product} (greater than ${problem.partial})`, 'error');
+        showFeedback(`Cannot use ${currentGuess}. ${problem.divisor} × ${currentGuess} = ${product} (greater than ${problem.partial})`, 'error');
         updateScoreDisplay();
         return;
     }
     
+    // Check if correct
     if (currentGuess !== correctDigit) {
         mistakeCount++;
         currentStreak = 0;
         debugLog(`Incorrect: ${problem.partial} ÷ ${problem.divisor} = ${correctDigit}, not ${currentGuess}`);
-        showFeedback(`Incorrect. ${problem.partial} ÷ ${problem.divisor} = ${correctDigit}, not ${currentGuess}`, 'error');
+        // NO AUTO-CORRECTION - just show error
+        showFeedback(`Incorrect. ${problem.partial} ÷ ${problem.divisor} = ${correctDigit}`, 'error');
         updateScoreDisplay();
         return;
     }
@@ -580,9 +582,9 @@ function processQuotientInput(problem) {
     
     // Move to next step
     problem.currentStep = 1;
-    currentGuess = problem.partial - product;
+    currentGuess = 0; // Reset guess for subtraction step
     
-    debugLog(`Moving to step 1 (subtraction). New guess for remainder: ${currentGuess}`);
+    debugLog(`Moving to step 1 (subtraction).`);
     
     updateProblemDisplay();
     updateGuessDisplay();
@@ -604,11 +606,13 @@ function processSubtraction(problem) {
         currentGuess
     });
     
+    // Check if correct
     if (currentGuess !== expectedRemainder) {
         mistakeCount++;
         currentStreak = 0;
         debugLog(`Incorrect subtraction: guessed ${currentGuess}, expected ${expectedRemainder}`);
-        showFeedback(`Incorrect subtraction. ${lastStep.partialBefore} - ${lastStep.product} = ${expectedRemainder}`, 'error');
+        // NO AUTO-CORRECTION - just show error
+        showFeedback(`Incorrect. ${lastStep.partialBefore} - ${lastStep.product} = ${expectedRemainder}`, 'error');
         updateScoreDisplay();
         return;
     }
@@ -624,11 +628,11 @@ function processSubtraction(problem) {
     // Move to next step
     problem.currentStep = 2;
     problem.currentDigitIndex++;
+    currentGuess = 0; // Reset guess for bring down step
     
     debugLog(`Moving to step 2 (bring down). Current digit index: ${problem.currentDigitIndex}, n: ${problem.n}`);
     
     updateProblemDisplay();
-    currentGuess = 0;
     updateGuessDisplay();
 }
 
@@ -661,11 +665,11 @@ function processBringDown(problem) {
     
     // Move to next quotient step
     problem.currentStep = 0;
+    currentGuess = 0; // Reset guess for next quotient
     
     debugLog(`Moving to step 0 (new quotient). New partial: ${problem.partial}`);
     
     updateProblemDisplay();
-    currentGuess = 0;
     updateGuessDisplay();
 }
 
@@ -680,10 +684,8 @@ function updateBringDownInGrid(digitIndex, nextDigit) {
     
     if (row !== undefined) {
         // We need to find where the remainder digits end in this row
-        // Remainders are right-aligned, so we need to find the leftmost empty cell
-        // to the right of the remainder digits
+        // Remainders are right-aligned, so we need to find the rightmost column with a digit
         
-        // First, find the rightmost column with a digit
         let rightmostCol = 0;
         for (let col = 1; col <= 5; col++) {
             const cellId = `r${row}c${col}`;
