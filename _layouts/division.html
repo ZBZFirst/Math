@@ -30,40 +30,6 @@
     };
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
-    <style>
-        /* Static grid styles */
-        .static-division-grid {
-            display: grid;
-            grid-template-columns: 50px repeat(5, 50px);
-            grid-template-rows: repeat(11, 50px);
-            gap: 2px;
-            position: relative;
-        }
-        
-        .static-grid-container {
-            position: relative;
-            display: inline-block;
-        }
-        
-        .static-division-symbol {
-            position: absolute;
-            left: 50px;
-            top: 50px;
-            width: 3px;
-            height: 500px;
-            background: black;
-        }
-        
-        .static-division-symbol::before {
-            content: '';
-            position: absolute;
-            top: -3px;
-            left: -20px;
-            width: 260px;
-            height: 3px;
-            background: black;
-        }
-    </style>
 </head>
 <body>
     {% include header.html %}
@@ -105,88 +71,97 @@
                 <div class="work-container">
                     <h3>Work Area</h3>              
                     <div class="Work-Container" id="workStageContainer">
-                        <div class="static-grid-container">
-                            <div class="static-division-symbol"></div>
-                            <div class="static-division-grid" id="divisionGrid">
-                                <!-- =========== DIVISOR GRID (spans rows 2-12) =========== -->
-                                <div id="divisor" class="grid-cell blue" style="grid-column:1; grid-row:2/span 11">5</div>
-                                
-                                <!-- =========== ANSWER ROW =========== -->
-                                <div id="ans-q0" class="grid-cell green" style="grid-column:2; grid-row:1">?</div>
-                                <div id="ans-q1" class="grid-cell green" style="grid-column:3; grid-row:1">?</div>
-                                <div id="ans-q2" class="grid-cell green" style="grid-column:4; grid-row:1">?</div>
-                                <div id="ans-r" class="grid-cell green" style="grid-column:5; grid-row:1">R</div>
-                                <div id="ans-rem" class="grid-cell green" style="grid-column:6; grid-row:1">?</div>
-                                
-                                <!-- =========== ROW 1: DIVIDEND =========== -->
-                                <div id="r1c1" class="grid-cell orange" style="grid-column:2; grid-row:2">?</div>
-                                <div id="r1c2" class="grid-cell orange" style="grid-column:3; grid-row:2">?</div>
-                                <div id="r1c3" class="grid-cell orange" style="grid-column:4; grid-row:2">?</div>
-                                <div id="r1c4" class="grid-cell empty" style="grid-column:5; grid-row:2"></div>
-                                <div id="r1c5" class="grid-cell empty" style="grid-column:6; grid-row:2"></div>
-                                
-                                <!-- =========== ROW 2: STEP 1 PRODUCT =========== -->
-                                <div id="r2c1" class="grid-cell pink" style="grid-column:2; grid-row:3"></div>
-                                <div id="r2c2" class="grid-cell empty" style="grid-column:3; grid-row:3"></div>
-                                <div id="r2c3" class="grid-cell empty" style="grid-column:4; grid-row:3"></div>
-                                <div id="r2c4" class="grid-cell empty" style="grid-column:5; grid-row:3"></div>
-                                <div id="r2c5" class="grid-cell empty" style="grid-column:6; grid-row:3"></div>
-                                
-                                <!-- =========== ROW 3: STEP 1 REMAINDER =========== -->
-                                <div id="r3c1" class="grid-cell yellow" style="grid-column:2; grid-row:4"></div>
-                                <div id="r3c2" class="grid-cell yellow" style="grid-column:3; grid-row:4">2</div>
-                                <div id="r3c3" class="grid-cell empty" style="grid-column:4; grid-row:4"></div>
-                                <div id="r3c4" class="grid-cell empty" style="grid-column:5; grid-row:4"></div>
-                                <div id="r3c5" class="grid-cell empty" style="grid-column:6; grid-row:4"></div>
-                                
-                                <!-- =========== ROW 4: STEP 2 PRODUCT =========== -->
-                                <div id="r4c1" class="grid-cell pink" style="grid-column:2; grid-row:5"></div>
-                                <div id="r4c2" class="grid-cell pink" style="grid-column:3; grid-row:5"></div>
-                                <div id="r4c3" class="grid-cell empty" style="grid-column:4; grid-row:5"></div>
-                                <div id="r4c4" class="grid-cell empty" style="grid-column:5; grid-row:5"></div>
-                                <div id="r4c5" class="grid-cell empty" style="grid-column:6; grid-row:5"></div>
-                                
-                                <!-- =========== ROW 5: STEP 2 REMAINDER =========== -->
-                                <div id="r5c1" class="grid-cell empty" style="grid-column:2; grid-row:6"></div>
-                                <div id="r5c2" class="grid-cell yellow" style="grid-column:3; grid-row:6"></div>
-                                <div id="r5c3" class="grid-cell yellow" style="grid-column:4; grid-row:6">3</div>
-                                <div id="r5c4" class="grid-cell empty" style="grid-column:5; grid-row:6"></div>
-                                <div id="r5c5" class="grid-cell empty" style="grid-column:6; grid-row:6"></div>
-                                
-                                <!-- =========== ROW 6: STEP 3 PRODUCT =========== -->
-                                <div id="r6c1" class="grid-cell empty" style="grid-column:2; grid-row:7"></div>
-                                <div id="r6c2" class="grid-cell pink" style="grid-column:3; grid-row:7"></div>
-                                <div id="r6c3" class="grid-cell pink" style="grid-column:4; grid-row:7"></div>
-                                <div id="r6c4" class="grid-cell empty" style="grid-column:5; grid-row:7"></div>
-                                <div id="r6c5" class="grid-cell empty" style="grid-column:6; grid-row:7"></div>
-                                
-                                <!-- =========== ROW 7: STEP 3 REMAINDER =========== -->
-                                <div id="r7c1" class="grid-cell empty" style="grid-column:2; grid-row:8"></div>
-                                <div id="r7c2" class="grid-cell empty" style="grid-column:3; grid-row:8"></div>
-                                <div id="r7c3" class="grid-cell yellow" style="grid-column:4; grid-row:8"></div>
-                                <div id="r7c4" class="grid-cell empty" style="grid-column:5; grid-row:8"></div>
-                                <div id="r7c5" class="grid-cell empty" style="grid-column:6; grid-row:8"></div>
+                        <div class="division-work-layout">
                             
-                                <!-- =========== ROW 8: EXTRA (for 4-digit problems) =========== -->
-                                <div id="r8c1" class="grid-cell empty" style="grid-column:2; grid-row:9"></div>
-                                <div id="r8c2" class="grid-cell empty" style="grid-column:3; grid-row:9"></div>
-                                <div id="r8c3" class="grid-cell empty" style="grid-column:4; grid-row:9"></div>
-                                <div id="r8c4" class="grid-cell empty" style="grid-column:5; grid-row:9"></div>
-                                <div id="r8c5" class="grid-cell empty" style="grid-column:6; grid-row:9"></div>
+                            <!-- 1. DIVISOR (left side) -->
+                            <div class="divisor-section">
+                                <div id="divisor" class="grid-cell blue">5</div>
+                            </div>
                                 
-                                <!-- =========== ROW 9: EXTRA (for 5-digit problems) =========== -->
-                                <div id="r9c1" class="grid-cell empty" style="grid-column:2; grid-row:10"></div>
-                                <div id="r9c2" class="grid-cell empty" style="grid-column:3; grid-row:10"></div>
-                                <div id="r9c3" class="grid-cell empty" style="grid-column:4; grid-row:10"></div>
-                                <div id="r9c4" class="grid-cell empty" style="grid-column:5; grid-row:10"></div>
-                                <div id="r9c5" class="grid-cell empty" style="grid-column:6; grid-row:10"></div>
+                            <!-- 2. ANSWER ROW (top right) -->
+                            <div class="answer-section">
+                                <div id="ans-q0" class="grid-cell green">?</div>
+                                <div id="ans-q1" class="grid-cell green">?</div>
+                                <div id="ans-q2" class="grid-cell green">?</div>
+                                <div id="ans-r" class="grid-cell green">R</div>
+                                <div id="ans-rem" class="grid-cell green">?</div>
+                            </div>
+
+
+                            <!-- 3. WORK GRID (main area) -->
+                            <div class="work-grid-section">
+                                <div class="division-symbol"></div>
+                                <div class="work-grid" id="divisionGrid">
+                                    <!-- =========== ROW 1: DIVIDEND =========== -->
+                                    <div id="r1c1" class="grid-cell orange">?</div>
+                                    <div id="r1c2" class="grid-cell orange">?</div>
+                                    <div id="r1c3" class="grid-cell orange">?</div>
+                                    <div id="r1c4" class="grid-cell orange"></div>
+                                    <div id="r1c5" class="grid-cell orange"></div>
+                                    
+                                    <!-- =========== ROW 2: STEP 1 PRODUCT =========== -->
+                                    <div id="r2c1" class="grid-cell pink"></div>
+                                    <div id="r2c2" class="grid-cell pink"></div>
+                                    <div id="r2c3" class="grid-cell pink"></div>
+                                    <div id="r2c4" class="grid-cell empty"></div>
+                                    <div id="r2c5" class="grid-cell empty"></div>
+                                    
+                                    <!-- =========== ROW 3: STEP 1 REMAINDER =========== -->
+                                    <div id="r3c1" class="grid-cell yellow"></div>
+                                    <div id="r3c2" class="grid-cell yellow">2</div>
+                                    <div id="r3c3" class="grid-cell yellow"></div>
+                                    <div id="r3c4" class="grid-cell empty"></div>
+                                    <div id="r3c5" class="grid-cell empty"></div>
+                                    
+                                    <!-- =========== ROW 4: STEP 2 PRODUCT =========== -->
+                                    <div id="r4c1" class="grid-cell pink"></div>
+                                    <div id="r4c2" class="grid-cell pink"></div>
+                                    <div id="r4c3" class="grid-cell pink"></div>
+                                    <div id="r4c4" class="grid-cell empty"></div>
+                                    <div id="r4c5" class="grid-cell empty"></div>
+                                    
+                                    <!-- =========== ROW 5: STEP 2 REMAINDER =========== -->
+                                    <div id="r5c1" class="grid-cell yellow"></div>
+                                    <div id="r5c2" class="grid-cell yellow"></div>
+                                    <div id="r5c3" class="grid-cell yellow">3</div>
+                                    <div id="r5c4" class="grid-cell empty"></div>
+                                    <div id="r5c5" class="grid-cell empty"></div>
+                                    
+                                    <!-- =========== ROW 6: STEP 3 PRODUCT =========== -->
+                                    <div id="r6c1" class="grid-cell pink"></div>
+                                    <div id="r6c2" class="grid-cell pink"></div>
+                                    <div id="r6c3" class="grid-cell pink"></div>
+                                    <div id="r6c4" class="grid-cell empty"></div>
+                                    <div id="r6c5" class="grid-cell empty"></div>
+                                    
+                                    <!-- =========== ROW 7: STEP 3 REMAINDER =========== -->
+                                    <div id="r7c1" class="grid-cell yellow"></div>
+                                    <div id="r7c2" class="grid-cell yellow"></div>
+                                    <div id="r7c3" class="grid-cell yellow"></div>
+                                    <div id="r7c4" class="grid-cell empty"></div>
+                                    <div id="r7c5" class="grid-cell empty"></div>
                                 
-                                <!-- =========== ROW 10: EXTRA (baseline) =========== -->
-                                <div id="r10c1" class="grid-cell empty" style="grid-column:2; grid-row:11"></div>
-                                <div id="r10c2" class="grid-cell empty" style="grid-column:3; grid-row:11"></div>
-                                <div id="r10c3" class="grid-cell empty" style="grid-column:4; grid-row:11"></div>
-                                <div id="r10c4" class="grid-cell empty" style="grid-column:5; grid-row:11"></div>
-                                <div id="r10c5" class="grid-cell empty" style="grid-column:6; grid-row:11"></div>
+                                    <!-- =========== ROW 8: EXTRA (for 4-digit problems) =========== -->
+                                    <div id="r8c1" class="grid-cell empty"></div>
+                                    <div id="r8c2" class="grid-cell empty"></div>
+                                    <div id="r8c3" class="grid-cell empty"></div>
+                                    <div id="r8c4" class="grid-cell empty"></div>
+                                    <div id="r8c5" class="grid-cell empty"></div>
+                                    
+                                    <!-- =========== ROW 9: EXTRA (for 5-digit problems) =========== -->
+                                    <div id="r9c1" class="grid-cell empty"></div>
+                                    <div id="r9c2" class="grid-cell empty"></div>
+                                    <div id="r9c3" class="grid-cell empty"></div>
+                                    <div id="r9c4" class="grid-cell empty"></div>
+                                    <div id="r9c5" class="grid-cell empty"></div>
+                                    
+                                    <!-- =========== ROW 10: EXTRA (baseline) =========== -->
+                                    <div id="r10c1" class="grid-cell empty"></div>
+                                    <div id="r10c2" class="grid-cell empty"></div>
+                                    <div id="r10c3" class="grid-cell empty"></div>
+                                    <div id="r10c4" class="grid-cell empty"></div>
+                                    <div id="r10c5" class="grid-cell empty"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
