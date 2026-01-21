@@ -683,27 +683,47 @@ function updateBringDownInGrid(digitIndex, nextDigit) {
     const row = remainderRowMap[digitIndex];
     
     if (row !== undefined) {
-        // DO NOT clear the entire row!
-        // We need to find the next empty column AFTER the existing remainder
+        // We need to find where the remainder digits end in this row
+        // Remainders are right-aligned, so we need to find the leftmost empty cell
+        // to the right of the remainder digits
         
-        // Count how many digits are already in this row
-        let existingDigits = 0;
+        // First, find the rightmost column with a digit
+        let rightmostCol = 0;
         for (let col = 1; col <= 5; col++) {
             const cellId = `r${row}c${col}`;
             const cell = gridCells[cellId];
             if (cell && cell.textContent !== '') {
-                existingDigits++;
+                rightmostCol = col;
             }
         }
         
-        // The brought-down digit goes in the NEXT column after existing digits
-        const targetCol = existingDigits + 1;
+        // The brought-down digit goes in the NEXT column after the rightmost digit
+        const targetCol = rightmostCol + 1;
         const cellId = `r${row}c${targetCol}`;
         const cell = gridCells[cellId];
         
         if (cell) {
-            cell.textContent = nextDigit;
-            debugLog(`Appended brought down digit ${nextDigit} to ${cellId} (column ${targetCol})`);
+            // Check if the cell is empty (it should be)
+            if (cell.textContent !== '') {
+                debugError(`Bring down cell ${cellId} already has value: ${cell.textContent}`);
+                // Find the next truly empty cell
+                let nextEmptyCol = targetCol;
+                while (nextEmptyCol <= 5 && gridCells[`r${row}c${nextEmptyCol}`] && 
+                       gridCells[`r${row}c${nextEmptyCol}`].textContent !== '') {
+                    nextEmptyCol++;
+                }
+                if (nextEmptyCol <= 5) {
+                    const newCellId = `r${row}c${nextEmptyCol}`;
+                    const newCell = gridCells[newCellId];
+                    if (newCell) {
+                        newCell.textContent = nextDigit;
+                        debugLog(`Appended brought down digit ${nextDigit} to ${newCellId} (after finding empty at column ${nextEmptyCol})`);
+                    }
+                }
+            } else {
+                cell.textContent = nextDigit;
+                debugLog(`Appended brought down digit ${nextDigit} to ${cellId} (column ${targetCol})`);
+            }
         }
     }
 }
