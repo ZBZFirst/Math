@@ -327,7 +327,7 @@
 .division-symbol {
     position: absolute;
     left: 0px;
-    top: 0px;
+    top: 5px;
     width: 2px;
     height: 53px;
     background: #333;
