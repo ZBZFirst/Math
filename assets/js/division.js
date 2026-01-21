@@ -713,7 +713,8 @@ function updateQuotientInGrid(digitIndex, value) {
 function updateProductInGrid(digitIndex, product) {
     debugLog(`Updating product in grid`, {
         digitIndex,
-        product
+        product,
+        productStr: String(product)
     });
     
     // NEW MAPPING: 
@@ -727,16 +728,26 @@ function updateProductInGrid(digitIndex, product) {
         const productStr = String(product);
         const n = currentProblem?.n || 3;
         
-        // Right-align the product under the current partial
-        // For n-digit number, products should be right-aligned
+        // For the first digit (digitIndex 0), we need to align under the first digit
+        // For the second digit (digitIndex 1), we need to align under the first two digits
+        // For the third digit (digitIndex 2), we need to align under all three digits
+        
+        // The starting column depends on which digit we're processing
+        // For a 3-digit dividend (columns 1-3):
+        // - digitIndex 0: should be under column 1 (r2c1)
+        // - digitIndex 1: should span columns 1-2 (r4c1, r4c2)  
+        // - digitIndex 2: should span columns 1-3 (r6c1, r6c2, r6c3)
+        
+        // Actually, let's simplify: products should be left-aligned, not right-aligned
+        // because in long division, you write the product starting from the current position
+        
+        // Start from column 1 and write the product digits
         for (let i = 0; i < productStr.length; i++) {
-            // Start from the rightmost column based on digitIndex
-            const colOffset = digitIndex;
-            const col = (5 - productStr.length + i + 1) - colOffset;
-            
-            // Ensure we're within bounds
-            const actualCol = Math.max(1, Math.min(5, col));
-            const cellId = `r${row}c${actualCol}`;
+            // For digitIndex 0: start at column 1
+            // For digitIndex 1: start at column 1 (but product will be 2 digits)
+            // For digitIndex 2: start at column 1 (but product will be 3 digits)
+            const col = i + 1;
+            const cellId = `r${row}c${col}`;
             const cell = gridCells[cellId];
             if (cell) {
                 cell.textContent = productStr[i];
@@ -765,17 +776,12 @@ function updateRemainderInGrid(digitIndex, remainder) {
     
     if (row !== undefined) {
         const remainderStr = String(remainder);
-        const n = currentProblem?.n || 3;
         
-        // Right-align the remainder under the current partial
+        // Remainders should also be left-aligned
+        // Write remainder digits starting from column 1
         for (let i = 0; i < remainderStr.length; i++) {
-            // Start from the rightmost column based on digitIndex
-            const colOffset = digitIndex;
-            const col = (5 - remainderStr.length + i + 1) - colOffset;
-            
-            // Ensure we're within bounds
-            const actualCol = Math.max(1, Math.min(5, col));
-            const cellId = `r${row}c${actualCol}`;
+            const col = i + 1;
+            const cellId = `r${row}c${col}`;
             const cell = gridCells[cellId];
             if (cell) {
                 cell.textContent = remainderStr[i];
