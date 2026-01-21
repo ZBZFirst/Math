@@ -417,7 +417,7 @@ function updateProblemDisplay() {
                 const lastStep = p.steps[p.steps.length - 1];
                 if (lastStep) {
                     currentStep = `${lastStep.partialBefore} - ${lastStep.product} = ?`;
-                    instruction = `Subtract ${lastStep.product} from ${lastStep.partialBefore}`;
+                    instruction = `What is ${lastStep.partialBefore} - ${lastStep.product}?`;
                     debugLog(`Step 1: Subtracting ${lastStep.product} from ${lastStep.partialBefore}`);
                 }
                 break;
