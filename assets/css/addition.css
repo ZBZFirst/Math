@@ -188,8 +188,11 @@
 .grid-cell.line {
     background: #333;
     border: none;
-    height: 2px;
+    height: 4px;
     margin: 2px -3px 2px -1px;
+    min-height: 20px !important; /* Force max height */
+    max-height: 20px !important;
+    align-self: center; /* Center vertically in the row */
 }
 
 /* Answer Cells */
