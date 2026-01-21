@@ -683,24 +683,9 @@ function updateBringDownInGrid(digitIndex, newPartial) {
     
     if (row !== undefined) {
         const partialStr = String(newPartial);
-        const n = currentProblem?.n || 3;
         
-        // DON'T clear the entire row! We need to preserve the existing remainder
-        // and just add the brought-down digit to it
-        
-        // Actually, we should write the ENTIRE new partial number
-        // For example: if remainder was "5" and we bring down "8" to make "58"
-        // We should write "58" in the row, not just "8"
-        
-        // But we need to clear only the cells that will be written
-        // First, determine which columns we should write to
-        
-        // The number of columns we're working with = digitIndex + 2
-        // (digitIndex 0: now working with 2 digits after bring down)
-        const workingColumns = digitIndex + 2;
-        
-        // Clear only the columns we'll be writing to
-        for (let col = 1; col <= workingColumns; col++) {
+        // Clear the row first
+        for (let col = 1; col <= 5; col++) {
             const cellId = `r${row}c${col}`;
             const cell = gridCells[cellId];
             if (cell) {
@@ -708,17 +693,19 @@ function updateBringDownInGrid(digitIndex, newPartial) {
             }
         }
         
-        // Right-align the new partial number within the working columns
-        const partialLength = partialStr.length;
+        // SIMPLER APPROACH: Always start from column 1 + digitIndex
+        // digitIndex 0: start at column 1 (for "58")
+        // digitIndex 1: start at column 2 (for "63")
+        // digitIndex 2: start at column 3 (for 4-digit problems)
+        const startCol = digitIndex + 1;
         
-        for (let i = 0; i < partialLength; i++) {
-            // Calculate right-aligned position
-            const col = workingColumns - partialLength + i + 1;
+        for (let i = 0; i < partialStr.length; i++) {
+            const col = startCol + i;
             const cellId = `r${row}c${col}`;
             const cell = gridCells[cellId];
             if (cell) {
                 cell.textContent = partialStr[i];
-                debugLog(`Set bring down cell ${cellId} to ${partialStr[i]} (right-aligned in ${workingColumns} columns)`);
+                debugLog(`Set bring down cell ${cellId} to ${partialStr[i]}`);
             }
         }
     }
