@@ -537,37 +537,60 @@ function processQuotientInput(problem) {
         correctProduct
     });
     
-    // Check if correct quotient digit was entered
-    if (currentGuess !== correctDigit) {
+    // FIX: Check if currentGuess is the CORRECT PRODUCT (subtraction number)
+    // First, validate that it's actually a multiple of the divisor
+    if (currentGuess % problem.divisor !== 0) {
         mistakeCount++;
         currentStreak = 0;
-        debugLog(`Incorrect: ${problem.partial} ÷ ${problem.divisor} = ${correctDigit}, not ${currentGuess}`);
-        showFeedback(`Incorrect. ${problem.partial} ÷ ${problem.divisor} = ${correctDigit}`, 'error');
+        debugLog(`Invalid: ${currentGuess} is not a multiple of ${problem.divisor}`);
+        showFeedback(`${currentGuess} is not a multiple of ${problem.divisor}`, 'error');
+        updateScoreDisplay();
+        return;
+    }
+    
+    // FIX: Check that product doesn't exceed partial
+    if (currentGuess > problem.partial) {
+        mistakeCount++;
+        currentStreak = 0;
+        debugLog(`Invalid: ${currentGuess} > ${problem.partial}`);
+        showFeedback(`Cannot use ${currentGuess} (greater than ${problem.partial})`, 'error');
+        updateScoreDisplay();
+        return;
+    }
+    
+    // FIX: Now check if it's the LARGEST multiple ≤ partial
+    if (currentGuess !== correctProduct) {
+        mistakeCount++;
+        currentStreak = 0;
+        debugLog(`Incorrect: Largest multiple of ${problem.divisor} ≤ ${problem.partial} is ${correctProduct}, not ${currentGuess}`);
+        showFeedback(`Incorrect. Largest multiple of ${problem.divisor} ≤ ${problem.partial} is ${correctProduct}`, 'error');
         updateScoreDisplay();
         return;
     }
     
     // CORRECT - Update state
-    const product = currentGuess * problem.divisor;
-    problem.quotientDigits.push(currentGuess);
+    // FIX: Calculate the quotient digit from the product
+    const quotientDigit = currentGuess / problem.divisor;
+    problem.quotientDigits.push(quotientDigit);
     problem.steps.push({
-        digit: currentGuess,
+        digit: quotientDigit,
         partialBefore: problem.partial,
-        product: product,
-        subtraction: problem.partial - product,
+        product: currentGuess, // This is the product they entered
+        subtraction: problem.partial - currentGuess,
         stepIndex: problem.currentDigitIndex
     });
     
     debugLog(`Correct! Updated problem state`, {
+        quotientDigit: quotientDigit,
         quotientDigits: problem.quotientDigits,
         steps: problem.steps
     });
     
-    // Update grid
-    updateQuotientInGrid(problem.currentDigitIndex, currentGuess);
-    updateProductInGrid(problem.currentDigitIndex, product);
+    // Update grid with the quotient digit (not the product!)
+    updateQuotientInGrid(problem.currentDigitIndex, quotientDigit);
+    updateProductInGrid(problem.currentDigitIndex, currentGuess);
     
-    showFeedback(`Correct! ${problem.divisor} × ${currentGuess} = ${product}`, 'success');
+    showFeedback(`Correct! ${problem.divisor} × ${quotientDigit} = ${currentGuess}`, 'success');
     
     // Move to next step
     problem.currentStep = 1;
