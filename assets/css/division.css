@@ -267,56 +267,117 @@
     border-radius: 4px;
 }
 
-/* Grid-based long division styles */
-.grid-long-division {
-    width: 100%;
-    overflow-x: auto;
-    padding: 20px;
-    background: white;
-    border-radius: 8px;
-    border: 1px solid #dee2e6;
-}
+/* ============================================
+   NEW DIVISION WORK LAYOUT STYLES
+   ============================================ */
 
-.division-grid-wrapper {
+/* Division Work Layout */
+.division-work-layout {
     position: relative;
     display: inline-block;
-    margin: 0 auto;
+    width: 100%;
+    height: 600px; /* Fixed height for positioning */
 }
 
-.division-grid {
-    display: grid;
-    gap: 2px;
-    position: relative;
-}
-
-.grid-cell {
-    min-width: 50px;
-    min-height: 50px;
-    border: 2px solid #333;
+/* 1. DIVISOR SECTION (left side) */
+.divisor-section {
+    position: absolute;
+    left: 0;
+    top: 50px; /* Align with first row of work grid */
+    width: 50px;
+    height: 500px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
+    z-index: 10;
+}
+
+/* 2. ANSWER SECTION (top right) */
+.answer-section {
+    position: absolute;
+    left: 60px; /* Leave space for divisor */
+    top: 0;
+    display: flex;
+    gap: 2px;
+    z-index: 10;
+}
+
+/* 3. WORK GRID SECTION (main area) */
+.work-grid-section {
+    position: absolute;
+    left: 60px; /* Leave space for divisor */
+    top: 50px; /* Leave space for answer row */
+    z-index: 5;
+}
+
+/* Work Grid */
+.work-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 50px);
+    grid-template-rows: repeat(10, 50px);
+    gap: 2px;
+    background-color: white;
+    padding: 2px;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+}
+
+/* Division symbol */
+.division-symbol {
+    position: absolute;
+    left: -30px;
+    top: 0;
+    width: 3px;
+    height: 500px;
+    background: black;
+    z-index: 1;
+}
+
+.division-symbol::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -20px;
+    width: 260px; /* Width of work grid + some extra */
+    height: 3px;
+    background: black;
+}
+
+/* ============================================
+   GRID CELL STYLES
+   ============================================ */
+
+/* Base Grid Cell */
+.grid-cell {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #333;
+    font-size: 1.3em;
     font-weight: bold;
     font-family: 'Courier New', monospace;
     box-sizing: border-box;
 }
 
-/* Color classes matching your scheme */
+/* Cell Colors */
 .grid-cell.blue {
     background-color: #00a6e6;
     color: white;
     border-color: #0086c6;
 }
 
-.grid-cell.orange {
-    background-color: #ff8c2a;
-    border-color: #e67a00;
+.grid-cell.green {
+    background-color: #2db84d;
+    color: white;
+    border-color: #1f9c3d;
 }
 
-.grid-cell.yellow {
-    background-color: #ffee00;
-    border-color: #e6d600;
+.grid-cell.orange {
+    background-color: #ff8c2a;
+    color: white;
+    border-color: #e67a00;
 }
 
 .grid-cell.pink {
@@ -324,10 +385,9 @@
     border-color: #ff8da1;
 }
 
-.grid-cell.green {
-    background-color: #2db84d;
-    color: white;
-    border-color: #1f9c3d;
+.grid-cell.yellow {
+    background-color: #ffee00;
+    border-color: #e6d600;
 }
 
 .grid-cell.empty {
@@ -339,35 +399,162 @@
     display: none;
 }
 
-.division-symbol {
-    position: absolute;
-    background: black;
-    pointer-events: none;
-}
+/* ============================================
+   WORK GRID POSITIONING
+   ============================================ */
 
-.division-symbol::before {
-    content: "";
-    position: absolute;
-    background: black;
-}
+/* Row 1 (Dividend) */
+#r1c1 { grid-column: 1; grid-row: 1; }
+#r1c2 { grid-column: 2; grid-row: 1; }
+#r1c3 { grid-column: 3; grid-row: 1; }
+#r1c4 { grid-column: 4; grid-row: 1; }
+#r1c5 { grid-column: 5; grid-row: 1; }
 
-/* Static Grid Container */
-.static-grid-container {
-    display: inline-block;
-    position: relative;
-    margin: 20px auto;
-}
+/* Row 2 (Product 1) */
+#r2c1 { grid-column: 1; grid-row: 2; }
+#r2c2 { grid-column: 2; grid-row: 2; }
+#r2c3 { grid-column: 3; grid-row: 2; }
+#r2c4 { grid-column: 4; grid-row: 2; }
+#r2c5 { grid-column: 5; grid-row: 2; }
 
-.static-division-grid {
+/* Row 3 (Remainder 1) */
+#r3c1 { grid-column: 1; grid-row: 3; }
+#r3c2 { grid-column: 2; grid-row: 3; }
+#r3c3 { grid-column: 3; grid-row: 3; }
+#r3c4 { grid-column: 4; grid-row: 3; }
+#r3c5 { grid-column: 5; grid-row: 3; }
+
+/* Row 4 (Product 2) */
+#r4c1 { grid-column: 1; grid-row: 4; }
+#r4c2 { grid-column: 2; grid-row: 4; }
+#r4c3 { grid-column: 3; grid-row: 4; }
+#r4c4 { grid-column: 4; grid-row: 4; }
+#r4c5 { grid-column: 5; grid-row: 4; }
+
+/* Row 5 (Remainder 2) */
+#r5c1 { grid-column: 1; grid-row: 5; }
+#r5c2 { grid-column: 2; grid-row: 5; }
+#r5c3 { grid-column: 3; grid-row: 5; }
+#r5c4 { grid-column: 4; grid-row: 5; }
+#r5c5 { grid-column: 5; grid-row: 5; }
+
+/* Row 6 (Product 3) */
+#r6c1 { grid-column: 1; grid-row: 6; }
+#r6c2 { grid-column: 2; grid-row: 6; }
+#r6c3 { grid-column: 3; grid-row: 6; }
+#r6c4 { grid-column: 4; grid-row: 6; }
+#r6c5 { grid-column: 5; grid-row: 6; }
+
+/* Row 7 (Remainder 3) */
+#r7c1 { grid-column: 1; grid-row: 7; }
+#r7c2 { grid-column: 2; grid-row: 7; }
+#r7c3 { grid-column: 3; grid-row: 7; }
+#r7c4 { grid-column: 4; grid-row: 7; }
+#r7c5 { grid-column: 5; grid-row: 7; }
+
+/* Row 8 (Extra for 4-digit) */
+#r8c1 { grid-column: 1; grid-row: 8; }
+#r8c2 { grid-column: 2; grid-row: 8; }
+#r8c3 { grid-column: 3; grid-row: 8; }
+#r8c4 { grid-column: 4; grid-row: 8; }
+#r8c5 { grid-column: 5; grid-row: 8; }
+
+/* Row 9 (Extra for 5-digit) */
+#r9c1 { grid-column: 1; grid-row: 9; }
+#r9c2 { grid-column: 2; grid-row: 9; }
+#r9c3 { grid-column: 3; grid-row: 9; }
+#r9c4 { grid-column: 4; grid-row: 9; }
+#r9c5 { grid-column: 5; grid-row: 9; }
+
+/* Row 10 (Baseline) */
+#r10c1 { grid-column: 1; grid-row: 10; }
+#r10c2 { grid-column: 2; grid-row: 10; }
+#r10c3 { grid-column: 3; grid-row: 10; }
+#r10c4 { grid-column: 4; grid-row: 10; }
+#r10c5 { grid-column: 5; grid-row: 10; }
+
+/* ============================================
+   CONTROL BUTTONS STYLING
+   ============================================ */
+
+.control-grid {
     display: grid;
-    grid-template-columns: 50px repeat(5, 50px);
-    grid-template-rows: repeat(11, 50px);
-    gap: 2px;
-    position: relative;
-    z-index: 2;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-bottom: 15px;
 }
 
-/* Responsive adjustments */
+.grid-btn {
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.2em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.grid-btn.decrement {
+    background-color: #dc3545;
+    color: white;
+}
+
+.grid-btn.increment {
+    background-color: #28a745;
+    color: white;
+}
+
+.grid-btn.clear {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.grid-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+
+.grid-btn:active {
+    transform: translateY(0);
+}
+
+.number-display {
+    text-align: center;
+    font-size: 1.3em;
+    margin: 15px 0;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    border: 2px solid #dee2e6;
+}
+
+.commit-btn {
+    width: 100%;
+    padding: 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.2em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.commit-btn:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.commit-btn:active {
+    transform: translateY(0);
+}
+
+/* ============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================ */
+
 @media (max-width: 768px) {
     .division-container {
         padding: 15px;
@@ -391,15 +578,45 @@
         grid-template-columns: repeat(2, 1fr);
     }
     
-    .grid-cell {
-        min-width: 40px;
-        min-height: 40px;
-        font-size: 16px;
+    /* Adjust division layout for mobile */
+    .division-work-layout {
+        height: 500px;
     }
     
-    .static-division-grid {
-        grid-template-columns: 40px repeat(5, 40px);
-        grid-template-rows: repeat(11, 40px);
+    .divisor-section {
+        width: 40px;
+        height: 400px;
+        top: 40px;
+    }
+    
+    .answer-section {
+        left: 50px;
+    }
+    
+    .work-grid-section {
+        left: 50px;
+        top: 40px;
+    }
+    
+    .work-grid {
+        grid-template-columns: repeat(5, 40px);
+        grid-template-rows: repeat(10, 40px);
+    }
+    
+    .grid-cell {
+        width: 40px;
+        height: 40px;
+        font-size: 1.1em;
+    }
+    
+    .division-symbol {
+        left: -25px;
+        height: 400px;
+    }
+    
+    .division-symbol::before {
+        left: -15px;
+        width: 210px; /* Adjusted for mobile */
     }
 }
 
@@ -426,15 +643,67 @@
         grid-template-columns: 1fr;
     }
     
-    .grid-cell {
-        min-width: 30px;
-        min-height: 30px;
-        font-size: 14px;
+    /* Further adjust for small screens */
+    .division-work-layout {
+        height: 450px;
     }
     
-    .static-division-grid {
-        grid-template-columns: 30px repeat(5, 30px);
-        grid-template-rows: repeat(11, 30px);
+    .divisor-section {
+        width: 35px;
+        height: 350px;
+        top: 35px;
+    }
+    
+    .answer-section {
+        left: 45px;
+        gap: 1px;
+    }
+    
+    .work-grid-section {
+        left: 45px;
+        top: 35px;
+    }
+    
+    .work-grid {
+        grid-template-columns: repeat(5, 35px);
+        grid-template-rows: repeat(10, 35px);
+        gap: 1px;
+    }
+    
+    .grid-cell {
+        width: 35px;
+        height: 35px;
+        font-size: 1em;
+        border-width: 1px;
+    }
+    
+    .division-symbol {
+        left: -20px;
+        height: 350px;
+    }
+    
+    .division-symbol::before {
+        left: -12px;
+        width: 185px; /* Adjusted for very small screens */
+    }
+    
+    .control-grid {
+        gap: 5px;
+    }
+    
+    .grid-btn {
+        padding: 8px;
+        font-size: 1em;
+    }
+    
+    .number-display {
+        font-size: 1.1em;
+        padding: 8px;
+    }
+    
+    .commit-btn {
+        padding: 12px;
+        font-size: 1.1em;
     }
 }
 
