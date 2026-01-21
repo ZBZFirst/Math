@@ -656,6 +656,9 @@ function processBringDown(problem) {
     
     debugLog(`Brought down ${nextDigit}. New partial: ${problem.partial}`);
     
+
+    updateBringDownInGrid(problem.currentDigitIndex - 1, nextDigit, problem.partial);
+    
     // Update instruction
     showFeedback(`Brought down ${nextDigit}. New number: ${problem.partial}`, 'success');
     
@@ -667,6 +670,45 @@ function processBringDown(problem) {
     updateProblemDisplay();
     currentGuess = 0;
     updateGuessDisplay();
+}
+
+function updateBringDownInGrid(digitIndex, digit, newPartial) {
+    debugLog(`Updating bring down in grid`, {
+        digitIndex,
+        digit,
+        newPartial
+    });
+    
+    // When we bring down a digit, we need to show the ENTIRE new partial number
+    // For example: remainder was "6", we bring down "8", new partial is "68"
+    // We should show "68" in the current remainder row
+    
+    const remainderRowMap = {0: 3, 1: 5, 2: 7};
+    const row = remainderRowMap[digitIndex];
+    
+    if (row !== undefined) {
+        const partialStr = String(newPartial);
+        
+        // Clear the row first
+        for (let col = 1; col <= 5; col++) {
+            const cellId = `r${row}c${col}`;
+            const cell = gridCells[cellId];
+            if (cell) {
+                cell.textContent = '';
+            }
+        }
+        
+        // Write the entire new partial number
+        for (let i = 0; i < partialStr.length; i++) {
+            const col = i + 1;
+            const cellId = `r${row}c${col}`;
+            const cell = gridCells[cellId];
+            if (cell) {
+                cell.textContent = partialStr[i];
+                debugLog(`Set bring down cell ${cellId} to ${partialStr[i]}`);
+            }
+        }
+    }
 }
 
 function completeProblem(problem) {
