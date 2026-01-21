@@ -527,39 +527,28 @@ function commitGuess() {
 
 function processQuotientInput(problem) {
     const correctDigit = Math.floor(problem.partial / problem.divisor);
-    const product = currentGuess * problem.divisor;
+    const correctProduct = correctDigit * problem.divisor;
     
     debugLog(`Quotient input processing`, {
         partial: problem.partial,
         divisor: problem.divisor,
         currentGuess,
         correctDigit,
-        product,
-        condition: product > problem.partial ? 'product > partial' : 'product <= partial'
+        correctProduct
     });
     
-    // Validation - product cannot exceed partial
-    if (product > problem.partial) {
-        mistakeCount++;
-        currentStreak = 0;
-        debugLog(`Invalid: ${problem.divisor} × ${currentGuess} = ${product} > ${problem.partial}`);
-        showFeedback(`Cannot use ${currentGuess}. ${problem.divisor} × ${currentGuess} = ${product} (greater than ${problem.partial})`, 'error');
-        updateScoreDisplay();
-        return;
-    }
-    
-    // Check if correct
+    // Check if correct quotient digit was entered
     if (currentGuess !== correctDigit) {
         mistakeCount++;
         currentStreak = 0;
         debugLog(`Incorrect: ${problem.partial} ÷ ${problem.divisor} = ${correctDigit}, not ${currentGuess}`);
-        // NO AUTO-CORRECTION - just show error
         showFeedback(`Incorrect. ${problem.partial} ÷ ${problem.divisor} = ${correctDigit}`, 'error');
         updateScoreDisplay();
         return;
     }
     
     // CORRECT - Update state
+    const product = currentGuess * problem.divisor;
     problem.quotientDigits.push(currentGuess);
     problem.steps.push({
         digit: currentGuess,
