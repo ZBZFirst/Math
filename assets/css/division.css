@@ -325,12 +325,13 @@
 /* Position the division symbol container */
 .division-symbol {
     position: absolute;
-    left: 0px; /* Adjust based on where you want it */
-    top: 0px; /* Adjust based on where you want it */
+    left: 0px;
+    top: 0px;
     width: 2px;
-    height: 53px; /* Fixed height as requested */
+    height: 53px;
     background: #333;
     z-index: 1;
+    transform: translateX(-5px);
 }
 
 /* Create the horizontal line that goes UNDER the answer row */
