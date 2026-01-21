@@ -621,6 +621,8 @@
     .division-symbol::before {
         left: -15px;
         width: 210px; /* Adjusted for mobile */
+        transform: translateX(20px);
+
     }
 }
 
@@ -691,6 +693,8 @@
     .division-symbol::before {
         left: -12px;
         width: 185px; /* Adjusted for very small screens */
+        transform: translateX(15px);
+
     }
     
     .control-grid {
