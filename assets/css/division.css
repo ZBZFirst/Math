@@ -325,10 +325,10 @@
 /* Position the division symbol container */
 .division-symbol {
     position: absolute;
-    left: 0px; /* Position to the RIGHT of divisor (divisor width) */
-    top: 0px; /* Align with top of work grid (below answer row) */
-    bottom: 0; /* Extend to bottom of work grid */
-    width: 2px; /* Thinner line */
+    left: 0px; /* Adjust based on where you want it */
+    top: 0px; /* Adjust based on where you want it */
+    width: 2px;
+    height: 53px; /* Fixed height as requested */
     background: #333;
     z-index: 1;
 }
