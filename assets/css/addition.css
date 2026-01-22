@@ -188,7 +188,7 @@
 .grid-cell.line {
     background: #333;
     border: none;
-    height: 2px;
+    height: 1px;
     margin: 2px -3px 2px -1px;
     min-height: 20px !important; /* Force max height */
     max-height: 20px !important;
