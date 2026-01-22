@@ -989,7 +989,7 @@ function updateBringDownInGrid(stepNumber, nextDigit) {
                     const newCellId = `r${row}c${nextEmptyCol}`;
                     // ANIMATE from the dividend cell to the target
                     const sourceRow = 1;
-                    const sourceCol = stepNumber + 1; // The digit we're bringing down
+                    const sourceCol = stepNumber + 2; // The digit we're bringing down
                     
                     animateBringDown(nextDigit, sourceRow, sourceCol, row, nextEmptyCol).then(() => {
                         targetCell.textContent = nextDigit;
@@ -999,7 +999,7 @@ function updateBringDownInGrid(stepNumber, nextDigit) {
             } else {
                 // ANIMATE from the dividend cell to the target
                 const sourceRow = 1;
-                const sourceCol = stepNumber + 1; // The digit we're bringing down
+                const sourceCol = stepNumber + 2; // The digit we're bringing down
                 
                 animateBringDown(nextDigit, sourceRow, sourceCol, row, targetCol).then(() => {
                     targetCell.textContent = nextDigit;
