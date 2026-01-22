@@ -226,42 +226,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function setupStage2() {
-        const colData = getCurrentColumnData();
         const leftColumn = getLeftColumn(currentColumn);
         const leftColData = leftColumn ? getColumnData(leftColumn) : null;
         
-        // SIMPLIFIED: Just check if left column has at least 1
-        const hasDigitToBorrow = leftColData && leftColData.currentTopDigit >= 1;
+        // Simplified check: Can we borrow from the next column?
+        const canBorrow = leftColData && leftColData.currentTopDigit >= 1;
         
-        // Update display
-        const currentColumnDisplay = document.getElementById('currentColumnDisplay');
-        const leftColumnDisplay = document.getElementById('leftColumnDisplay');
-        const stage2Question = document.getElementById('stage2Question');
-        
-        if (currentColumnDisplay) {
-            currentColumnDisplay.textContent = `${capitalize(currentColumn)}: ${colData.currentTopDigit} - ${colData.bottomDigit}`;
-        }
-        
-        if (leftColumnDisplay && leftColData) {
-            leftColumnDisplay.textContent = `${capitalize(leftColumn)}: ${leftColData.currentTopDigit} - ${leftColData.bottomDigit}`;
-            
-            if (stage2Question) {
-                // SIMPLIFIED QUESTION: Just ask if column has at least 1
-                stage2Question.textContent = `Does the ${leftColumn} column have at least 1?`;
-                
-                // Remove any existing explanation
-                const existing = stage2Question.querySelector('.explanation');
-                if (existing) existing.remove();
-            }
-        }
-        
+        // No need to update any display elements since we removed them
         showStage(2);
         
         // Setup decision buttons
         document.querySelectorAll('#stage2 .btn-decision').forEach(btn => {
             btn.onclick = () => {
                 const userAnswer = btn.dataset.decision === 'yes';
-                handleStage2Decision(userAnswer, hasDigitToBorrow);
+                handleStage2Decision(userAnswer, canBorrow);
             };
         });
     }
@@ -410,30 +388,30 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    function handleStage2Decision(userAnswer, hasDigitToBorrow) {
-        if (userAnswer === hasDigitToBorrow) {
+    function handleStage2Decision(userAnswer, canBorrow) {
+        if (userAnswer === canBorrow) {
             showFeedback(
-                hasDigitToBorrow ? 
-                "✓ Yes! This column has at least 1." : 
-                "✓ Correct. Need to search farther left.",
+                canBorrow ? 
+                "✓ Yes! You can borrow from the next column." : 
+                "✓ Correct. Need to look farther left.",
                 'correct'
             );
             
-            if (hasDigitToBorrow) {
+            if (canBorrow) {
                 executeSimpleBorrow(getLeftColumn(currentColumn));
             } else {
                 setupStage3();
             }
         } else {
             showFeedback(
-                hasDigitToBorrow ? 
-                "✗ This column does have at least 1." : 
-                "✗ This column does not have at least 1.",
+                canBorrow ? 
+                "✗ Actually, you CAN borrow from the next column." : 
+                "✗ Actually, you CANNOT borrow from the next column.",
                 'incorrect'
             );
             
             setTimeout(() => {
-                hasDigitToBorrow ? 
+                canBorrow ? 
                     executeSimpleBorrow(getLeftColumn(currentColumn)) : 
                     setupStage3();
             }, 1500);
