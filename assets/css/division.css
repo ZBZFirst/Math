@@ -362,6 +362,7 @@
     font-weight: bold;
     font-family: 'Courier New', monospace;
     box-sizing: border-box;
+    position: relative;
 }
 
 /* Cell Colors */
@@ -475,6 +476,36 @@
 #r10c3 { grid-column: 3; grid-row: 10; }
 #r10c4 { grid-column: 4; grid-row: 10; }
 #r10c5 { grid-column: 5; grid-row: 10; }
+
+/* Subtraction sign for product rows */
+#r2c1::before,
+#r4c1::before,
+#r6c1::before {
+    content: "−";
+    position: absolute;
+    left: -22px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 28px;
+    font-weight: bold;
+    color: #333;
+    pointer-events: none;
+}
+
+/* Horizontal subtraction bars under product rows */
+#r2c1::after,
+#r4c1::after,
+#r6c1::after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 260px;
+    height: 2px;
+    background-color: #333;
+    pointer-events: none;
+}
+
 
 /* ============================================
    CONTROL BUTTONS STYLING
