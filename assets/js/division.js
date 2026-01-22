@@ -646,7 +646,7 @@ function updateGuessDisplay() {
 // ============================================
 // UPDATED: Commit Guess (Restored original logic)
 // ============================================
-function commitGuess() {
+async function commitGuess() {
     if (!currentProblem) {
         debugError('Cannot commit: No current problem');
         showFeedback('No problem loaded. Click "New Problem"', 'error');
@@ -666,13 +666,12 @@ function commitGuess() {
     
     if (p.currentStep === 0) {
         debugLog('Processing quotient input');
-        processQuotientInput(p);
+        await processQuotientInput(p);
     } else if (p.currentStep === 1) {
         debugLog('Processing subtraction');
-        processSubtraction(p);
+        await processSubtraction(p);
     } else if (p.currentStep === 2) {
         // Button should already be "Bring Down X" at this point
-        // This shouldn't normally be called, but handle it gracefully
         debugLog('In bring down phase - button should handle this');
         // Don't do anything - let the transformed button handle it
     }
@@ -682,18 +681,18 @@ function commitGuess() {
 // Core Game Logic - Clean version
 // ============================================
 
-function processQuotientInput(problem) {
+async function processQuotientInput(problem) {
     const correctDigit = Math.floor(problem.partial / problem.divisor);
     const correctProduct = correctDigit * problem.divisor;
     
-    debugLog(`Quotient input: guess ${currentGuess}, expected ${correctProduct}`);
+    debugLog(`Quotient: ${currentGuess} vs ${correctProduct}`);
     restoreCommitButton();
 
     // Validation checks
     if (currentGuess % problem.divisor !== 0) {
         mistakeCount++;
         currentStreak = 0;
-        showFeedback(`${currentGuess} is not a multiple of ${problem.divisor}`, 'error');
+        await showFeedback(`${currentGuess} is not a multiple of ${problem.divisor}`, 'error');
         updateScoreDisplay();
         return;
     }
@@ -701,7 +700,7 @@ function processQuotientInput(problem) {
     if (currentGuess > problem.partial) {
         mistakeCount++;
         currentStreak = 0;
-        showFeedback(`Cannot use ${currentGuess} (greater than ${problem.partial})`, 'error');
+        await showFeedback(`Cannot use ${currentGuess} (greater than ${problem.partial})`, 'error');
         updateScoreDisplay();
         return;
     }
@@ -709,7 +708,7 @@ function processQuotientInput(problem) {
     if (currentGuess !== correctProduct) {
         mistakeCount++;
         currentStreak = 0;
-        showFeedback(`Incorrect.`, 'error');
+        await showFeedback(`Incorrect.`, 'error');
         updateScoreDisplay();
         return;
     }
@@ -730,7 +729,7 @@ function processQuotientInput(problem) {
     
     updateQuotientInGrid(stepNumber, quotientDigit);
     updateProductInGrid(stepNumber, currentGuess);
-    showFeedback(`Correct!`, 'success');
+    await showFeedback(`✓ ${quotientDigit} × ${problem.divisor} = ${currentGuess}`, 'success');
     
     problem.currentStep = 1;
     currentGuess = 0;
@@ -740,7 +739,7 @@ function processQuotientInput(problem) {
     updateGuessDisplay();
 }
 
-function processSubtraction(problem) {
+async function processSubtraction(problem) {
     const lastStep = problem.steps[problem.steps.length - 1];
     if (!lastStep) return;
     
@@ -753,34 +752,26 @@ function processSubtraction(problem) {
     if (currentGuess !== expectedRemainder) {
         mistakeCount++;
         currentStreak = 0;
-        showFeedback(`✗ ${lastStep.partialBefore} - ${lastStep.product} ≠ ${currentGuess}`, 'error');
+        await showFeedback(`✗ ${lastStep.partialBefore} - ${lastStep.product} ≠ ${currentGuess}`, 'error');
         updateScoreDisplay();
         return;
     }
     
     updateRemainderInGrid(stepNumber, expectedRemainder);
     problem.partial = expectedRemainder;
-    showFeedback(`✓ ${lastStep.partialBefore} - ${lastStep.product} = ${expectedRemainder}`, 'success');
+    await showFeedback(`✓ ${lastStep.partialBefore} - ${lastStep.product} = ${expectedRemainder}`, 'success');
     
     problem.currentStep = 2;
     currentGuess = 0;
     
-    // ========== CRITICAL FIX ==========
-    // Check if there are more digits to bring down
-    if (problem.currentDigitIndex >= problem.n - 1) {
-        // No more digits, complete the problem
-        debugLog(`No more digits to bring down. Completing problem.`);
-        completeProblem(problem);
-    } else {
-        // There ARE digits to bring down - transform button IMMEDIATELY
+    // Check if we should immediately transform to bring down
+    if (problem.currentDigitIndex < problem.n - 1) {
         const nextDigit = problem.digits[problem.currentDigitIndex + 1];
-        debugLog(`Transforming to bring down ${nextDigit} immediately`);
         transformToBringDownButton(nextDigit);
-        
-        // Update instruction
-        showFeedback(`Bring down the next digit (${nextDigit})`, 'info');
+        await showFeedback(`Bring down ${nextDigit}`, 'info');
+    } else {
+        await completeProblem(problem);
     }
-    // ===================================
     
     updateProblemDisplay();
     updateGuessDisplay();
@@ -818,7 +809,7 @@ function processBringDown(problem) {
     updateProblemDisplay();
 }
 
-function executeBringDown(problem, nextDigit) {
+async function executeBringDown(problem, nextDigit) {
     debugLog(`Executing bring down for digit ${nextDigit}`);
     
     // Remove the bring down button (if it exists separately)
@@ -829,19 +820,19 @@ function executeBringDown(problem, nextDigit) {
     
     debugLog(`Brought down ${nextDigit}. New partial: ${problem.partial}`);
     
-    // Get the current step number (0 for first digit, 1 for second, etc.)
-    const stepNumber = problem.steps.length - 1; // Which step we just completed
+    // Get the current step number
+    const stepNumber = problem.steps.length - 1;
     
     // Update the grid with the brought down digit
     updateBringDownInGrid(stepNumber, nextDigit);
     
     // Show success feedback
-    showFeedback(`✓ Brought down ${nextDigit}. New number: ${problem.partial}`, 'success');
+    await showFeedback(`✓ Brought down ${nextDigit}. New number: ${problem.partial}`, 'success');
     
     // Move to next quotient step
     problem.currentStep = 0;
-    problem.currentDigitIndex++; // Increment AFTER bringing down
-    currentGuess = 0; // Reset guess for next quotient
+    problem.currentDigitIndex++;
+    currentGuess = 0;
     
     // RESTORE the commit button to its original state
     restoreCommitButton();
@@ -1075,7 +1066,7 @@ function updateBringDownInGrid(stepNumber, nextDigit) {
     }
 }
 
-function completeProblem(problem) {
+async function completeProblem(problem) {
     problem.finished = true;
     
     // Update final remainder in answer grid
@@ -1091,7 +1082,7 @@ function completeProblem(problem) {
     const quotient = problem.quotientDigits.join('').replace(/^0+/, '') || '0';
     debugLog(`Problem completed! Quotient: ${quotient}, Remainder: ${finalRemainder}`);
     
-    showFeedback(`Perfect! Answer: ${quotient} R ${finalRemainder}`, 'success');
+    await showFeedback(`🎉 Complete! ${problem.dividend} ÷ ${problem.divisor} = ${quotient} R ${finalRemainder}`, 'success');
     
     updateScoreDisplay();
     updateProblemDisplay();
