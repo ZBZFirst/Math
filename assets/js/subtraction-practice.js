@@ -426,6 +426,17 @@ function renderMainGrid() {
     
     function executeChainBorrowing(sourceColumn) {
         try {
+            console.log("=== START executeChainBorrowing ===");
+            console.log("Source column:", sourceColumn);
+            console.log("Current column:", currentColumn);
+            
+            // Log initial state
+            console.log("Initial state:");
+            columns.forEach(col => {
+                const data = getColumnData(col);
+                console.log(`  ${col}: ${data.currentTopDigit} (original: ${data.topDigit})`);
+            });
+            
             // Create chain from source to current column
             const chain = [sourceColumn];
             let current = sourceColumn;
@@ -440,16 +451,22 @@ function renderMainGrid() {
                 }
             }
             
+            console.log("Chain:", chain);
+            
             // Check if we're borrowing through a 0 column
             // If the immediate left column has 0, we need to borrow through it
             
             // Execute borrowing through the chain
             // Start from the source and work towards the target
+            console.log("Processing chain...");
             for (let i = 0; i < chain.length - 1; i++) {
                 const from = chain[i];
                 const to = chain[i + 1];
                 const fromData = getColumnData(from);
                 const toData = getColumnData(to);
+                
+                console.log(`\nStep ${i}: ${from} -> ${to}`);
+                console.log(`  Before: ${from}=${fromData.currentTopDigit}, ${to}=${toData.currentTopDigit}`);
                 
                 if (!fromData || !toData) {
                     throw new Error(`Missing data for ${from} -> ${to}`);
@@ -464,21 +481,34 @@ function renderMainGrid() {
                 if (to === currentColumn) {
                     // This is the column we're actually subtracting from
                     toData.currentTopDigit += 10;
+                    console.log(`  ${to} is target column: +10`);
                 } else {
                     // Intermediate column (like tens when borrowing through it)
                     // It gets 10 from the left, but gives 1 to the right
                     toData.currentTopDigit += 10 - 1;
+                    console.log(`  ${to} is intermediate column: +9 (10 - 1)`);
                 }
+                
+                console.log(`  After: ${from}=${fromData.currentTopDigit}, ${to}=${toData.currentTopDigit}`);
             }
             
             // Mark final column as borrowed
             getCurrentColumnData().borrowed = true;
+            
+            console.log("\nFinal state:");
+            columns.forEach(col => {
+                const data = getColumnData(col);
+                console.log(`  ${col}: ${data.currentTopDigit}`);
+            });
+            
+            console.log("=== END executeChainBorrowing ===");
             
             showFeedback(`✓ Borrowed from ${sourceColumn}`, 'correct');
             renderMainGrid();
             setTimeout(() => setupStage4(), 1000);
             
         } catch (error) {
+            console.error("Error in executeChainBorrowing:", error);
             showFeedback(`✗ Error: ${error.message}`, 'error');
             setTimeout(() => setupStage3(), 1500);
         }
