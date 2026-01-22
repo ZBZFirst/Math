@@ -516,9 +516,14 @@ function updateProblemDisplay() {
                 }
                 break;
             case 2:
-                const nextDigit = p.digits[p.currentDigitIndex + 1]; // Get the NEXT digit
-                currentStep = `Bring down ${nextDigit}`;
-                instruction = `Click "Bring Down" button to bring down ${nextDigit}`;
+                if (p.currentDigitIndex >= p.n - 1) {
+                    currentStep = "Complete the problem";
+                    instruction = "No more digits to bring down";
+                } else {
+                    const nextDigit = p.digits[p.currentDigitIndex + 1]; // Get the NEXT digit
+                    currentStep = `Bring down ${nextDigit}`;
+                    instruction = `Click "Bring Down" button to bring down ${nextDigit}`;
+                }
                 break;
         }
     }
