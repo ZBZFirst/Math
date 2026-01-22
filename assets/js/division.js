@@ -221,36 +221,13 @@ function setupControlButtonListeners() {
 // ANIMATION: Bring Down Next Digit (Fixed)
 // ============================================
 // ============================================
-// FIXED: Bring Down Next Digit Animation
+// FIXED: Bring Down Next Digit Animation (Correct positioning)
 // ============================================
 function animateBringDown(nextDigit, sourceRow, sourceCol, targetRow, targetCol) {
     debugLog(`Animating bring down of ${nextDigit} from (r${sourceRow}c${sourceCol}) to (r${targetRow}c${targetCol})`);
     
     return new Promise((resolve) => {
-        // Create the animation element
-        const animElement = document.createElement('div');
-        animElement.className = 'digit-animation';
-        animElement.textContent = nextDigit;
-        animElement.style.cssText = `
-            position: fixed; /* Changed from absolute to fixed for reliable positioning */
-            font-size: 24px;
-            font-weight: bold;
-            color: #3498db;
-            background: white;
-            border: 2px solid #3498db;
-            border-radius: 5px;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            z-index: 10000; /* Higher z-index */
-            transition: all 0.5s ease-in-out;
-            pointer-events: none; /* Don't interfere with clicks */
-        `;
-        
-        // Get source and target positions
+        // Get source and target cells first
         const sourceCell = gridCells[`r${sourceRow}c${sourceCol}`];
         const targetCell = gridCells[`r${targetRow}c${targetCol}`];
         
@@ -260,23 +237,49 @@ function animateBringDown(nextDigit, sourceRow, sourceCol, targetRow, targetCol)
             return;
         }
         
-        // Get absolute positions in the viewport
+        // Get positions relative to viewport
         const sourceRect = sourceCell.getBoundingClientRect();
         const targetRect = targetCell.getBoundingClientRect();
         
+        // Get scroll position to adjust for fixed positioning
+        const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+        
+        // Create the animation element
+        const animElement = document.createElement('div');
+        animElement.className = 'digit-animation';
+        animElement.textContent = nextDigit;
+        animElement.style.cssText = `
+            position: fixed;
+            font-size: 24px;
+            font-weight: bold;
+            color: #3498db;
+            background: white;
+            border: 2px solid #3498db;
+            border-radius: 5px;
+            width: ${sourceRect.width}px;
+            height: ${sourceRect.height}px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 10000;
+            transition: all 0.5s ease-in-out;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+        `;
+        
+        // Calculate CENTERED positions (accounting for scroll)
+        const sourceLeft = sourceRect.left + sourceRect.width/2 + scrollX;
+        const sourceTop = sourceRect.top + sourceRect.height/2 + scrollY;
+        const targetLeft = targetRect.left + targetRect.width/2 + scrollX;
+        const targetTop = targetRect.top + targetRect.height/2 + scrollY;
+        
         // Position at source (centered)
-        const sourceLeft = sourceRect.left + sourceRect.width/2 - 20;
-        const sourceTop = sourceRect.top;
-        
-        // Target position (centered)
-        const targetLeft = targetRect.left + targetRect.width/2 - 20;
-        const targetTop = targetRect.top;
-        
-        // Start at source position
         animElement.style.left = `${sourceLeft}px`;
         animElement.style.top = `${sourceTop}px`;
         
-        // Add to document body (not container) for reliable positioning
+        // Add to document body
         document.body.appendChild(animElement);
         
         // Force reflow
@@ -286,7 +289,7 @@ function animateBringDown(nextDigit, sourceRow, sourceCol, targetRow, targetCol)
         requestAnimationFrame(() => {
             animElement.style.left = `${targetLeft}px`;
             animElement.style.top = `${targetTop}px`;
-            animElement.style.transform = 'scale(1.2)';
+            animElement.style.transform = 'translate(-50%, -50%) scale(1.2)';
             animElement.style.backgroundColor = '#e3f2fd';
             
             // When animation completes
