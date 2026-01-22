@@ -747,34 +747,46 @@ function processQuotientInput(problem) {
 
 function processSubtraction(problem) {
     const lastStep = problem.steps[problem.steps.length - 1];
-    if (!lastStep) {
-        debugError('No last step for subtraction');
-        return;
-    }
+    if (!lastStep) return;
     
     const expectedRemainder = lastStep.subtraction;
     const stepNumber = lastStep.stepNumber;
     
-    debugLog(`Subtraction: guess ${currentGuess}, expected ${expectedRemainder}`);
+    debugLog(`Subtract: ${currentGuess} vs ${expectedRemainder}`);
     restoreCommitButton();
 
-    // Check if correct
     if (currentGuess !== expectedRemainder) {
         mistakeCount++;
         currentStreak = 0;
-        showFeedback(`Incorrect.`, 'error');
+        showFeedback(`✗ ${lastStep.partialBefore} - ${lastStep.product} ≠ ${currentGuess}`, 'error');
         updateScoreDisplay();
         return;
     }
     
     updateRemainderInGrid(stepNumber, expectedRemainder);
     problem.partial = expectedRemainder;
-    showFeedback(`Correct! The remainder is ${expectedRemainder}`, 'success');
+    showFeedback(`✓ ${lastStep.partialBefore} - ${lastStep.product} = ${expectedRemainder}`, 'success');
     
     problem.currentStep = 2;
     currentGuess = 0;
     
-    debugLog(`→ Moving to bring down step ${stepNumber}`);
+    // ========== CRITICAL FIX ==========
+    // Check if there are more digits to bring down
+    if (problem.currentDigitIndex >= problem.n - 1) {
+        // No more digits, complete the problem
+        debugLog(`No more digits to bring down. Completing problem.`);
+        completeProblem(problem);
+    } else {
+        // There ARE digits to bring down - transform button IMMEDIATELY
+        const nextDigit = problem.digits[problem.currentDigitIndex + 1];
+        debugLog(`Transforming to bring down ${nextDigit} immediately`);
+        transformToBringDownButton(nextDigit);
+        
+        // Update instruction
+        showFeedback(`Bring down the next digit (${nextDigit})`, 'info');
+    }
+    // ===================================
+    
     updateProblemDisplay();
     updateGuessDisplay();
 }
@@ -785,27 +797,29 @@ function processSubtraction(problem) {
 function processBringDown(problem) {
     debugLog(`Bring down processing`, {
         currentDigitIndex: problem.currentDigitIndex,
-        n: problem.n,
-        digits: problem.digits,
-        partial: problem.partial
+        n: problem.n
     });
     
-    // Check if there are more digits to bring down
+    // This function shouldn't transform the button anymore
+    // It should only handle if somehow we got here with button not transformed
     if (problem.currentDigitIndex >= problem.n - 1) {
         debugLog(`No more digits to bring down. Completing problem.`);
         completeProblem(problem);
         return;
     }
     
+    // Button should already be transformed at this point
+    // Just make sure instruction is clear
     const nextDigit = problem.digits[problem.currentDigitIndex + 1];
     
-    // TRANSFORM the existing commit button instead of creating a new one
-    transformToBringDownButton(nextDigit);
+    // Double-check button is transformed
+    if (commitButton && !commitButton.innerHTML.includes('Bring Down')) {
+        debugLog(`Button not transformed, transforming now`);
+        transformToBringDownButton(nextDigit);
+    }
     
     // Update instruction
-    const instruction = `Click the "Bring Down ${nextDigit}" button to bring down the next digit`;
-    showFeedback(instruction, 'info');
-    
+    showFeedback(`Click "Bring Down ${nextDigit}" to continue`, 'info');
     updateProblemDisplay();
 }
 
