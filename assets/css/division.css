@@ -477,10 +477,11 @@
 #r10c4 { grid-column: 4; grid-row: 10; }
 #r10c5 { grid-column: 5; grid-row: 10; }
 
-.product-row::before {
+/* Minus sign */
+.product-row .grid-cell:first-child::before {
     content: "−";
     position: absolute;
-    left: -22px;
+    left: -25px;
     top: 50%;
     transform: translateY(-50%);
     font-size: 28px;
@@ -490,22 +491,17 @@
     z-index: 2;
 }
 
-
-.product-row {
-    position: relative;
-}
-
-.product-row::after {
+/* Horizontal subtraction bar */
+.product-row .grid-cell:first-child::after {
     content: "";
     position: absolute;
+    bottom: -8px; /* Position below the cell */
     left: 0;
-    right: 0;
-    bottom: -6px;
+    width: calc(100% * 5 + 8px); /* Span all 5 columns + gaps */
     height: 2px;
     background-color: #333;
     pointer-events: none;
     z-index: 2;
-
 }
 
 .work-row {
