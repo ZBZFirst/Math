@@ -220,6 +220,9 @@ function setupControlButtonListeners() {
 // ============================================
 // ANIMATION: Bring Down Next Digit (Fixed)
 // ============================================
+// ============================================
+// FIXED: Bring Down Next Digit Animation
+// ============================================
 function animateBringDown(nextDigit, sourceRow, sourceCol, targetRow, targetCol) {
     debugLog(`Animating bring down of ${nextDigit} from (r${sourceRow}c${sourceCol}) to (r${targetRow}c${targetCol})`);
     
@@ -229,7 +232,7 @@ function animateBringDown(nextDigit, sourceRow, sourceCol, targetRow, targetCol)
         animElement.className = 'digit-animation';
         animElement.textContent = nextDigit;
         animElement.style.cssText = `
-            position: absolute;
+            position: fixed; /* Changed from absolute to fixed for reliable positioning */
             font-size: 24px;
             font-weight: bold;
             color: #3498db;
@@ -242,8 +245,9 @@ function animateBringDown(nextDigit, sourceRow, sourceCol, targetRow, targetCol)
             align-items: center;
             justify-content: center;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            z-index: 1000;
+            z-index: 10000; /* Higher z-index */
             transition: all 0.5s ease-in-out;
+            pointer-events: none; /* Don't interfere with clicks */
         `;
         
         // Get source and target positions
@@ -256,24 +260,27 @@ function animateBringDown(nextDigit, sourceRow, sourceCol, targetRow, targetCol)
             return;
         }
         
+        // Get absolute positions in the viewport
         const sourceRect = sourceCell.getBoundingClientRect();
         const targetRect = targetCell.getBoundingClientRect();
-        const containerRect = workStageContainer.getBoundingClientRect();
         
-        // Position relative to container
-        const sourceLeft = sourceRect.left - containerRect.left + sourceRect.width/2 - 20;
-        const sourceTop = sourceRect.top - containerRect.top;
-        const targetLeft = targetRect.left - containerRect.left + targetRect.width/2 - 20;
-        const targetTop = targetRect.top - containerRect.top;
+        // Position at source (centered)
+        const sourceLeft = sourceRect.left + sourceRect.width/2 - 20;
+        const sourceTop = sourceRect.top;
         
-        // Position at source
+        // Target position (centered)
+        const targetLeft = targetRect.left + targetRect.width/2 - 20;
+        const targetTop = targetRect.top;
+        
+        // Start at source position
         animElement.style.left = `${sourceLeft}px`;
         animElement.style.top = `${sourceTop}px`;
         
-        workStageContainer.appendChild(animElement);
+        // Add to document body (not container) for reliable positioning
+        document.body.appendChild(animElement);
         
         // Force reflow
-        animElement.offsetHeight;
+        void animElement.offsetWidth;
         
         // Animate to target
         requestAnimationFrame(() => {
