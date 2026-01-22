@@ -817,7 +817,32 @@ function processBringDown(problem) {
 }
 
 async function executeBringDown(problem, nextDigit) {
-    debugLog(`Executing bring down for digit ${nextDigit}`);
+    debugLog(`Executing bring down for digit ${nextDigit}`, {
+        currentDigitIndex: problem.currentDigitIndex,
+        n: problem.n,
+        partialBefore: problem.partial,
+        nextDigit: nextDigit
+    });
+    
+    // CRITICAL CHECK: Make sure we haven't already brought down all digits
+    if (problem.currentDigitIndex >= problem.n - 1) {
+        debugLog(`No more digits to bring down. Should complete problem.`);
+        await completeProblem(problem);
+        return;
+    }
+    
+    // CRITICAL CHECK: Ensure we're in the right state for bring down
+    if (problem.currentStep !== 2) {
+        debugLog(`Not in bring down state (currentStep=${problem.currentStep}). Ignoring.`);
+        return;
+    }
+    
+    // CRITICAL CHECK: Make sure nextDigit matches the expected digit
+    const expectedDigit = problem.digits[problem.currentDigitIndex + 1];
+    if (nextDigit !== expectedDigit) {
+        debugLog(`Digit mismatch: expected ${expectedDigit}, got ${nextDigit}. Ignoring.`);
+        return;
+    }
     
     // Remove the bring down button (if it exists separately)
     hideBringDownButton();
@@ -831,7 +856,7 @@ async function executeBringDown(problem, nextDigit) {
     const stepNumber = problem.steps.length - 1;
     
     // Update the grid with the brought down digit
-    updateBringDownInGrid(stepNumber, nextDigit);
+    await updateBringDownInGrid(stepNumber, nextDigit);
     
     // Show success feedback
     await showFeedback(`✓ Brought down ${nextDigit}. New number: ${problem.partial}`, 'success');
@@ -840,6 +865,12 @@ async function executeBringDown(problem, nextDigit) {
     problem.currentStep = 0;
     problem.currentDigitIndex++;
     currentGuess = 0;
+    
+    // Check if there are more digits to bring down
+    if (problem.currentDigitIndex >= problem.n - 1) {
+        // No more digits to bring down after this one
+        debugLog(`No more digits after this. Next step should be final quotient.`);
+    }
     
     // RESTORE the commit button to its original state
     restoreCommitButton();
@@ -923,6 +954,9 @@ function transformToBringDownButton(nextDigit) {
     
     debugLog(`Transforming commit button to "Bring Down ${nextDigit}"`);
     
+    // CRITICAL: Disable the button immediately to prevent double clicks
+    commitButton.disabled = true;
+    
     // Save original state
     if (!commitButton.originalHTML) {
         commitButton.originalHTML = commitButton.innerHTML;
@@ -955,23 +989,28 @@ function transformToBringDownButton(nextDigit) {
         width: 100%;
     `;
     
-    // Add hover effects
-    commitButton.onmouseover = () => {
-        if (!commitButton.disabled) {
-            commitButton.style.transform = 'translateY(-2px)';
-            commitButton.style.boxShadow = '0 6px 8px rgba(52, 152, 219, 0.4)';
-        }
-    };
+    // Re-enable after a short delay to prevent immediate double-click
+    setTimeout(() => {
+        commitButton.disabled = false;
+    }, 300);
     
-    commitButton.onmouseout = () => {
-        commitButton.style.transform = 'translateY(0)';
-        commitButton.style.boxShadow = '0 4px 6px rgba(52, 152, 219, 0.3)';
-    };
-    
-    // Change the button's click handler to execute bring down
-    commitButton.onclick = () => {
+    // Create a new click handler that prevents multiple executions
+    const handleBringDownClick = () => {
+        // Disable button immediately on click
+        commitButton.disabled = true;
+        commitButton.style.opacity = '0.7';
+        commitButton.style.cursor = 'not-allowed';
+        
+        // Execute the bring down
         executeBringDown(currentProblem, nextDigit);
     };
+    
+    // Replace the onclick
+    commitButton.onclick = handleBringDownClick;
+    
+    // Remove hover effects since we're managing state
+    commitButton.onmouseover = null;
+    commitButton.onmouseout = null;
     
     // Show the button if it was hidden
     commitButton.style.display = 'flex';
@@ -981,6 +1020,11 @@ function restoreCommitButton() {
     if (!commitButton || !commitButton.originalHTML) return;
     
     debugLog('Restoring commit button to original state');
+    
+    // Re-enable the button
+    commitButton.disabled = false;
+    commitButton.style.opacity = '';
+    commitButton.style.cursor = '';
     
     // Restore original content and click handler
     commitButton.innerHTML = commitButton.originalHTML;
@@ -1039,17 +1083,24 @@ function updateBringDownInGrid(stepNumber, nextDigit) {
         const targetCell = gridCells[cellId];
         
         if (targetCell) {
+            // CRITICAL: Only animate if the target cell is empty
+            if (targetCell.textContent !== '') {
+                debugLog(`Target cell ${cellId} already has value: ${targetCell.textContent}. Skipping animation.`);
+                return Promise.resolve();
+            }
+            
             // Find which column in the dividend row has this digit
             // For 3-digit dividend: step 0 brings down digit 2 (col 2), step 1 brings down digit 3 (col 3)
             const sourceCol = stepNumber + 2; // Adjust based on your layout
             
-            // Use the corrected animation function
-            animateBringDown(nextDigit, 1, sourceCol, row, targetCol).then(() => {
+            // Use the corrected animation function and return the promise
+            return animateBringDown(nextDigit, 1, sourceCol, row, targetCol).then(() => {
                 targetCell.textContent = nextDigit;
                 debugLog(`Appended brought down digit ${nextDigit} to ${cellId} via animation`);
             });
         }
     }
+    return Promise.resolve();
 }
 
 async function completeProblem(problem) {
