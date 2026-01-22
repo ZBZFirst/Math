@@ -832,7 +832,7 @@ function processBringDown(problem) {
     }
     
     // Instead of automatically bringing down, update UI to show what will happen
-    const nextDigit = problem.digits[problem.currentDigitIndex];
+    const nextDigit = problem.digits[problem.currentDigitIndex + 1];
     
     // Update instruction to make it clear what's happening
     const instruction = `Click "Bring Down" to bring down ${nextDigit} from the dividend`;
