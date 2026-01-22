@@ -540,10 +540,17 @@ function renderMainGrid() {
         
         updateDisplay();
     }
-    
+        
     function checkComputation() {
-        const userAnswer = currentNumberEl ? +currentNumberEl.textContent || 0 : 0;
         const colData = getCurrentColumnData();
+        
+        // Check if this column is already completed
+        if (colData?.completed) {
+            showFeedback("✗ This column is already completed!", 'incorrect');
+            return; // Exit early - don't process again
+        }
+        
+        const userAnswer = currentNumberEl ? +currentNumberEl.textContent || 0 : 0;
         
         if (!colData) return;
         
