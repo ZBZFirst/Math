@@ -1039,36 +1039,15 @@ function updateBringDownInGrid(stepNumber, nextDigit) {
         const targetCell = gridCells[cellId];
         
         if (targetCell) {
-            // Check if the cell is empty (it should be)
-            if (targetCell.textContent !== '') {
-                debugError(`Bring down cell ${cellId} already has value: ${targetCell.textContent}`);
-                // Find the next truly empty cell
-                let nextEmptyCol = targetCol;
-                while (nextEmptyCol <= 5 && gridCells[`r${row}c${nextEmptyCol}`] && 
-                       gridCells[`r${row}c${nextEmptyCol}`].textContent !== '') {
-                    nextEmptyCol++;
-                }
-                if (nextEmptyCol <= 5) {
-                    const newCellId = `r${row}c${nextEmptyCol}`;
-                    // ANIMATE from the dividend cell to the target
-                    const sourceRow = 1;
-                    const sourceCol = stepNumber + 2; // The digit we're bringing down
-                    
-                    animateBringDown(nextDigit, sourceRow, sourceCol, row, nextEmptyCol).then(() => {
-                        targetCell.textContent = nextDigit;
-                        debugLog(`Appended brought down digit ${nextDigit} to ${newCellId} via animation`);
-                    });
-                }
-            } else {
-                // ANIMATE from the dividend cell to the target
-                const sourceRow = 1;
-                const sourceCol = stepNumber + 2; // The digit we're bringing down
-                
-                animateBringDown(nextDigit, sourceRow, sourceCol, row, targetCol).then(() => {
-                    targetCell.textContent = nextDigit;
-                    debugLog(`Appended brought down digit ${nextDigit} to ${cellId} via animation (column ${targetCol})`);
-                });
-            }
+            // Find which column in the dividend row has this digit
+            // For 3-digit dividend: step 0 brings down digit 2 (col 2), step 1 brings down digit 3 (col 3)
+            const sourceCol = stepNumber + 2; // Adjust based on your layout
+            
+            // Use the corrected animation function
+            animateBringDown(nextDigit, 1, sourceCol, row, targetCol).then(() => {
+                targetCell.textContent = nextDigit;
+                debugLog(`Appended brought down digit ${nextDigit} to ${cellId} via animation`);
+            });
         }
     }
 }
