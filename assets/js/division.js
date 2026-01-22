@@ -684,137 +684,97 @@ function commitGuess() {
 }
 
 // ============================================
-// UPDATED: Core Game Logic - Track step completion
+// Core Game Logic - Clean version
 // ============================================
+
 function processQuotientInput(problem) {
     const correctDigit = Math.floor(problem.partial / problem.divisor);
     const correctProduct = correctDigit * problem.divisor;
     
-    debugLog(`Quotient input processing`, {
-        partial: problem.partial,
-        divisor: problem.divisor,
-        currentGuess,
-        correctDigit,
-        correctProduct
-    });
+    debugLog(`Quotient input: guess ${currentGuess}, expected ${correctProduct}`);
     restoreCommitButton();
-    // FIX: Check if currentGuess is the CORRECT PRODUCT (subtraction number)
-    // First, validate that it's actually a multiple of the divisor
+
+    // Validation checks
     if (currentGuess % problem.divisor !== 0) {
         mistakeCount++;
         currentStreak = 0;
-        debugLog(`Invalid: ${currentGuess} is not a multiple of ${problem.divisor}`);
         showFeedback(`${currentGuess} is not a multiple of ${problem.divisor}`, 'error');
         updateScoreDisplay();
         return;
     }
     
-    // FIX: Check that product doesn't exceed partial
     if (currentGuess > problem.partial) {
         mistakeCount++;
         currentStreak = 0;
-        debugLog(`Invalid: ${currentGuess} > ${problem.partial}`);
         showFeedback(`Cannot use ${currentGuess} (greater than ${problem.partial})`, 'error');
         updateScoreDisplay();
         return;
     }
     
-    // FIX: Now check if it's the LARGEST multiple ≤ partial
     if (currentGuess !== correctProduct) {
         mistakeCount++;
         currentStreak = 0;
-        debugLog(`Incorrect: Largest multiple of ${problem.divisor} ≤ ${problem.partial} is ${correctProduct}, not ${currentGuess}`);
         showFeedback(`Incorrect.`, 'error');
         updateScoreDisplay();
         return;
     }
-    
-    // CORRECT - Update state
-    // FIX: Calculate the quotient digit from the product
+
+    // Correct answer
     const quotientDigit = currentGuess / problem.divisor;
-    
-    // Track which step we're on
-    const stepNumber = problem.quotientDigits.length; // 0, 1, 2
+    const stepNumber = problem.quotientDigits.length;
     
     problem.quotientDigits.push(quotientDigit);
     problem.steps.push({
         stepNumber: stepNumber,
         digit: quotientDigit,
         partialBefore: problem.partial,
-        product: currentGuess, // This is the product they entered
+        product: currentGuess,
         subtraction: problem.partial - currentGuess,
         digitIndex: problem.currentDigitIndex
     });
     
-    debugLog(`Correct! Updated problem state`, {
-        stepNumber: stepNumber,
-        quotientDigit: quotientDigit,
-        quotientDigits: problem.quotientDigits,
-        steps: problem.steps
-    });
-    
-    // Update grid with the quotient digit (not the product!)
     updateQuotientInGrid(stepNumber, quotientDigit);
     updateProductInGrid(stepNumber, currentGuess);
-    
     showFeedback(`Correct!`, 'success');
     
-    // Move to next step
     problem.currentStep = 1;
-    currentGuess = 0; // Reset guess for subtraction step
+    currentGuess = 0;
     
-    debugLog(`Moving to step 1 (subtraction). Step number: ${stepNumber}`);
-    
+    debugLog(`→ Moving to subtraction step ${stepNumber}`);
     updateProblemDisplay();
     updateGuessDisplay();
 }
 
-
 function processSubtraction(problem) {
     const lastStep = problem.steps[problem.steps.length - 1];
     if (!lastStep) {
-        debugError('No last step found for subtraction');
+        debugError('No last step for subtraction');
         return;
     }
     
     const expectedRemainder = lastStep.subtraction;
     const stepNumber = lastStep.stepNumber;
     
-    debugLog(`Subtraction processing`, {
-        stepNumber: stepNumber,
-        partialBefore: lastStep.partialBefore,
-        product: lastStep.product,
-        expectedRemainder,
-        currentGuess
-    });
+    debugLog(`Subtraction: guess ${currentGuess}, expected ${expectedRemainder}`);
     restoreCommitButton();
 
     // Check if correct
     if (currentGuess !== expectedRemainder) {
         mistakeCount++;
         currentStreak = 0;
-        debugLog(`Incorrect subtraction: guessed ${currentGuess}, expected ${expectedRemainder}`);
-        // NO AUTO-CORRECTION - just show error
         showFeedback(`Incorrect.`, 'error');
         updateScoreDisplay();
         return;
     }
     
-    // CORRECT - Update grid with remainder
     updateRemainderInGrid(stepNumber, expectedRemainder);
-    
     problem.partial = expectedRemainder;
-    debugLog(`Correct subtraction. New partial: ${problem.partial}`);
-    
     showFeedback(`Correct! The remainder is ${expectedRemainder}`, 'success');
     
-    // Move to next step
     problem.currentStep = 2;
-    // Don't increment currentDigitIndex here - we'll do it after bring down
-    currentGuess = 0; // Reset guess for bring down step
+    currentGuess = 0;
     
-    debugLog(`Moving to step 2 (bring down). Step number: ${stepNumber}`);
-    
+    debugLog(`→ Moving to bring down step ${stepNumber}`);
     updateProblemDisplay();
     updateGuessDisplay();
 }
