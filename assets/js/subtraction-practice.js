@@ -380,7 +380,16 @@ function renderMainGrid() {
             );
             
             if (canBorrow) {
-                executeSimpleBorrow(getLeftColumn(currentColumn));
+                // Check if next column has at least 1 (not 0)
+                const leftColumn = getLeftColumn(currentColumn);
+                const leftColData = getColumnData(leftColumn);
+                
+                if (leftColData && leftColData.currentTopDigit >= 1) {
+                    executeSimpleBorrow(leftColumn);
+                } else {
+                    // Even though we said "yes" to borrowing, if it's 0, we need chain
+                    setupStage3();
+                }
             } else {
                 setupStage3();
             }
@@ -393,9 +402,18 @@ function renderMainGrid() {
             );
             
             setTimeout(() => {
-                canBorrow ? 
-                    executeSimpleBorrow(getLeftColumn(currentColumn)) : 
+                if (canBorrow) {
+                    const leftColumn = getLeftColumn(currentColumn);
+                    const leftColData = getColumnData(leftColumn);
+                    
+                    if (leftColData && leftColData.currentTopDigit >= 1) {
+                        executeSimpleBorrow(leftColumn);
+                    } else {
+                        setupStage3();
+                    }
+                } else {
                     setupStage3();
+                }
             }, 1500);
         }
     }
@@ -447,7 +465,11 @@ function renderMainGrid() {
                 }
             }
             
+            // Check if we're borrowing through a 0 column
+            // If the immediate left column has 0, we need to borrow through it
+            
             // Execute borrowing through the chain
+            // Start from the source and work towards the target
             for (let i = 0; i < chain.length - 1; i++) {
                 const from = chain[i];
                 const to = chain[i + 1];
@@ -458,14 +480,24 @@ function renderMainGrid() {
                     throw new Error(`Missing data for ${from} -> ${to}`);
                 }
                 
+                // Borrow 1 from 'from' column
                 fromData.currentTopDigit -= 1;
-                toData.currentTopDigit += 10;
                 
-                // Mark final column as borrowed
+                // Add 10 to 'to' column
+                // BUT if 'to' is not the target column, it should become 9 (10 - 1)
+                // Only the final target column gets +10
                 if (to === currentColumn) {
-                    getCurrentColumnData().borrowed = true;
+                    // This is the column we're actually subtracting from
+                    toData.currentTopDigit += 10;
+                } else {
+                    // Intermediate column (like tens when borrowing through it)
+                    // It gets 10 from the left, but gives 1 to the right
+                    toData.currentTopDigit += 10 - 1;
                 }
             }
+            
+            // Mark final column as borrowed
+            getCurrentColumnData().borrowed = true;
             
             showFeedback(`✓ Borrowed from ${sourceColumn}`, 'correct');
             renderMainGrid();
