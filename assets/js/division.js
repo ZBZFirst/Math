@@ -498,28 +498,24 @@ function updateProblemDisplay() {
         const remainder = p.steps[p.steps.length - 1]?.subtraction || 0;
         currentStep = `${dividend} ÷ ${divisor} = ${quotient} R ${remainder}`;
         instruction = 'Problem completed!';
-        debugLog(`Problem finished. Quotient: ${quotient}, Remainder: ${remainder}`);
     } else {
         // Show current step
         switch (p.currentStep) {
             case 0:
                 currentStep = `${p.partial} ÷ ${divisor} = ?`;
-                instruction = `Find the largest multiple of ${divisor} ≤ ${p.partial}`;
-                debugLog(`Step 0: Finding subtraction number for ${dividend} ÷ ${divisor}`);
+                instruction = `Find the largest multiple of ${divisor} without going over ${p.partial}`;
                 break;
             case 1:
                 const lastStep = p.steps[p.steps.length - 1];
                 if (lastStep) {
                     currentStep = `${lastStep.partialBefore} - ${lastStep.product} = ?`;
-                    instruction = `Subtract ${lastStep.product} from ${lastStep.partialBefore}`;
-                    debugLog(`Step 1: Subtracting ${lastStep.product} from ${lastStep.partialBefore}`);
+                    instruction = `What is  ${lastStep.product} minus ${lastStep.partialBefore}`;
                 }
                 break;
             case 2:
                 const nextDigit = p.digits[p.currentDigitIndex];
                 currentStep = `Bring down ${nextDigit}`;
                 instruction = `Click "Bring Down" button to bring down ${nextDigit}`;
-                debugLog(`Step 2: Ready to bring down ${nextDigit}`);
                 break;
         }
     }
