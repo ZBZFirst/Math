@@ -219,7 +219,7 @@ function setupControlButtonListeners() {
 }
 
 // ============================================
-// ANIMATION: Bring Down Next Digit
+// ANIMATION: Bring Down Next Digit (Fixed)
 // ============================================
 function animateBringDown(nextDigit, sourceRow, sourceCol, targetRow, targetCol) {
     debugLog(`Animating bring down of ${nextDigit} from (r${sourceRow}c${sourceCol}) to (r${targetRow}c${targetCol})`);
@@ -259,20 +259,27 @@ function animateBringDown(nextDigit, sourceRow, sourceCol, targetRow, targetCol)
         
         const sourceRect = sourceCell.getBoundingClientRect();
         const targetRect = targetCell.getBoundingClientRect();
+        const containerRect = workStageContainer.getBoundingClientRect();
+        
+        // Position relative to container
+        const sourceLeft = sourceRect.left - containerRect.left + sourceRect.width/2 - 20;
+        const sourceTop = sourceRect.top - containerRect.top;
+        const targetLeft = targetRect.left - containerRect.left + targetRect.width/2 - 20;
+        const targetTop = targetRect.top - containerRect.top;
         
         // Position at source
-        animElement.style.left = `${sourceRect.left + sourceRect.width/2 - 20}px`;
-        animElement.style.top = `${sourceRect.top}px`;
+        animElement.style.left = `${sourceLeft}px`;
+        animElement.style.top = `${sourceTop}px`;
         
-        document.body.appendChild(animElement);
+        workStageContainer.appendChild(animElement);
         
         // Force reflow
         animElement.offsetHeight;
         
         // Animate to target
         requestAnimationFrame(() => {
-            animElement.style.left = `${targetRect.left + targetRect.width/2 - 20}px`;
-            animElement.style.top = `${targetRect.top}px`;
+            animElement.style.left = `${targetLeft}px`;
+            animElement.style.top = `${targetTop}px`;
             animElement.style.transform = 'scale(1.2)';
             animElement.style.backgroundColor = '#e3f2fd';
             
@@ -557,9 +564,32 @@ function addAnimationStyles() {
             border: 2px solid #3498db !important;
         }
         
-        .bring-down-button:hover {
+        .bring-down-button {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px auto;
+            box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .bring-down-button:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 6px 12px rgba(52, 152, 219, 0.4);
+        }
+        
+        .bring-down-button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
         }
         
         .bring-down-icon {
@@ -570,6 +600,11 @@ function addAnimationStyles() {
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-3px); }
+        }
+        
+        .digit-animation {
+            position: absolute !important;
+            z-index: 1000 !important;
         }
     `;
     document.head.appendChild(style);
@@ -609,7 +644,7 @@ function updateGuessDisplay() {
 }
 
 // ============================================
-// UPDATED: Commit Guess to handle bring down step differently
+// UPDATED: Commit Guess (Restored original logic)
 // ============================================
 function commitGuess() {
     if (!currentProblem) {
@@ -640,6 +675,7 @@ function commitGuess() {
         processSubtraction(p);
     } else if (p.currentStep === 2) {
         debugLog('Processing bring down');
+        // Show the bring down button instead of processing immediately
         processBringDown(p);
     } else {
         debugError(`Unknown step: ${p.currentStep}`);
@@ -771,7 +807,7 @@ function processSubtraction(problem) {
 }
 
 // ============================================
-// UPDATED: Process Bring Down with User Action
+// UPDATED: Process Bring Down with User Action (Fixed)
 // ============================================
 function processBringDown(problem) {
     debugLog(`Bring down processing`, {
@@ -816,15 +852,69 @@ function executeBringDown(problem, nextDigit) {
     
     debugLog(`Brought down ${nextDigit}. New partial: ${problem.partial}`);
     
-    // Animate and update the grid with the brought down digit
-    updateBringDownInGrid(problem.currentDigitIndex - 1, nextDigit);
+    // Use the ORIGINAL logic for grid update (no animation in the calculation)
+    const remainderRowMap = {0: 3, 1: 5, 2: 7};
+    const row = remainderRowMap[problem.currentDigitIndex - 1];
+    
+    if (row !== undefined) {
+        // We need to find where the remainder digits end in this row
+        let rightmostCol = 0;
+        for (let col = 1; col <= 5; col++) {
+            const cellId = `r${row}c${col}`;
+            const cell = gridCells[cellId];
+            if (cell && cell.textContent !== '') {
+                rightmostCol = col;
+            }
+        }
+        
+        // The brought-down digit goes in the NEXT column after the rightmost digit
+        const targetCol = rightmostCol + 1;
+        const cellId = `r${row}c${targetCol}`;
+        const targetCell = gridCells[cellId];
+        
+        if (targetCell) {
+            // Check if the cell is empty (it should be)
+            if (targetCell.textContent !== '') {
+                debugError(`Bring down cell ${cellId} already has value: ${targetCell.textContent}`);
+                // Find the next truly empty cell
+                let nextEmptyCol = targetCol;
+                while (nextEmptyCol <= 5 && gridCells[`r${row}c${nextEmptyCol}`] && 
+                       gridCells[`r${row}c${nextEmptyCol}`].textContent !== '') {
+                    nextEmptyCol++;
+                }
+                if (nextEmptyCol <= 5) {
+                    const newCellId = `r${row}c${nextEmptyCol}`;
+                    const newCell = gridCells[newCellId];
+                    if (newCell) {
+                        // ANIMATE from the dividend cell to the target
+                        const sourceRow = 1;
+                        const sourceCol = problem.currentDigitIndex; // The digit index we're bringing down
+                        
+                        animateBringDown(nextDigit, sourceRow, sourceCol, row, nextEmptyCol).then(() => {
+                            newCell.textContent = nextDigit;
+                            debugLog(`Appended brought down digit ${nextDigit} to ${newCellId} via animation`);
+                        });
+                    }
+                }
+            } else {
+                // ANIMATE from the dividend cell to the target
+                const sourceRow = 1;
+                const sourceCol = problem.currentDigitIndex; // The digit index we're bringing down
+                
+                animateBringDown(nextDigit, sourceRow, sourceCol, row, targetCol).then(() => {
+                    targetCell.textContent = nextDigit;
+                    debugLog(`Appended brought down digit ${nextDigit} to ${cellId} via animation`);
+                });
+            }
+        }
+    }
     
     // Show success feedback
     showFeedback(`✓ Brought down ${nextDigit}. New number: ${problem.partial}`, 'success');
     
     // Move to next quotient step
     problem.currentStep = 0;
-    problem.currentDigitIndex++;
+    problem.currentDigitIndex++; // CRITICAL: Increment AFTER using it for source position
     currentGuess = 0; // Reset guess for next quotient
     
     debugLog(`Moving to step 0 (new quotient). New partial: ${problem.partial}`);
@@ -833,8 +923,9 @@ function executeBringDown(problem, nextDigit) {
     updateGuessDisplay();
 }
 
+
 // ============================================
-// Bring Down Button UI
+// Bring Down Button UI (Fixed)
 // ============================================
 function showBringDownButton(nextDigit, onClick) {
     // Remove any existing bring down button
@@ -879,6 +970,7 @@ function showBringDownButton(nextDigit, onClick) {
     
     bringDownBtn.onclick = () => {
         bringDownBtn.style.background = 'linear-gradient(135deg, #2ecc71, #27ae60)';
+        bringDownBtn.disabled = true;
         onClick();
     };
     
@@ -1003,7 +1095,7 @@ function updateProductInGrid(digitIndex, product) {
         product
     });
     
-    const rowMap = {0: 2, 1: 4, 2: 6};
+    const rowMap = {0: 2, 1: 4, 2: 6}; // ORIGINAL MAPPING
     const row = rowMap[digitIndex];
     
     if (row !== undefined) {
@@ -1018,12 +1110,7 @@ function updateProductInGrid(digitIndex, product) {
             }
         }
         
-        // CRITICAL FIX: Right-align based on digit position
-        // Products should be right-aligned under the current working digits
-        // - digitIndex 0: product for 1st digit → align in column 1
-        // - digitIndex 1: product for 2nd digit → align in columns 1-2
-        // - digitIndex 2: product for 3rd digit → align in columns 1-3
-        
+        // ORIGINAL LOGIC: Right-align based on digit position
         const startCol = 1; // Always start from column 1 for products
         const workingColumns = digitIndex + 1; // Number of columns we're working with
         
@@ -1042,13 +1129,14 @@ function updateProductInGrid(digitIndex, product) {
     }
 }
 
+
 function updateRemainderInGrid(digitIndex, remainder) {
     debugLog(`Updating remainder in grid`, {
         digitIndex,
         remainder
     });
     
-    const rowMap = {0: 3, 1: 5, 2: 7};
+    const rowMap = {0: 3, 1: 5, 2: 7}; // ORIGINAL MAPPING
     const row = rowMap[digitIndex];
     
     if (row !== undefined) {
@@ -1063,17 +1151,7 @@ function updateRemainderInGrid(digitIndex, remainder) {
             }
         }
         
-        // CRITICAL FIX: Right-align based on digit position
-        // digitIndex tells us which digit(s) we just processed:
-        // - digitIndex 0: processed 1st digit → align in column 1
-        // - digitIndex 1: processed 2nd digit → align in columns 1-2
-        // - digitIndex 2: processed 3rd digit → align in columns 1-3
-        
-        // For remainder alignment:
-        // First remainder (after digit 1): align in column 1
-        // Second remainder (after digits 1-2): align in columns 1-2  
-        // Third remainder (after digits 1-3): align in columns 1-3
-        
+        // ORIGINAL LOGIC: Right-align based on digit position
         const startCol = 1; // Always start from column 1 for remainders
         const workingColumns = digitIndex + 1; // Number of columns we're working with
         
