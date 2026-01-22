@@ -47,6 +47,7 @@ let currentGuess = 0;
 let solvedCount = parseInt(localStorage.getItem('divisionSolvedCount')) || 0;
 let mistakeCount = parseInt(localStorage.getItem('divisionMistakeCount')) || 0;
 let currentStreak = parseInt(localStorage.getItem('divisionCurrentStreak')) || 0;
+let commitButton = null;
 
 // ============================================
 // Initialization
@@ -189,12 +190,10 @@ function setupButtonHandlers() {
 // ============================================
 function createControlButtons() {
     debugLog('Setting up existing control buttons');
-    
-    // The buttons already exist in HTML, just add listeners
     setupControlButtonListeners();
-    
-    // Also update the guess display
     updateGuessDisplay();
+    commitButton = document.getElementById('commitGuessBtn');
+    if (commitButton) {debugLog('Found commit button');}
 }
 
 function setupControlButtonListeners() {
@@ -373,6 +372,7 @@ function initializeDivisionState(dividend, divisor) {
     
     // Show/hide rows based on n
     updateVisibleRows(n);
+    restoreCommitButton();
 }
 
 // ============================================
@@ -697,7 +697,7 @@ function processQuotientInput(problem) {
         correctDigit,
         correctProduct
     });
-    
+    restoreCommitButton();
     // FIX: Check if currentGuess is the CORRECT PRODUCT (subtraction number)
     // First, validate that it's actually a multiple of the divisor
     if (currentGuess % problem.divisor !== 0) {
@@ -787,7 +787,8 @@ function processSubtraction(problem) {
         expectedRemainder,
         currentGuess
     });
-    
+    restoreCommitButton();
+
     // Check if correct
     if (currentGuess !== expectedRemainder) {
         mistakeCount++;
@@ -836,19 +837,13 @@ function processBringDown(problem) {
         return;
     }
     
-    // Instead of automatically bringing down, update UI to show what will happen
     const nextDigit = problem.digits[problem.currentDigitIndex + 1];
     
-    // Update instruction to make it clear what's happening
-    const instruction = `Click "Bring Down" to bring down ${nextDigit} from the dividend`;
+    // TRANSFORM the existing commit button instead of creating a new one
+    transformToBringDownButton(nextDigit);
     
-    // Create a special "Bring Down" button
-    showBringDownButton(nextDigit, () => {
-        // Execute the bring down when user clicks
-        executeBringDown(problem, nextDigit);
-    });
-    
-    // Update the instruction
+    // Update instruction
+    const instruction = `Click the "Bring Down ${nextDigit}" button to bring down the next digit`;
     showFeedback(instruction, 'info');
     
     updateProblemDisplay();
@@ -857,7 +852,7 @@ function processBringDown(problem) {
 function executeBringDown(problem, nextDigit) {
     debugLog(`Executing bring down for digit ${nextDigit}`);
     
-    // Remove the bring down button
+    // Remove the bring down button (if it exists separately)
     hideBringDownButton();
     
     // Update the partial
@@ -878,6 +873,9 @@ function executeBringDown(problem, nextDigit) {
     problem.currentStep = 0;
     problem.currentDigitIndex++; // Increment AFTER bringing down
     currentGuess = 0; // Reset guess for next quotient
+    
+    // RESTORE the commit button to its original state
+    restoreCommitButton();
     
     debugLog(`Moving to step 0 (new quotient). New partial: ${problem.partial}, next digit index: ${problem.currentDigitIndex}`);
     
@@ -948,6 +946,99 @@ function hideBringDownButton() {
     if (existingBtn) {
         existingBtn.remove();
     }
+}
+
+// ============================================
+// Button Transformation Functions
+// ============================================
+function transformToBringDownButton(nextDigit) {
+    if (!commitButton) return;
+    
+    debugLog(`Transforming commit button to "Bring Down ${nextDigit}"`);
+    
+    // Save original state
+    if (!commitButton.originalHTML) {
+        commitButton.originalHTML = commitButton.innerHTML;
+        commitButton.originalOnClick = commitButton.onclick;
+    }
+    
+    // Transform the button
+    commitButton.innerHTML = `
+        <span class="bring-down-icon">↓</span>
+        <span class="bring-down-text">Bring Down ${nextDigit}</span>
+    `;
+    
+    // Update styles for bring down button
+    commitButton.style.cssText = `
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 24px;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin: 10px auto;
+        box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3);
+        transition: all 0.3s ease;
+        width: 100%;
+    `;
+    
+    // Add hover effects
+    commitButton.onmouseover = () => {
+        if (!commitButton.disabled) {
+            commitButton.style.transform = 'translateY(-2px)';
+            commitButton.style.boxShadow = '0 6px 8px rgba(52, 152, 219, 0.4)';
+        }
+    };
+    
+    commitButton.onmouseout = () => {
+        commitButton.style.transform = 'translateY(0)';
+        commitButton.style.boxShadow = '0 4px 6px rgba(52, 152, 219, 0.3)';
+    };
+    
+    // Change the button's click handler to execute bring down
+    commitButton.onclick = () => {
+        executeBringDown(currentProblem, nextDigit);
+    };
+    
+    // Show the button if it was hidden
+    commitButton.style.display = 'flex';
+}
+
+function restoreCommitButton() {
+    if (!commitButton || !commitButton.originalHTML) return;
+    
+    debugLog('Restoring commit button to original state');
+    
+    // Restore original content and click handler
+    commitButton.innerHTML = commitButton.originalHTML;
+    commitButton.onclick = commitButton.originalOnClick;
+    
+    // Restore original styles (from your CSS)
+    commitButton.style.cssText = `
+        width: 100%;
+        padding: 15px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.2em;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+    
+    // Remove saved state
+    delete commitButton.originalHTML;
+    delete commitButton.originalOnClick;
 }
 
 // ============================================
