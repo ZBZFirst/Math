@@ -241,12 +241,6 @@ function renderMainGrid() {
                 columnsHtml += `
                     <div class="context-column ${col === currentColumn ? 'current' : ''} ${canLend ? 'can-lend' : 'cannot-lend'}">
                         <span class="column-name">${capitalize(col)}:</span>
-                        <span class="column-digits">${data.currentTopDigit} - ${data.bottomDigit}</span>
-                        <span class="borrow-status">
-                            ${col === currentColumn ? '(current)' : canLend ? 
-                                `(has ${data.currentTopDigit}, can lend 1)` : 
-                                `(has ${data.currentTopDigit})`}
-                        </span>
                     </div>
                 `;
             }
