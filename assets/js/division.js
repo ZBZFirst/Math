@@ -472,6 +472,9 @@ function updateVisibleRows(n) {
 // ============================================
 // UPDATED: Problem Display - Better bring down instruction
 // ============================================
+// ============================================
+// UPDATED: Problem Display - Better bring down instruction (FIXED)
+// ============================================
 function updateProblemDisplay() {
     if (!currentProblem) {
         debugLog('No current problem to display');
@@ -509,11 +512,11 @@ function updateProblemDisplay() {
                 const lastStep = p.steps[p.steps.length - 1];
                 if (lastStep) {
                     currentStep = `${lastStep.partialBefore} - ${lastStep.product} = ?`;
-                    instruction = `What is  ${lastStep.product} minus ${lastStep.partialBefore}`;
+                    instruction = `What is ${lastStep.partialBefore} minus ${lastStep.product}`;
                 }
                 break;
             case 2:
-                const nextDigit = p.digits[p.currentDigitIndex];
+                const nextDigit = p.digits[p.currentDigitIndex + 1]; // Get the NEXT digit
                 currentStep = `Bring down ${nextDigit}`;
                 instruction = `Click "Bring Down" button to bring down ${nextDigit}`;
                 break;
@@ -529,10 +532,10 @@ function updateProblemDisplay() {
         <div class="current-step-container">
             <div class="current-step-title">Current Step</div>
             <div class="current-step-equation" id="currentStepEquation">
-                ${nextDigit}
+                ${currentStep}
             </div>
             <div class="current-instruction" id="currentInstruction">
-                ${nextDigit}
+                ${instruction}
             </div>
         </div>
     `;
