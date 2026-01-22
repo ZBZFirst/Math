@@ -453,47 +453,36 @@ function renderMainGrid() {
             
             console.log("Chain:", chain);
             
-            // Check if we're borrowing through a 0 column
-            // If the immediate left column has 0, we need to borrow through it
+            // NEW LOGIC: Process each column in the chain
+            // Source column: -1
+            // Intermediate columns: +9 each
+            // Target column: +10
             
-            // Execute borrowing through the chain
-            // Start from the source and work towards the target
-            console.log("Processing chain...");
-            for (let i = 0; i < chain.length - 1; i++) {
-                const from = chain[i];
-                const to = chain[i + 1];
-                const fromData = getColumnData(from);
-                const toData = getColumnData(to);
+            console.log("Processing chain with new logic...");
+            
+            // Process source column (first in chain)
+            const sourceData = getColumnData(sourceColumn);
+            sourceData.currentTopDigit -= 1;
+            console.log(`Source column (${sourceColumn}): -1 = ${sourceData.currentTopDigit}`);
+            
+            // Process intermediate columns (all except first and last)
+            for (let i = 1; i < chain.length - 1; i++) {
+                const colName = chain[i];
+                const colData = getColumnData(colName);
                 
-                console.log(`\nStep ${i}: ${from} -> ${to}`);
-                console.log(`  Before: ${from}=${fromData.currentTopDigit}, ${to}=${toData.currentTopDigit}`);
-                
-                if (!fromData || !toData) {
-                    throw new Error(`Missing data for ${from} -> ${to}`);
+                if (colData) {
+                    const oldValue = colData.currentTopDigit;
+                    colData.currentTopDigit += 9; // 10 - 1
+                    console.log(`Intermediate column (${colName}): ${oldValue} + 9 = ${colData.currentTopDigit}`);
                 }
-                
-                // Borrow 1 from 'from' column
-                fromData.currentTopDigit -= 1;
-                
-                // Add 10 to 'to' column
-                // BUT if 'to' is not the target column, it should become 9 (10 - 1)
-                // Only the final target column gets +10
-                if (to === currentColumn) {
-                    // This is the column we're actually subtracting from
-                    toData.currentTopDigit += 10;
-                    console.log(`  ${to} is target column: +10`);
-                } else {
-                    // Intermediate column (like tens when borrowing through it)
-                    // It gets 10 from the left, but gives 1 to the right
-                    toData.currentTopDigit += 10 - 1;
-                    console.log(`  ${to} is intermediate column: +9 (10 - 1)`);
-                }
-                
-                console.log(`  After: ${from}=${fromData.currentTopDigit}, ${to}=${toData.currentTopDigit}`);
             }
             
-            // Mark final column as borrowed
-            getCurrentColumnData().borrowed = true;
+            // Process target column (last in chain)
+            const targetData = getCurrentColumnData();
+            const oldTargetValue = targetData.currentTopDigit;
+            targetData.currentTopDigit += 10;
+            targetData.borrowed = true;
+            console.log(`Target column (${currentColumn}): ${oldTargetValue} + 10 = ${targetData.currentTopDigit}`);
             
             console.log("\nFinal state:");
             columns.forEach(col => {
