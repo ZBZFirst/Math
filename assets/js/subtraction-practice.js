@@ -95,102 +95,91 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // ================= GRID RENDERING =================
-    function renderMainGrid() {
-        if (!problemGrid) return;
-        
-        problemGrid.innerHTML = '';
-        
-        // 5 rows: borrow, minuend, subtrahend, line, answer
-        // 4 columns: empty, hundreds, tens, ones
-        for (let row = 0; row < 5; row++) {
-            for (let col = 0; col < 4; col++) {
-                const cell = document.createElement('div');
-                cell.className = 'grid-cell';
-                
-                let columnName = '';
-                if (col === 1) columnName = 'hundreds';
-                else if (col === 2) columnName = 'tens';
-                else if (col === 3) columnName = 'ones';
-                
-                const colData = columnName ? getColumnData(columnName) : null;
-                
-                // Row 0: Borrow indicators
-                if (row === 0) {
-                    if (col === 0) {
-                        cell.className += ' empty-cell';
-                    } else {
-                        cell.className += ' borrow-cell';
-                        if (colData?.borrowed) {
-                            cell.innerHTML = '<div class="borrow-indicator">1</div>';
-                        }
-                    }
-                }
-                // Row 1: Minuend (top number)
-                else if (row === 1) {
-                    if (col === 0) {
-                        cell.className += ' empty-cell';
-                    } else {
-                        cell.className += ' minuend-cell';
-                        if (colData) {
-                            // Show original digit with strikethrough if borrowed
-                            if (colData.currentTopDigit !== colData.topDigit) {
-                                cell.innerHTML = `
-                                    <span class="original-digit" style="text-decoration: line-through; opacity: 0.5; margin-right: 5px">
-                                        ${colData.topDigit}
-                                    </span>
-                                    <span class="current-digit">${colData.currentTopDigit}</span>
-                                `;
-                            } else {
-                                cell.textContent = colData.currentTopDigit;
-                            }
-                        }
-                    }
-                }
-                // Row 2: Subtrahend (bottom number)
-                else if (row === 2) {
-                    if (col === 0) {
-                        cell.className += ' minus-cell';
-                        cell.textContent = '−';
-                    } else {
-                        cell.className += ' subtrahend-cell';
-                        if (colData) {
-                            cell.textContent = colData.bottomDigit;
-                        }
-                    }
-                }
-                // Row 3: Line
-                else if (row === 3) {
-                    if (col === 0) {
-                        cell.className += ' empty-cell';
-                    } else {
-                        cell.className += ' line-cell';
-                        cell.style.borderBottom = '3px solid #333';
-                    }
-                }
-                // Row 4: Answer
-                else if (row === 4) {
-                    if (col === 0) {
-                        cell.className += ' empty-cell';
-                    } else {
-                        cell.className += ' answer-cell';
-                        if (colData?.completed) {
-                            cell.textContent = colData.answer;
-                            cell.classList.add(colData.correct ? 'correct' : 'incorrect');
+function renderMainGrid() {
+    if (!problemGrid) return;
+    
+    problemGrid.innerHTML = '';
+    
+    // 4 rows now (was 5): minuend, subtrahend, line, answer
+    // 4 columns: empty, hundreds, tens, ones
+    for (let row = 0; row < 4; row++) {
+        for (let col = 0; col < 4; col++) {
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell';
+            
+            let columnName = '';
+            if (col === 1) columnName = 'hundreds';
+            else if (col === 2) columnName = 'tens';
+            else if (col === 3) columnName = 'ones';
+            
+            const colData = columnName ? getColumnData(columnName) : null;
+            
+            // Row 0: Minuend (top number) - WAS Row 1
+            if (row === 0) {
+                if (col === 0) {
+                    cell.className += ' empty-cell';
+                } else {
+                    cell.className += ' minuend-cell';
+                    if (colData) {
+                        // Show original digit with strikethrough if borrowed
+                        if (colData.currentTopDigit !== colData.topDigit) {
+                            cell.innerHTML = `
+                                <span class="original-digit" style="text-decoration: line-through; opacity: 0.5; margin-right: 5px">
+                                    ${colData.topDigit}
+                                </span>
+                                <span class="current-digit">${colData.currentTopDigit}</span>
+                            `;
                         } else {
-                            cell.textContent = '_';
+                            cell.textContent = colData.currentTopDigit;
                         }
                     }
                 }
-                
-                // Highlight current column
-                if (columnName === currentColumn && [1, 2, 4].includes(row)) {
-                    cell.classList.add('active-column');
-                }
-                
-                problemGrid.appendChild(cell);
             }
+            // Row 1: Subtrahend (bottom number) - WAS Row 2
+            else if (row === 1) {
+                if (col === 0) {
+                    cell.className += ' minus-cell';
+                    cell.textContent = '−';
+                } else {
+                    cell.className += ' subtrahend-cell';
+                    if (colData) {
+                        cell.textContent = colData.bottomDigit;
+                    }
+                }
+            }
+            // Row 2: Line - WAS Row 3
+            else if (row === 2) {
+                if (col === 0) {
+                    cell.className += ' empty-cell';
+                } else {
+                    cell.className += ' line-cell';
+                    cell.style.borderBottom = '3px solid #333';
+                }
+            }
+            // Row 3: Answer - WAS Row 4
+            else if (row === 3) {
+                if (col === 0) {
+                    cell.className += ' empty-cell';
+                } else {
+                    cell.className += ' answer-cell';
+                    if (colData?.completed) {
+                        cell.textContent = colData.answer;
+                        cell.classList.add(colData.correct ? 'correct' : 'incorrect');
+                    } else {
+                        cell.textContent = '_';
+                    }
+                }
+            }
+            
+            // Highlight current column
+            if (columnName === currentColumn && [0, 1, 3].includes(row)) {
+                cell.classList.add('active-column');
+            }
+            
+            problemGrid.appendChild(cell);
         }
     }
+}
     
     // ================= STAGE MANAGEMENT =================
     function setupStage1() {
