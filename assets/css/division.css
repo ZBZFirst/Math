@@ -633,13 +633,23 @@
    RESPONSIVE ADJUSTMENTS
    ============================================ */
 
-@media (max-width: 768px) {
+@media (max-width: 768px) and (min-width: 481px) {
     .division-container {
         padding: 15px;
     }
     
     .dual-container {
         gap: 15px;
+    }
+
+    .product-row .grid-cell:first-child::after {
+        width: calc(100% * 5 + 6px);
+        bottom: -6px;
+    }
+    
+    .product-row .grid-cell:first-child::before {
+        left: -20px;
+        font-size: 24px;
     }
     
     .main-problem-container,
@@ -709,6 +719,17 @@
     
     .dual-container {
         gap: 10px;
+    }
+
+    .product-row .grid-cell:first-child::after {
+        width: calc(100% * 5 + 4px);
+        bottom: -5px;
+        height: 1.5px;
+    }
+    
+    .product-row .grid-cell:first-child::before {
+        left: -18px;
+        font-size: 20px;
     }
     
     .large-equation {
