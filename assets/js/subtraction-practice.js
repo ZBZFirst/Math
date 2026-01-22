@@ -196,23 +196,16 @@ document.addEventListener('DOMContentLoaded', function() {
     function setupStage1() {
         const colData = getCurrentColumnData();
         if (!colData) return;
-
+    
         // Update display elements
         const stage1TopDigit = document.getElementById('stage1TopDigit');
         const stage1BottomDigit = document.getElementById('stage1BottomDigit');
-        const comparisonHint = document.getElementById('comparisonHint');
         
         if (stage1TopDigit) stage1TopDigit.textContent = colData.currentTopDigit;
         if (stage1BottomDigit) stage1BottomDigit.textContent = colData.bottomDigit;
         
         // Check if borrowing is needed
         const needsBorrow = colData.currentTopDigit < colData.bottomDigit;
-        if (comparisonHint) {
-            comparisonHint.textContent = needsBorrow ? 
-                `${colData.currentTopDigit} < ${colData.bottomDigit}` : 
-                `${colData.currentTopDigit} ≥ ${colData.bottomDigit}`;
-            comparisonHint.className = needsBorrow ? 'comparison-hint needs-borrow' : 'comparison-hint no-borrow';
-        }
         
         showStage(1);
         
