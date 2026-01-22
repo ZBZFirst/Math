@@ -825,7 +825,8 @@ function processBringDown(problem) {
         partial: problem.partial
     });
     
-    if (problem.currentDigitIndex >= problem.n) {
+    // Check if there are more digits to bring down
+    if (problem.currentDigitIndex >= problem.n - 1) {
         debugLog(`No more digits to bring down. Completing problem.`);
         completeProblem(problem);
         return;
