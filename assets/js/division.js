@@ -1208,27 +1208,27 @@ function updateRemainderInGrid(stepNumber, remainder) {
 function showFeedback(message, type = 'error') {
     debugLog(`Showing feedback: ${type} - ${message}`);
     
-    const feedbackArea = document.getElementById('workFeedback');
-    if (!feedbackArea) {
-        debugError('Feedback area not found');
+    // Get the number display element
+    const numberDisplay = document.querySelector('.number-display');
+    if (!numberDisplay) {
+        debugError('Number display not found');
         return;
     }
     
-    const existingFeedback = feedbackArea.querySelector('.feedback-message');
-    if (existingFeedback) {
-        debugLog('Removing existing feedback');
-        existingFeedback.remove();
+    // Save original content
+    if (!numberDisplay.originalHTML) {
+        numberDisplay.originalHTML = numberDisplay.innerHTML;
     }
     
-    const feedbackMsg = document.createElement('div');
-    feedbackMsg.className = `feedback-message feedback-${type}`;
-    feedbackMsg.textContent = message;
-    feedbackArea.appendChild(feedbackMsg);
+    // Show feedback in the number display area
+    numberDisplay.innerHTML = `<div class="feedback-${type}">${message}</div>`;
+    numberDisplay.classList.add('showing-feedback');
     
+    // Restore after delay
     setTimeout(() => {
-        if (feedbackMsg.parentNode) {
-            feedbackMsg.remove();
-            debugLog('Auto-removed feedback message');
+        if (numberDisplay.originalHTML) {
+            numberDisplay.innerHTML = numberDisplay.originalHTML;
+            numberDisplay.classList.remove('showing-feedback');
         }
     }, type === 'error' ? 4000 : 3000);
 }
