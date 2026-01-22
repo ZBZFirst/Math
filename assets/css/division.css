@@ -722,7 +722,7 @@
     }
 
     .product-row .grid-cell:first-child::after {
-        width: calc(100% * 5 + 4px);
+        width: calc((5 * 35px) + (4 * 1px));;
         bottom: -5px;
         height: 1.5px;
     }
@@ -771,6 +771,7 @@
         grid-template-columns: repeat(5, 35px);
         grid-template-rows: repeat(10, 35px);
         gap: 1px;
+        row-gap: 6px; 
     }
     
     .grid-cell {
