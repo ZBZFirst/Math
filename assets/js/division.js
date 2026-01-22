@@ -529,10 +529,10 @@ function updateProblemDisplay() {
         <div class="current-step-container">
             <div class="current-step-title">Current Step</div>
             <div class="current-step-equation" id="currentStepEquation">
-                ${currentStep}
+                ${nextDigit}
             </div>
             <div class="current-instruction" id="currentInstruction">
-                ${instruction}
+                ${nextDigit}
             </div>
         </div>
     `;
