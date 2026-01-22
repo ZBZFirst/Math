@@ -286,11 +286,7 @@ function animateBringDown(nextDigit, sourceRow, sourceCol, targetRow, targetCol)
             // When animation completes
             setTimeout(() => {
                 // Add the digit to target cell
-                if (targetCell.textContent === '') {
-                    targetCell.textContent = nextDigit;
-                } else {
-                    targetCell.textContent += nextDigit;
-                }
+                targetCell.textContent = nextDigit;
                 
                 // Add visual feedback to target cell
                 targetCell.classList.add('digit-highlight');
@@ -683,6 +679,9 @@ function commitGuess() {
     }
 }
 
+// ============================================
+// UPDATED: Core Game Logic - Track step completion
+// ============================================
 function processQuotientInput(problem) {
     const correctDigit = Math.floor(problem.partial / problem.divisor);
     const correctProduct = correctDigit * problem.divisor;
@@ -729,24 +728,30 @@ function processQuotientInput(problem) {
     // CORRECT - Update state
     // FIX: Calculate the quotient digit from the product
     const quotientDigit = currentGuess / problem.divisor;
+    
+    // Track which step we're on
+    const stepNumber = problem.quotientDigits.length; // 0, 1, 2
+    
     problem.quotientDigits.push(quotientDigit);
     problem.steps.push({
+        stepNumber: stepNumber,
         digit: quotientDigit,
         partialBefore: problem.partial,
         product: currentGuess, // This is the product they entered
         subtraction: problem.partial - currentGuess,
-        stepIndex: problem.currentDigitIndex
+        digitIndex: problem.currentDigitIndex
     });
     
     debugLog(`Correct! Updated problem state`, {
+        stepNumber: stepNumber,
         quotientDigit: quotientDigit,
         quotientDigits: problem.quotientDigits,
         steps: problem.steps
     });
     
     // Update grid with the quotient digit (not the product!)
-    updateQuotientInGrid(problem.currentDigitIndex, quotientDigit);
-    updateProductInGrid(problem.currentDigitIndex, currentGuess);
+    updateQuotientInGrid(stepNumber, quotientDigit);
+    updateProductInGrid(stepNumber, currentGuess);
     
     showFeedback(`Correct!`, 'success');
     
@@ -754,11 +759,12 @@ function processQuotientInput(problem) {
     problem.currentStep = 1;
     currentGuess = 0; // Reset guess for subtraction step
     
-    debugLog(`Moving to step 1 (subtraction).`);
+    debugLog(`Moving to step 1 (subtraction). Step number: ${stepNumber}`);
     
     updateProblemDisplay();
     updateGuessDisplay();
 }
+
 
 function processSubtraction(problem) {
     const lastStep = problem.steps[problem.steps.length - 1];
@@ -768,8 +774,10 @@ function processSubtraction(problem) {
     }
     
     const expectedRemainder = lastStep.subtraction;
+    const stepNumber = lastStep.stepNumber;
     
     debugLog(`Subtraction processing`, {
+        stepNumber: stepNumber,
         partialBefore: lastStep.partialBefore,
         product: lastStep.product,
         expectedRemainder,
@@ -788,7 +796,7 @@ function processSubtraction(problem) {
     }
     
     // CORRECT - Update grid with remainder
-    updateRemainderInGrid(problem.currentDigitIndex, expectedRemainder);
+    updateRemainderInGrid(stepNumber, expectedRemainder);
     
     problem.partial = expectedRemainder;
     debugLog(`Correct subtraction. New partial: ${problem.partial}`);
@@ -797,10 +805,10 @@ function processSubtraction(problem) {
     
     // Move to next step
     problem.currentStep = 2;
-    problem.currentDigitIndex++;
+    // Don't increment currentDigitIndex here - we'll do it after bring down
     currentGuess = 0; // Reset guess for bring down step
     
-    debugLog(`Moving to step 2 (bring down). Current digit index: ${problem.currentDigitIndex}, n: ${problem.n}`);
+    debugLog(`Moving to step 2 (bring down). Step number: ${stepNumber}`);
     
     updateProblemDisplay();
     updateGuessDisplay();
@@ -852,72 +860,21 @@ function executeBringDown(problem, nextDigit) {
     
     debugLog(`Brought down ${nextDigit}. New partial: ${problem.partial}`);
     
-    // Use the ORIGINAL logic for grid update (no animation in the calculation)
-    const remainderRowMap = {0: 3, 1: 5, 2: 7};
-    const row = remainderRowMap[problem.currentDigitIndex - 1];
+    // Get the current step number (0 for first digit, 1 for second, etc.)
+    const stepNumber = problem.steps.length - 1; // Which step we just completed
     
-    if (row !== undefined) {
-        // We need to find where the remainder digits end in this row
-        let rightmostCol = 0;
-        for (let col = 1; col <= 5; col++) {
-            const cellId = `r${row}c${col}`;
-            const cell = gridCells[cellId];
-            if (cell && cell.textContent !== '') {
-                rightmostCol = col;
-            }
-        }
-        
-        // The brought-down digit goes in the NEXT column after the rightmost digit
-        const targetCol = rightmostCol + 1;
-        const cellId = `r${row}c${targetCol}`;
-        const targetCell = gridCells[cellId];
-        
-        if (targetCell) {
-            // Check if the cell is empty (it should be)
-            if (targetCell.textContent !== '') {
-                debugError(`Bring down cell ${cellId} already has value: ${targetCell.textContent}`);
-                // Find the next truly empty cell
-                let nextEmptyCol = targetCol;
-                while (nextEmptyCol <= 5 && gridCells[`r${row}c${nextEmptyCol}`] && 
-                       gridCells[`r${row}c${nextEmptyCol}`].textContent !== '') {
-                    nextEmptyCol++;
-                }
-                if (nextEmptyCol <= 5) {
-                    const newCellId = `r${row}c${nextEmptyCol}`;
-                    const newCell = gridCells[newCellId];
-                    if (newCell) {
-                        // ANIMATE from the dividend cell to the target
-                        const sourceRow = 1;
-                        const sourceCol = problem.currentDigitIndex; // The digit index we're bringing down
-                        
-                        animateBringDown(nextDigit, sourceRow, sourceCol, row, nextEmptyCol).then(() => {
-                            newCell.textContent = nextDigit;
-                            debugLog(`Appended brought down digit ${nextDigit} to ${newCellId} via animation`);
-                        });
-                    }
-                }
-            } else {
-                // ANIMATE from the dividend cell to the target
-                const sourceRow = 1;
-                const sourceCol = problem.currentDigitIndex; // The digit index we're bringing down
-                
-                animateBringDown(nextDigit, sourceRow, sourceCol, row, targetCol).then(() => {
-                    targetCell.textContent = nextDigit;
-                    debugLog(`Appended brought down digit ${nextDigit} to ${cellId} via animation`);
-                });
-            }
-        }
-    }
+    // Update the grid with the brought down digit
+    updateBringDownInGrid(stepNumber, nextDigit);
     
     // Show success feedback
     showFeedback(`✓ Brought down ${nextDigit}. New number: ${problem.partial}`, 'success');
     
     // Move to next quotient step
     problem.currentStep = 0;
-    problem.currentDigitIndex++; // CRITICAL: Increment AFTER using it for source position
+    problem.currentDigitIndex++; // Increment AFTER bringing down
     currentGuess = 0; // Reset guess for next quotient
     
-    debugLog(`Moving to step 0 (new quotient). New partial: ${problem.partial}`);
+    debugLog(`Moving to step 0 (new quotient). New partial: ${problem.partial}, next digit index: ${problem.currentDigitIndex}`);
     
     updateProblemDisplay();
     updateGuessDisplay();
@@ -992,21 +949,18 @@ function hideBringDownButton() {
 // UPDATED: Grid Update Helpers with Animation
 // ============================================
 
-function updateBringDownInGrid(digitIndex, nextDigit) {
-    debugLog(`Updating bring down in grid with animation`, {
-        digitIndex,
+function updateBringDownInGrid(stepNumber, nextDigit) {
+    debugLog(`Updating bring down in grid for step ${stepNumber}`, {
+        stepNumber,
         nextDigit
     });
     
-    const remainderRowMap = {0: 3, 1: 5, 2: 7};
-    const row = remainderRowMap[digitIndex];
+    // Row mapping: remainder from step 0 -> row 3, step 1 -> row 5, step 2 -> row 7
+    const rowMap = {0: 3, 1: 5, 2: 7};
+    const row = rowMap[stepNumber];
     
     if (row !== undefined) {
-        // Find the source (dividend digit above)
-        const sourceRow = 1; // Dividend row
-        const sourceCol = digitIndex + 1; // Column of the digit being brought down
-        
-        // We need to find where the remainder digits end in this row
+        // Find where the remainder digits end in this row
         let rightmostCol = 0;
         for (let col = 1; col <= 5; col++) {
             const cellId = `r${row}c${col}`;
@@ -1033,15 +987,23 @@ function updateBringDownInGrid(digitIndex, nextDigit) {
                 }
                 if (nextEmptyCol <= 5) {
                     const newCellId = `r${row}c${nextEmptyCol}`;
-                    // Animate from source to new target
+                    // ANIMATE from the dividend cell to the target
+                    const sourceRow = 1;
+                    const sourceCol = stepNumber + 1; // The digit we're bringing down
+                    
                     animateBringDown(nextDigit, sourceRow, sourceCol, row, nextEmptyCol).then(() => {
-                        debugLog(`Animation complete, digit ${nextDigit} appended to ${newCellId}`);
+                        targetCell.textContent = nextDigit;
+                        debugLog(`Appended brought down digit ${nextDigit} to ${newCellId} via animation`);
                     });
                 }
             } else {
-                // Animate from source to target
+                // ANIMATE from the dividend cell to the target
+                const sourceRow = 1;
+                const sourceCol = stepNumber + 1; // The digit we're bringing down
+                
                 animateBringDown(nextDigit, sourceRow, sourceCol, row, targetCol).then(() => {
-                    debugLog(`Animation complete, digit ${nextDigit} added to ${cellId}`);
+                    targetCell.textContent = nextDigit;
+                    debugLog(`Appended brought down digit ${nextDigit} to ${cellId} via animation (column ${targetCol})`);
                 });
             }
         }
@@ -1073,10 +1035,10 @@ function completeProblem(problem) {
 // ============================================
 // Grid Update Helpers - UPDATED FOR NEW STRUCTURE
 // ============================================
-function updateQuotientInGrid(digitIndex, value) {
+function updateQuotientInGrid(stepNumber, value) {
     const quotientCellIds = ['ans-q0', 'ans-q1', 'ans-q2'];
-    if (digitIndex < quotientCellIds.length) {
-        const cellId = quotientCellIds[digitIndex];
+    if (stepNumber < quotientCellIds.length) {
+        const cellId = quotientCellIds[stepNumber];
         const cell = gridCells[cellId];
         if (cell) {
             cell.textContent = value;
@@ -1085,18 +1047,19 @@ function updateQuotientInGrid(digitIndex, value) {
             debugError(`Quotient cell ${cellId} not found`);
         }
     } else {
-        debugError(`Digit index ${digitIndex} out of range for quotient cells`);
+        debugError(`Step number ${stepNumber} out of range for quotient cells`);
     }
 }
 
-function updateProductInGrid(digitIndex, product) {
+function updateProductInGrid(stepNumber, product) {
     debugLog(`Updating product in grid`, {
-        digitIndex,
+        stepNumber,
         product
     });
     
-    const rowMap = {0: 2, 1: 4, 2: 6}; // ORIGINAL MAPPING
-    const row = rowMap[digitIndex];
+    // Row mapping: step 0 -> row 2, step 1 -> row 4, step 2 -> row 6
+    const rowMap = {0: 2, 1: 4, 2: 6};
+    const row = rowMap[stepNumber];
     
     if (row !== undefined) {
         const productStr = String(product);
@@ -1110,9 +1073,12 @@ function updateProductInGrid(digitIndex, product) {
             }
         }
         
-        // ORIGINAL LOGIC: Right-align based on digit position
-        const startCol = 1; // Always start from column 1 for products
-        const workingColumns = digitIndex + 1; // Number of columns we're working with
+        // Determine which columns we're working with
+        // For step 0: working with column 1 only (first digit)
+        // For step 1: working with columns 1-2 (first two digits)
+        // For step 2: working with columns 1-3 (all three digits)
+        const startCol = 1;
+        const workingColumns = stepNumber + 1; // 1, 2, or 3
         
         // Right-align within the working columns
         const productLength = productStr.length;
@@ -1123,21 +1089,22 @@ function updateProductInGrid(digitIndex, product) {
             const cell = gridCells[cellId];
             if (cell) {
                 cell.textContent = productStr[i];
-                debugLog(`Set product cell ${cellId} to ${productStr[i]} (right-aligned in ${workingColumns} columns)`);
+                debugLog(`Set product cell ${cellId} to ${productStr[i]} (step ${stepNumber}, right-aligned in ${workingColumns} columns)`);
             }
         }
     }
 }
 
 
-function updateRemainderInGrid(digitIndex, remainder) {
+function updateRemainderInGrid(stepNumber, remainder) {
     debugLog(`Updating remainder in grid`, {
-        digitIndex,
+        stepNumber,
         remainder
     });
     
-    const rowMap = {0: 3, 1: 5, 2: 7}; // ORIGINAL MAPPING
-    const row = rowMap[digitIndex];
+    // Row mapping: step 0 -> row 3, step 1 -> row 5, step 2 -> row 7
+    const rowMap = {0: 3, 1: 5, 2: 7};
+    const row = rowMap[stepNumber];
     
     if (row !== undefined) {
         const remainderStr = String(remainder);
@@ -1151,9 +1118,9 @@ function updateRemainderInGrid(digitIndex, remainder) {
             }
         }
         
-        // ORIGINAL LOGIC: Right-align based on digit position
-        const startCol = 1; // Always start from column 1 for remainders
-        const workingColumns = digitIndex + 1; // Number of columns we're working with
+        // Determine which columns we're working with
+        const startCol = 1;
+        const workingColumns = stepNumber + 1; // 1, 2, or 3
         
         // Right-align within the working columns
         const remainderLength = remainderStr.length;
@@ -1164,7 +1131,7 @@ function updateRemainderInGrid(digitIndex, remainder) {
             const cell = gridCells[cellId];
             if (cell) {
                 cell.textContent = remainderStr[i];
-                debugLog(`Set remainder cell ${cellId} to ${remainderStr[i]} (right-aligned in ${workingColumns} columns)`);
+                debugLog(`Set remainder cell ${cellId} to ${remainderStr[i]} (step ${stepNumber}, right-aligned in ${workingColumns} columns)`);
             }
         }
     }
