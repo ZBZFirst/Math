@@ -1215,7 +1215,7 @@ function showFeedback(message, type = 'error') {
         return;
     }
     
-    // Save original content
+    // Save original content if not already saved
     if (!numberDisplay.originalHTML) {
         numberDisplay.originalHTML = numberDisplay.innerHTML;
     }
@@ -1224,13 +1224,19 @@ function showFeedback(message, type = 'error') {
     numberDisplay.innerHTML = `<div class="feedback-${type}">${message}</div>`;
     numberDisplay.classList.add('showing-feedback');
     
-    // Restore after delay
-    setTimeout(() => {
-        if (numberDisplay.originalHTML) {
-            numberDisplay.innerHTML = numberDisplay.originalHTML;
-            numberDisplay.classList.remove('showing-feedback');
-        }
-    }, type === 'error' ? 4000 : 3000);
+    // Determine delay based on message type
+    const delay = type === 'error' ? 4000 : 2000; // 4s for errors, 2s for success/info
+    
+    // Return a promise that resolves after the delay
+    return new Promise(resolve => {
+        setTimeout(() => {
+            if (numberDisplay.originalHTML) {
+                numberDisplay.innerHTML = numberDisplay.originalHTML;
+                numberDisplay.classList.remove('showing-feedback');
+            }
+            resolve();
+        }, delay);
+    });
 }
 
 function clearFeedback() {
