@@ -661,10 +661,7 @@ function commitGuess() {
     
     const p = currentProblem;
     debugLog(`Committing guess ${currentGuess}`, {
-        currentStep: p.currentStep,
-        currentDigitIndex: p.currentDigitIndex,
-        partial: p.partial,
-        divisor: p.divisor
+        currentStep: p.currentStep
     });
     
     if (p.currentStep === 0) {
@@ -674,12 +671,10 @@ function commitGuess() {
         debugLog('Processing subtraction');
         processSubtraction(p);
     } else if (p.currentStep === 2) {
-        debugLog('Processing bring down');
-        // Show the bring down button instead of processing immediately
-        processBringDown(p);
-    } else {
-        debugError(`Unknown step: ${p.currentStep}`);
-        showFeedback('Something went wrong. Try resetting.', 'error');
+        // Button should already be "Bring Down X" at this point
+        // This shouldn't normally be called, but handle it gracefully
+        debugLog('In bring down phase - button should handle this');
+        // Don't do anything - let the transformed button handle it
     }
 }
 
