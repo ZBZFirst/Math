@@ -230,23 +230,6 @@ function renderMainGrid() {
         const colData = getCurrentColumnData();
         if (!colData) return;
         
-        // Display all columns with status
-        const allColumnsDisplay = document.getElementById('allColumnsDisplay');
-        if (allColumnsDisplay) {
-            let columnsHtml = '';
-            for (const col of columns) {
-                const data = getColumnData(col);
-                const canLend = data && data.currentTopDigit >= 1;
-                
-                columnsHtml += `
-                    <div class="context-column ${col === currentColumn ? 'current' : ''} ${canLend ? 'can-lend' : 'cannot-lend'}">
-                        <span class="column-name">${capitalize(col)}:</span>
-                    </div>
-                `;
-            }
-            allColumnsDisplay.innerHTML = columnsHtml;
-        }
-        
         // Find and display available sources
         const sourceOptions = document.getElementById('sourceOptions');
         if (sourceOptions) {
@@ -260,8 +243,6 @@ function renderMainGrid() {
                     optionsHtml += `
                         <button class="source-option" data-source="${source}">
                             <strong>${capitalize(source)} Column</strong><br>
-                            Current: ${sourceData.currentTopDigit} - ${sourceData.bottomDigit}<br>
-                            Has ${sourceData.currentTopDigit}, can lend 1
                         </button>
                     `;
                 });
