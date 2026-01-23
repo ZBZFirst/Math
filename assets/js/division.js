@@ -177,7 +177,9 @@ function setupButtonHandlers() {
     debugLog('Setting up button handlers');
     
     // Main control buttons
-    newProblemBtn.addEventListener('click', generateNewProblem);
+    newProblemBtn.addEventListener('click', async () => {
+        await generateNewProblem();
+    });
     resetProblemBtn.addEventListener('click', resetCurrentProblem);
     resetScoresBtn.addEventListener('click', resetAllScores);
     
@@ -338,7 +340,7 @@ async function animateFromEquationToGrid() {
 // ============================================
 // Problem Generation
 // ============================================
-function generateNewProblem() {
+async function generateNewProblem() {
     debugLog('Generating new problem');
     
     let divisor = Math.floor(Math.random() * 15) + 1;
@@ -350,10 +352,10 @@ function generateNewProblem() {
     
     debugLog(`Generated problem: ${dividend} ÷ ${divisor}`);
     
-    initializeDivisionState(dividend, divisor);
+    await initializeDivisionState(dividend, divisor); // Add await here
 }
 
-function initializeDivisionState(dividend, divisor) {
+async function initializeDivisionState(dividend, divisor) {
     const digits = String(dividend).split('').map(Number);
     const n = digits.length;
     
