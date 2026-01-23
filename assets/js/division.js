@@ -477,8 +477,6 @@ async function initializeDivisionState(dividend, divisor) {
     await animateFromEquationToGrid();
 
     // Update UI
-    updateDivisor(divisor);
-    updateDividend(digits);
     updateProblemDisplay();
     currentGuess = 0;
     updateGuessDisplay();
