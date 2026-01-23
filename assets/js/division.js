@@ -319,18 +319,102 @@ function animateBringDown(nextDigit, sourceRow, sourceCol, targetRow, targetCol)
     });
 }
 
+// ============================================
+// NEW: Generic number animation function
+// ============================================
+function animateNumberToCell(value, sourceElement, targetCellId) {
+    return new Promise((resolve) => {
+        // Get source and target positions
+        const sourceRect = sourceElement.getBoundingClientRect();
+        const targetCell = gridCells[targetCellId];
+        
+        if (!targetCell) {
+            debugError(`Target cell ${targetCellId} not found`);
+            resolve();
+            return;
+        }
+        
+        const targetRect = targetCell.getBoundingClientRect();
+        const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+        
+        // Create animation element
+        const animElement = document.createElement('div');
+        animElement.className = 'digit-animation';
+        animElement.textContent = value;
+        animElement.style.cssText = `
+            position: fixed;
+            font-size: 24px;
+            font-weight: bold;
+            color: #e74c3c;
+            background: white;
+            border: 2px solid #e74c3c;
+            border-radius: 5px;
+            width: ${sourceRect.width}px;
+            height: ${sourceRect.height}px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 10000;
+            transition: all 0.5s ease-in-out;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+        `;
+        
+        // Calculate positions
+        const sourceLeft = sourceRect.left + sourceRect.width/2 + scrollX;
+        const sourceTop = sourceRect.top + sourceRect.height/2 + scrollY;
+        const targetLeft = targetRect.left + targetRect.width/2 + scrollX;
+        const targetTop = targetRect.top + targetRect.height/2 + scrollY;
+        
+        // Start position
+        animElement.style.left = `${sourceLeft}px`;
+        animElement.style.top = `${sourceTop}px`;
+        
+        document.body.appendChild(animElement);
+        void animElement.offsetWidth; // Force reflow
+        
+        // Animate to target
+        requestAnimationFrame(() => {
+            animElement.style.left = `${targetLeft}px`;
+            animElement.style.top = `${targetTop}px`;
+            animElement.style.transform = 'translate(-50%, -50%) scale(1.2)';
+            animElement.style.backgroundColor = '#ffeaa7';
+            
+            setTimeout(() => {
+                // Set the value in target cell
+                targetCell.textContent = value;
+                
+                // Visual feedback
+                targetCell.classList.add('digit-highlight');
+                
+                // Clean up
+                animElement.remove();
+                
+                setTimeout(() => {
+                    targetCell.classList.remove('digit-highlight');
+                    resolve();
+                }, 300);
+            }, 500);
+        });
+    });
+}
+
 async function animateFromEquationToGrid() {
     const equation = document.querySelector('.large-equation');
     const text = equation.textContent;
     
     // Extract numbers from "425 ÷ 2"
     const [dividend, divisor] = text.split(' ÷ ').map(num => parseInt(num));
+    const digits = String(dividend).split('');
+    
+    debugLog(`Animating numbers from equation to grid: ${dividend} ÷ ${divisor}`);
     
     // Animate divisor (2) to divisor cell
     await animateNumberToCell(divisor, equation, 'divisor');
     
     // Animate each dividend digit to dividend row
-    const digits = String(dividend).split('');
     for (let i = 0; i < digits.length; i++) {
         await animateNumberToCell(digits[i], equation, `r1c${i+1}`);
     }
