@@ -317,6 +317,23 @@ function animateBringDown(nextDigit, sourceRow, sourceCol, targetRow, targetCol)
     });
 }
 
+async function animateFromEquationToGrid() {
+    const equation = document.querySelector('.large-equation');
+    const text = equation.textContent;
+    
+    // Extract numbers from "425 ÷ 2"
+    const [dividend, divisor] = text.split(' ÷ ').map(num => parseInt(num));
+    
+    // Animate divisor (2) to divisor cell
+    await animateNumberToCell(divisor, equation, 'divisor');
+    
+    // Animate each dividend digit to dividend row
+    const digits = String(dividend).split('');
+    for (let i = 0; i < digits.length; i++) {
+        await animateNumberToCell(digits[i], equation, `r1c${i+1}`);
+    }
+}
+
 
 // ============================================
 // Problem Generation
@@ -371,7 +388,8 @@ function initializeDivisionState(dividend, divisor) {
     };
     
     debugLog('Current problem state initialized', currentProblem);
-    
+    await animateFromEquationToGrid();
+
     // Update UI
     updateDivisor(divisor);
     updateDividend(digits);
