@@ -474,10 +474,12 @@ async function initializeDivisionState(dividend, divisor) {
     };
     
     debugLog('Current problem state initialized', currentProblem);
+
+    updateProblemDisplay();  // This sets .large-equation to "149 ÷ 2"
+
     await animateFromEquationToGrid();
 
     // Update UI
-    updateProblemDisplay();
     currentGuess = 0;
     updateGuessDisplay();
     clearFeedback();
