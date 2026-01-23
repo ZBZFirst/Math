@@ -403,29 +403,17 @@ function resetGrid() {
         debugLog('Reset remainder cell to ?');
     }
     
-    // Get total digits for current problem (default to 3 if no problem)
-    const totalDigits = currentProblem ? currentProblem.n : 3;
-    debugLog(`Resetting grid for ${totalDigits}-digit problem`);
-    
     // Clear all work grid cells and set proper initial state
+    // Note: We have 10 rows (r1 to r10) and 5 columns (c1 to c5)
     for (let row = 1; row <= 10; row++) {
         for (let col = 1; col <= 5; col++) {
             const cellId = `r${row}c${col}`;
             const cell = gridCells[cellId];
             if (cell) {
-                // Reset content to empty
+                // Reset to empty
                 cell.textContent = '';
                 cell.classList.remove('hidden');
-                
-                // Only hide cells with "empty" class that exceed digit count
-                if (cell.classList.contains('empty')) {
-                    cell.style.display = col <= totalDigits ? 'none' : 'flex';
-                } else {
-                    // For colored cells (pink, green, yellow, orange), always show
-                    cell.style.display = 'flex';
-                }
-                
-                debugLog(`Reset cell ${cellId} (${cell.className}) to "" (display: ${cell.style.display})`);
+                debugLog(`Reset cell ${cellId} to ""`);
             }
         }
     }
@@ -1172,9 +1160,6 @@ function updateProductInGrid(stepNumber, product) {
     if (row !== undefined) {
         const productStr = String(product);
         
-        // Get total digits in dividend from current problem
-        const totalDigits = currentProblem ? currentProblem.n : 3;
-        
         // Clear the row first
         for (let col = 1; col <= 5; col++) {
             const cellId = `r${row}c${col}`;
@@ -1185,10 +1170,11 @@ function updateProductInGrid(stepNumber, product) {
         }
         
         // Determine which columns we're working with
-        // For 2-digit problem: columns 1-2
-        // For 3-digit problem: columns 1-3
+        // For step 0: working with column 1 only (first digit)
+        // For step 1: working with columns 1-2 (first two digits)
+        // For step 2: working with columns 1-3 (all three digits)
         const startCol = 1;
-        const workingColumns = totalDigits; // 2 or 3
+        const workingColumns = stepNumber + 1; // 1, 2, or 3
         
         // Right-align within the working columns
         const productLength = productStr.length;
@@ -1199,12 +1185,12 @@ function updateProductInGrid(stepNumber, product) {
             const cell = gridCells[cellId];
             if (cell) {
                 cell.textContent = productStr[i];
-                cell.style.display = 'flex'; // Ensure it's visible
                 debugLog(`Set product cell ${cellId} to ${productStr[i]} (step ${stepNumber}, right-aligned in ${workingColumns} columns)`);
             }
         }
     }
 }
+
 
 function updateRemainderInGrid(stepNumber, remainder) {
     debugLog(`Updating remainder in grid`, {
@@ -1219,9 +1205,6 @@ function updateRemainderInGrid(stepNumber, remainder) {
     if (row !== undefined) {
         const remainderStr = String(remainder);
         
-        // Get total digits in dividend from current problem
-        const totalDigits = currentProblem ? currentProblem.n : 3;
-        
         // Clear the row first
         for (let col = 1; col <= 5; col++) {
             const cellId = `r${row}c${col}`;
@@ -1233,7 +1216,7 @@ function updateRemainderInGrid(stepNumber, remainder) {
         
         // Determine which columns we're working with
         const startCol = 1;
-        const workingColumns = totalDigits; // 2 or 3
+        const workingColumns = stepNumber + 1; // 1, 2, or 3
         
         // Right-align within the working columns
         const remainderLength = remainderStr.length;
@@ -1244,7 +1227,6 @@ function updateRemainderInGrid(stepNumber, remainder) {
             const cell = gridCells[cellId];
             if (cell) {
                 cell.textContent = remainderStr[i];
-                cell.style.display = 'flex'; // Ensure it's visible
                 debugLog(`Set remainder cell ${cellId} to ${remainderStr[i]} (step ${stepNumber}, right-aligned in ${workingColumns} columns)`);
             }
         }
