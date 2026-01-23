@@ -420,6 +420,138 @@ async function animateFromEquationToGrid() {
     }
 }
 
+// ============================================
+// NEW: Animation to focus on current step
+// ============================================
+async function animateFocusOnCurrentStep() {
+    return new Promise((resolve) => {
+        const currentStepBox = document.querySelector('.current-step-container');
+        if (!currentStepBox) {
+            resolve();
+            return;
+        }
+        
+        // Highlight the current step box
+        currentStepBox.style.transition = 'all 0.5s ease';
+        currentStepBox.style.boxShadow = '0 0 0 4px rgba(52, 152, 219, 0.5)';
+        currentStepBox.style.transform = 'scale(1.05)';
+        currentStepBox.style.backgroundColor = '#e3f2fd';
+        
+        // Also highlight the relevant grid cells
+        const p = currentProblem;
+        if (p && p.currentStep === 0) {
+            // For first step, highlight the first dividend digit and divisor
+            if (gridCells['r1c1']) {
+                gridCells['r1c1'].classList.add('digit-highlight');
+            }
+            if (gridCells['divisor']) {
+                gridCells['divisor'].classList.add('digit-highlight');
+            }
+        }
+        
+        // Remove highlight after animation
+        setTimeout(() => {
+            currentStepBox.style.boxShadow = '';
+            currentStepBox.style.transform = '';
+            currentStepBox.style.backgroundColor = '';
+            
+            if (gridCells['r1c1']) gridCells['r1c1'].classList.remove('digit-highlight');
+            if (gridCells['divisor']) gridCells['divisor'].classList.remove('digit-highlight');
+            
+            resolve();
+        }, 1500);
+    });
+}
+
+// ============================================
+// NEW: Arrow pointing animation
+// ============================================
+function createFocusArrow(fromElement, toElement) {
+    return new Promise((resolve) => {
+        const arrow = document.createElement('div');
+        arrow.className = 'focus-arrow';
+        
+        // Get positions
+        const fromRect = fromElement.getBoundingClientRect();
+        const toRect = toElement.getBoundingClientRect();
+        const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+        
+        // Calculate arrow path (simple line for now)
+        const fromX = fromRect.left + fromRect.width / 2 + scrollX;
+        const fromY = fromRect.top + fromRect.height / 2 + scrollY;
+        const toX = toRect.left + toRect.width / 2 + scrollX;
+        const toY = toRect.top + toRect.height / 2 + scrollY;
+        
+        // Calculate angle and distance
+        const angle = Math.atan2(toY - fromY, toX - fromX) * 180 / Math.PI;
+        const distance = Math.sqrt(Math.pow(toX - fromX, 2) + Math.pow(toY - fromY, 2));
+        
+        arrow.style.cssText = `
+            position: fixed;
+            width: ${distance}px;
+            height: 8px;
+            background: linear-gradient(90deg, rgba(52, 152, 219, 0.8), rgba(41, 128, 185, 0.8));
+            border-radius: 4px;
+            z-index: 9999;
+            pointer-events: none;
+            transform-origin: 0 50%;
+            left: ${fromX}px;
+            top: ${fromY - 4}px;
+            transform: rotate(${angle}deg);
+            animation: arrowPulse 1s infinite;
+        `;
+        
+        document.body.appendChild(arrow);
+        
+        // Remove after animation
+        setTimeout(() => {
+            arrow.remove();
+            resolve();
+        }, 2000);
+    });
+}
+
+// ============================================
+// Update addAnimationStyles() to include arrow styles
+// ============================================
+function addAnimationStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+        /* ... existing styles ... */
+        
+        @keyframes arrowPulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+        
+        .focus-arrow::after {
+            content: '';
+            position: absolute;
+            right: -10px;
+            top: -6px;
+            width: 0;
+            height: 0;
+            border-left: 20px solid rgba(52, 152, 219, 0.8);
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+        }
+        
+        .current-step-highlight {
+            animation: pulseHighlight 2s ease-in-out;
+            background-color: #e3f2fd !important;
+            border: 3px solid #3498db !important;
+        }
+        
+        @keyframes pulseHighlight {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(52, 152, 219, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(52, 152, 219, 0); }
+        }
+    `;
+    document.head.appendChild(style);
+}
 
 // ============================================
 // Problem Generation
@@ -478,6 +610,9 @@ async function initializeDivisionState(dividend, divisor) {
     updateProblemDisplay();  // This sets .large-equation to "149 ÷ 2"
 
     await animateFromEquationToGrid();
+    
+    // ✅ NEW: Focus animation to show where to look next
+    await animateFocusOnCurrentStep();
 
     // Update UI
     currentGuess = 0;
