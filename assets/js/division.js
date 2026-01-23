@@ -1181,8 +1181,6 @@ function updateProductInGrid(stepNumber, product) {
             const cell = gridCells[cellId];
             if (cell) {
                 cell.textContent = '';
-                // Show/hide based on total digits needed for this problem
-                cell.style.display = col <= totalDigits ? 'flex' : 'none';
             }
         }
         
@@ -1230,8 +1228,6 @@ function updateRemainderInGrid(stepNumber, remainder) {
             const cell = gridCells[cellId];
             if (cell) {
                 cell.textContent = '';
-                // Show/hide based on total digits needed for this problem
-                cell.style.display = col <= totalDigits ? 'flex' : 'none';
             }
         }
         
