@@ -35,7 +35,7 @@
     {% include header.html %}
     
     <main class="page-content">
-        <div class="division-container">
+        <div class="division-container" data-component="division-practice">
             <!-- Title Container -->
             <div class="container title-container">
                 <h1 class="page-title">{{ page.title }}</h1>
@@ -45,155 +45,295 @@
             <!-- Main Workspace -->
             <div class="dual-container">
                 <!-- LEFT: Problem Display -->
-                <div class="main-problem-container">
+                <div class="main-problem-container" data-zone="problem-display">
                     <h3>Division Problem</h3>
-                    <div class="main-problem" id="problemdisplay">
+                    <div class="main-problem" id="problemdisplay" data-animation-source="problem-display">
                         <div class="equation-display">
-                            <div class="large-equation" id="mainEquation">
+                            <div class="large-equation" id="mainEquation" 
+                                 data-role="main-equation"
+                                 data-animation-source="equation-display">
                                 123 ÷ 5
                             </div>
                         </div>
                         
                         <!-- Current Step Area -->
-                        <div class="current-step-container">
+                        <div class="current-step-container" data-role="current-step-container">
                             <div class="current-step-title">Current Step</div>
-                            <div class="current-step-equation" id="currentStepEquation">
+                            <div class="current-step-equation" id="currentStepEquation"
+                                 data-role="current-step-equation">
                                 1 ÷ 5 = ?
                             </div>
-                            <div class="current-instruction" id="currentInstruction">
+                            <div class="current-instruction" id="currentInstruction"
+                                 data-role="current-instruction">
                                 How many times does 5 go into 1?
                             </div>
                         </div>
                     </div>
                     <!-- Control Buttons -->
-                    <div class="work-feedback" id="workFeedback">
+                    <div class="work-feedback" id="workFeedback" data-zone="control-buttons">
                         <div class="control-grid">
-                            <button class="grid-btn decrement" data-change="-5">-5</button>
-                            <button class="grid-btn decrement" data-change="-1">-1</button>
-                            <button class="grid-btn clear" id="clearGuess">C</button>
-                            <button class="grid-btn increment" data-change="+1">+1</button>
-                            <button class="grid-btn increment" data-change="+5">+5</button>
+                            <button class="grid-btn decrement" data-change="-5" data-action="adjust-guess">-5</button>
+                            <button class="grid-btn decrement" data-change="-1" data-action="adjust-guess">-1</button>
+                            <button class="grid-btn clear" id="clearGuess" data-action="clear-guess">C</button>
+                            <button class="grid-btn increment" data-change="+1" data-action="adjust-guess">+1</button>
+                            <button class="grid-btn increment" data-change="+5" data-action="adjust-guess">+5</button>
                         </div>
                         <div class="number-display">
-                            Current guess: <span id="currentGuessDisplay">0</span>
+                            Current guess: <span id="currentGuessDisplay" 
+                                                 data-role="current-guess"
+                                                 data-animation-target="guess-display">0</span>
                         </div>
-                        <button id="commitGuessBtn" class="commit-btn">✓ Confirm This Digit</button>
+                        <button id="commitGuessBtn" class="commit-btn" data-action="commit-guess">✓ Confirm This Digit</button>
                     </div>
                 </div>
                 
                 <!-- RIGHT: Work Area -->
-                <div class="work-container">
-                    <h3>Work Area</h3>              
-                    <div class="Work-Container" id="workStageContainer">
-                        <div class="division-work-layout">
+                <div class="work-container" data-zone="work-area">
+                    <h3>Work Area</h3>
+                    
+                    <!-- Step Tracker (Hidden but accessible) -->
+                    <div class="step-tracker" 
+                         data-role="step-tracker"
+                         data-current-step="0"
+                         data-total-steps="3"
+                         style="display: none;"></div>
+                    
+                    <div class="Work-Container" id="workStageContainer" data-zone="work-grid-container">
+                        <div class="division-work-layout" data-zone="division-layout">
                             
                             <!-- 1. DIVISOR (left side) -->
-                            <div class="divisor-section">
-                                <div id="divisor" class="grid-cell blue">5</div>
+                            <div class="divisor-section" data-zone="divisor-area">
+                                <div id="divisor" class="grid-cell blue"
+                                     data-role="divisor"
+                                     data-value="5">5</div>
                             </div>
                                 
                             <!-- 2. ANSWER ROW (top right) -->
-                            <div class="answer-section">
-                                <div id="ans-q0" class="grid-cell green">?</div>
-                                <div id="ans-q1" class="grid-cell green">?</div>
-                                <div id="ans-q2" class="grid-cell green">?</div>
-                                <div id="ans-r" class="grid-cell green">R</div>
-                                <div id="ans-rem" class="grid-cell green">?</div>
+                            <div class="answer-section" data-zone="answer-area">
+                                <div id="ans-q0" class="grid-cell green"
+                                     data-role="quotient-digit"
+                                     data-position="0"
+                                     data-step="0">?</div>
+                                <div id="ans-q1" class="grid-cell green"
+                                     data-role="quotient-digit"
+                                     data-position="1"
+                                     data-step="1">?</div>
+                                <div id="ans-q2" class="grid-cell green"
+                                     data-role="quotient-digit"
+                                     data-position="2"
+                                     data-step="2">?</div>
+                                <div id="ans-r" class="grid-cell green" data-role="remainder-label">R</div>
+                                <div id="ans-rem" class="grid-cell green"
+                                     data-role="final-remainder"
+                                     data-value="?">?</div>
                             </div>
 
-
                             <!-- 3. WORK GRID (main area) -->
-                            <div class="work-grid-section">
-                                <div class="division-symbol"></div>
+                            <div class="work-grid-section" data-zone="calculation-grid">
+                                <div class="division-symbol" data-role="division-symbol"></div>
                             
-                                <div class="work-grid" id="divisionGrid">
+                                <div class="work-grid" id="divisionGrid" data-zone="work-grid">
                             
                                     <!-- =========== ROW 1: DIVIDEND =========== -->
-                                    <div class="work-row dividend-row">
-                                        <div id="r1c1" class="grid-cell orange">?</div>
-                                        <div id="r1c2" class="grid-cell orange">?</div>
-                                        <div id="r1c3" class="grid-cell orange">?</div>
-                                        <div id="r1c4" class="grid-cell orange"></div>
-                                        <div id="r1c5" class="grid-cell orange"></div>
+                                    <div class="work-row dividend-row" data-role="dividend-row">
+                                        <div id="r1c1" class="grid-cell orange"
+                                             data-role="dividend-digit"
+                                             data-position="0"
+                                             data-column="1">?</div>
+                                        <div id="r1c2" class="grid-cell orange"
+                                             data-role="dividend-digit"
+                                             data-position="1"
+                                             data-column="2">?</div>
+                                        <div id="r1c3" class="grid-cell orange"
+                                             data-role="dividend-digit"
+                                             data-position="2"
+                                             data-column="3">?</div>
+                                        <div id="r1c4" class="grid-cell orange"
+                                             data-role="dividend-digit"
+                                             data-position="3"
+                                             data-column="4"></div>
+                                        <div id="r1c5" class="grid-cell orange"
+                                             data-role="dividend-digit"
+                                             data-position="4"
+                                             data-column="5"></div>
                                     </div>
                                     
                                     <!-- =========== ROW 2: STEP 1 PRODUCT =========== -->
-                                    <div class="work-row product-row" data-step="1">
-                                        <div id="r2c1" class="grid-cell pink"></div>
-                                        <div id="r2c2" class="grid-cell pink"></div>
-                                        <div id="r2c3" class="grid-cell pink"></div>
-                                        <div id="r2c4" class="grid-cell empty"></div>
-                                        <div id="r2c5" class="grid-cell empty"></div>
+                                    <div class="work-row product-row" data-step="1" data-role="product-row">
+                                        <div id="r2c1" class="grid-cell pink"
+                                             data-role="product-digit"
+                                             data-step="1"
+                                             data-position="0"
+                                             data-column="1"></div>
+                                        <div id="r2c2" class="grid-cell pink"
+                                             data-role="product-digit"
+                                             data-step="1"
+                                             data-position="1"
+                                             data-column="2"></div>
+                                        <div id="r2c3" class="grid-cell pink"
+                                             data-role="product-digit"
+                                             data-step="1"
+                                             data-position="2"
+                                             data-column="3"></div>
+                                        <div id="r2c4" class="grid-cell empty"
+                                             data-role="empty-cell"></div>
+                                        <div id="r2c5" class="grid-cell empty"
+                                             data-role="empty-cell"></div>
                                     </div>
                             
                                     <!-- =========== ROW 3: STEP 1 REMAINDER =========== -->
-                                    <div class="work-row remainder-row">
-                                        <div id="r3c1" class="grid-cell yellow"></div>
-                                        <div id="r3c2" class="grid-cell yellow">2</div>
-                                        <div id="r3c3" class="grid-cell yellow"></div>
-                                        <div id="r3c4" class="grid-cell empty"></div>
-                                        <div id="r3c5" class="grid-cell empty"></div>
+                                    <div class="work-row remainder-row" data-step="1" data-role="remainder-row">
+                                        <div id="r3c1" class="grid-cell yellow"
+                                             data-role="remainder-digit"
+                                             data-step="1"
+                                             data-position="0"
+                                             data-column="1"></div>
+                                        <div id="r3c2" class="grid-cell yellow"
+                                             data-role="remainder-digit"
+                                             data-step="1"
+                                             data-position="1"
+                                             data-column="2">2</div>
+                                        <div id="r3c3" class="grid-cell yellow"
+                                             data-role="remainder-digit"
+                                             data-step="1"
+                                             data-position="2"
+                                             data-column="3"></div>
+                                        <div id="r3c4" class="grid-cell empty"
+                                             data-role="empty-cell"></div>
+                                        <div id="r3c5" class="grid-cell empty"
+                                             data-role="empty-cell"></div>
                                     </div>
                             
                                     <!-- =========== ROW 4: STEP 2 PRODUCT =========== -->
-                                    <div class="work-row product-row" data-step="2">
-                                        <div id="r4c1" class="grid-cell pink"></div>
-                                        <div id="r4c2" class="grid-cell pink"></div>
-                                        <div id="r4c3" class="grid-cell pink"></div>
-                                        <div id="r4c4" class="grid-cell empty"></div>
-                                        <div id="r4c5" class="grid-cell empty"></div>
+                                    <div class="work-row product-row" data-step="2" data-role="product-row">
+                                        <div id="r4c1" class="grid-cell pink"
+                                             data-role="product-digit"
+                                             data-step="2"
+                                             data-position="0"
+                                             data-column="1"></div>
+                                        <div id="r4c2" class="grid-cell pink"
+                                             data-role="product-digit"
+                                             data-step="2"
+                                             data-position="1"
+                                             data-column="2"></div>
+                                        <div id="r4c3" class="grid-cell pink"
+                                             data-role="product-digit"
+                                             data-step="2"
+                                             data-position="2"
+                                             data-column="3"></div>
+                                        <div id="r4c4" class="grid-cell empty"
+                                             data-role="empty-cell"></div>
+                                        <div id="r4c5" class="grid-cell empty"
+                                             data-role="empty-cell"></div>
                                     </div>
                             
                                     <!-- =========== ROW 5: STEP 2 REMAINDER =========== -->
-                                    <div class="work-row remainder-row">
-                                        <div id="r5c1" class="grid-cell yellow"></div>
-                                        <div id="r5c2" class="grid-cell yellow"></div>
-                                        <div id="r5c3" class="grid-cell yellow">3</div>
-                                        <div id="r5c4" class="grid-cell empty"></div>
-                                        <div id="r5c5" class="grid-cell empty"></div>
+                                    <div class="work-row remainder-row" data-step="2" data-role="remainder-row">
+                                        <div id="r5c1" class="grid-cell yellow"
+                                             data-role="remainder-digit"
+                                             data-step="2"
+                                             data-position="0"
+                                             data-column="1"></div>
+                                        <div id="r5c2" class="grid-cell yellow"
+                                             data-role="remainder-digit"
+                                             data-step="2"
+                                             data-position="1"
+                                             data-column="2"></div>
+                                        <div id="r5c3" class="grid-cell yellow"
+                                             data-role="remainder-digit"
+                                             data-step="2"
+                                             data-position="2"
+                                             data-column="3">3</div>
+                                        <div id="r5c4" class="grid-cell empty"
+                                             data-role="empty-cell"></div>
+                                        <div id="r5c5" class="grid-cell empty"
+                                             data-role="empty-cell"></div>
                                     </div>
                             
                                     <!-- =========== ROW 6: STEP 3 PRODUCT =========== -->
-                                    <div class="work-row product-row" data-step="3">
-                                        <div id="r6c1" class="grid-cell pink"></div>
-                                        <div id="r6c2" class="grid-cell pink"></div>
-                                        <div id="r6c3" class="grid-cell pink"></div>
-                                        <div id="r6c4" class="grid-cell empty"></div>
-                                        <div id="r6c5" class="grid-cell empty"></div>
+                                    <div class="work-row product-row" data-step="3" data-role="product-row">
+                                        <div id="r6c1" class="grid-cell pink"
+                                             data-role="product-digit"
+                                             data-step="3"
+                                             data-position="0"
+                                             data-column="1"></div>
+                                        <div id="r6c2" class="grid-cell pink"
+                                             data-role="product-digit"
+                                             data-step="3"
+                                             data-position="1"
+                                             data-column="2"></div>
+                                        <div id="r6c3" class="grid-cell pink"
+                                             data-role="product-digit"
+                                             data-step="3"
+                                             data-position="2"
+                                             data-column="3"></div>
+                                        <div id="r6c4" class="grid-cell empty"
+                                             data-role="empty-cell"></div>
+                                        <div id="r6c5" class="grid-cell empty"
+                                             data-role="empty-cell"></div>
                                     </div>
                             
                                     <!-- =========== ROW 7: STEP 3 REMAINDER =========== -->
-                                    <div class="work-row remainder-row">
-                                        <div id="r7c1" class="grid-cell yellow"></div>
-                                        <div id="r7c2" class="grid-cell yellow"></div>
-                                        <div id="r7c3" class="grid-cell yellow"></div>
-                                        <div id="r7c4" class="grid-cell empty"></div>
-                                        <div id="r7c5" class="grid-cell empty"></div>
+                                    <div class="work-row remainder-row" data-step="3" data-role="remainder-row">
+                                        <div id="r7c1" class="grid-cell yellow"
+                                             data-role="remainder-digit"
+                                             data-step="3"
+                                             data-position="0"
+                                             data-column="1"></div>
+                                        <div id="r7c2" class="grid-cell yellow"
+                                             data-role="remainder-digit"
+                                             data-step="3"
+                                             data-position="1"
+                                             data-column="2"></div>
+                                        <div id="r7c3" class="grid-cell yellow"
+                                             data-role="remainder-digit"
+                                             data-step="3"
+                                             data-position="2"
+                                             data-column="3"></div>
+                                        <div id="r7c4" class="grid-cell empty"
+                                             data-role="empty-cell"></div>
+                                        <div id="r7c5" class="grid-cell empty"
+                                             data-role="empty-cell"></div>
                                     </div>
                             
-                                    <!-- EXTRA ROWS -->
-                                    <div class="work-row">
-                                        <div id="r8c1" class="grid-cell empty"></div>
-                                        <div id="r8c2" class="grid-cell empty"></div>
-                                        <div id="r8c3" class="grid-cell empty"></div>
-                                        <div id="r8c4" class="grid-cell empty"></div>
-                                        <div id="r8c5" class="grid-cell empty"></div>
+                                    <!-- EXTRA ROWS (for larger problems) -->
+                                    <div class="work-row" data-role="extra-row">
+                                        <div id="r8c1" class="grid-cell empty"
+                                             data-role="empty-cell"></div>
+                                        <div id="r8c2" class="grid-cell empty"
+                                             data-role="empty-cell"></div>
+                                        <div id="r8c3" class="grid-cell empty"
+                                             data-role="empty-cell"></div>
+                                        <div id="r8c4" class="grid-cell empty"
+                                             data-role="empty-cell"></div>
+                                        <div id="r8c5" class="grid-cell empty"
+                                             data-role="empty-cell"></div>
                                     </div>
                             
-                                    <div class="work-row">
-                                        <div id="r9c1" class="grid-cell empty"></div>
-                                        <div id="r9c2" class="grid-cell empty"></div>
-                                        <div id="r9c3" class="grid-cell empty"></div>
-                                        <div id="r9c4" class="grid-cell empty"></div>
-                                        <div id="r9c5" class="grid-cell empty"></div>
+                                    <div class="work-row" data-role="extra-row">
+                                        <div id="r9c1" class="grid-cell empty"
+                                             data-role="empty-cell"></div>
+                                        <div id="r9c2" class="grid-cell empty"
+                                             data-role="empty-cell"></div>
+                                        <div id="r9c3" class="grid-cell empty"
+                                             data-role="empty-cell"></div>
+                                        <div id="r9c4" class="grid-cell empty"
+                                             data-role="empty-cell"></div>
+                                        <div id="r9c5" class="grid-cell empty"
+                                             data-role="empty-cell"></div>
                                     </div>
                             
-                                    <div class="work-row">
-                                        <div id="r10c1" class="grid-cell empty"></div>
-                                        <div id="r10c2" class="grid-cell empty"></div>
-                                        <div id="r10c3" class="grid-cell empty"></div>
-                                        <div id="r10c4" class="grid-cell empty"></div>
-                                        <div id="r10c5" class="grid-cell empty"></div>
+                                    <div class="work-row" data-role="extra-row">
+                                        <div id="r10c1" class="grid-cell empty"
+                                             data-role="empty-cell"></div>
+                                        <div id="r10c2" class="grid-cell empty"
+                                             data-role="empty-cell"></div>
+                                        <div id="r10c3" class="grid-cell empty"
+                                             data-role="empty-cell"></div>
+                                        <div id="r10c4" class="grid-cell empty"
+                                             data-role="empty-cell"></div>
+                                        <div id="r10c5" class="grid-cell empty"
+                                             data-role="empty-cell"></div>
                                     </div>
                                 </div>
                             </div>
@@ -203,37 +343,41 @@
             </div>
             
             <!-- Controls -->
-            <div class="division-controls">
+            <div class="division-controls" data-zone="main-controls">
                 <div class="control-buttons">
-                    <button id="newDivisionProblem" class="primary-btn">New Problem</button>
-                    <button id="resetCurrentProblem" class="secondary-btn">Reset This Problem</button>
+                    <button id="newDivisionProblem" class="primary-btn" data-action="new-problem">New Problem</button>
+                    <button id="resetCurrentProblem" class="secondary-btn" data-action="reset-problem">Reset This Problem</button>
                 </div>
             </div>
             
             <!-- Enhanced Score Container -->
-            <div class="container enhanced-score-container">
+            <div class="container enhanced-score-container" data-zone="score-display">
                 <div class="score-display">
                     <h3>Your Division Progress</h3>
                     <div class="score-stats">
                         <div class="stat correct">
                             <span class="stat-label">Problems Solved:</span>
-                            <span class="stat-value" id="solvedCount">0</span>
+                            <span class="stat-value" id="solvedCount"
+                                  data-role="solved-count">0</span>
                         </div>
                         <div class="stat incorrect">
                             <span class="stat-label">Mistakes:</span>
-                            <span class="stat-value" id="mistakeCount">0</span>
+                            <span class="stat-value" id="mistakeCount"
+                                  data-role="mistake-count">0</span>
                         </div>
                         <div class="stat accuracy">
                             <span class="stat-label">Accuracy:</span>
-                            <span class="stat-value" id="divisionAccuracy">0%</span>
+                            <span class="stat-value" id="divisionAccuracy"
+                                  data-role="accuracy">0%</span>
                         </div>
                         <div class="stat streak">
                             <span class="stat-label">Current Streak:</span>
-                            <span class="stat-value" id="currentStreak">0</span>
+                            <span class="stat-value" id="currentStreak"
+                                  data-role="streak">0</span>
                         </div>
                     </div>
                     
-                    <button id="resetDivisionScores">Reset All Scores</button>
+                    <button id="resetDivisionScores" data-action="reset-scores">Reset All Scores</button>
                 </div>
             </div>
         </div>
