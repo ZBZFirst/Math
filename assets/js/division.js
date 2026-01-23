@@ -417,22 +417,15 @@ function resetGrid() {
                 cell.textContent = '';
                 cell.classList.remove('hidden');
                 
-                // Set proper visibility based on row type and total digits
-                if (row === 1) {
-                    // Row 1: Dividend row - handled by updateDividend()
-                    // Keep visible for now, will be adjusted in updateDividend()
-                    cell.style.display = col <= totalDigits ? 'flex' : 'none';
-                } else if (row % 2 === 0) {
-                    // Even rows (2,4,6,8,10): Product/answer rows
-                    // Only show columns needed for this digit count
-                    cell.style.display = col <= totalDigits ? 'flex' : 'none';
+                // Only hide cells with "empty" class that exceed digit count
+                if (cell.classList.contains('empty')) {
+                    cell.style.display = col <= totalDigits ? 'none' : 'flex';
                 } else {
-                    // Odd rows (3,5,7,9): Remainder/bring down rows
-                    // Only show columns needed for this digit count
-                    cell.style.display = col <= totalDigits ? 'flex' : 'none';
+                    // For colored cells (pink, green, yellow, orange), always show
+                    cell.style.display = 'flex';
                 }
                 
-                debugLog(`Reset cell ${cellId} to "" (display: ${cell.style.display})`);
+                debugLog(`Reset cell ${cellId} (${cell.className}) to "" (display: ${cell.style.display})`);
             }
         }
     }
