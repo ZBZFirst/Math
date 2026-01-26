@@ -13,22 +13,38 @@ const MIN_DIVISOR = 1;
 // (Pure functions with no side effects)
 // ============================================================================
 
-// Z+2.1: Debug Utilities (KEEPING ALL YOUR DEBUG LOGIC)
-function debugLog(message, data = null) {
-    if (DEBUG) {
+// Z+2.1: DEBUG CLASS - Consolidated debug functionality
+class Debug {
+    constructor(enabled) {
+        this.enabled = enabled;
+    }
+    
+    log(message, data = null) {
+        if (!this.enabled) return;
         if (data) {
             console.log(`[DEBUG] ${message}:`, data);
         } else {
             console.log(`[DEBUG] ${message}`);
         }
     }
-}
-
-function debugError(message, error = null) {
-    if (DEBUG) {
+    
+    error(message, error = null) {
+        if (!this.enabled) return;
         console.error(`[DEBUG ERROR] ${message}`, error || '');
     }
+    
+    warn(message, data = null) {
+        if (!this.enabled) return;
+        console.warn(`[DEBUG WARN] ${message}`, data || '');
+    }
+    
+    info(message, data = null) {
+        if (!this.enabled) return;
+        console.info(`[DEBUG INFO] ${message}`, data || '');
+    }
 }
+
+const debug = new Debug(DEBUG);
 
 // Z+2.2: Math Utilities (Pure functions extracted from your logic)
 function calculateQuotientDigit(partial, divisor) {
@@ -85,7 +101,7 @@ let gridCells = {};
 let answerCells = {};
 
 function initializeGridReferences() {
-    debugLog('Initializing grid cell references');
+    debug.log('Initializing grid cell references');
     
     // KEEPING YOUR EXACT MAPPING STRUCTURE
     gridCells = {
@@ -173,7 +189,7 @@ function initializeGridReferences() {
     
     // Log which cells were found (KEEPING YOUR DEBUG LOGIC)
     const foundCells = Object.keys(gridCells).filter(key => gridCells[key]);
-    debugLog(`Found ${foundCells.length} grid cells`, foundCells);
+    debug.log(`Found ${foundCells.length} grid cells`, foundCells);
     
     // Store answer cells separately for easy access (KEEPING YOUR STRUCTURE)
     answerCells = {
@@ -183,7 +199,7 @@ function initializeGridReferences() {
         'rem': gridCells['ans-rem']
     };
     
-    debugLog('Grid cell references initialized');
+    debug.log('Grid cell references initialized');
 }
 
 // ============================================================================
@@ -201,7 +217,7 @@ let commitButton = null;
 
 // Z0.2: State Management Functions (KEEPING ALL LOGIC)
 function updateScoreDisplay() {
-    debugLog(`Updating score display`, {
+    debug.log(`Updating score display`, {
         solvedCount,
         mistakeCount,
         currentStreak
@@ -222,7 +238,7 @@ function updateScoreDisplay() {
 }
 
 function resetAllScores() {
-    debugLog('Resetting all scores');
+    debug.log('Resetting all scores');
     solvedCount = 0;
     mistakeCount = 0;
     currentStreak = 0;
@@ -236,7 +252,7 @@ function resetAllScores() {
 
 // Z-1.1: Problem Generation (KEEPING YOUR EXACT LOGIC)
 async function generateNewProblem() {
-    debugLog('Generating new problem');
+    debug.log('Generating new problem');
     
     let divisor = Math.floor(Math.random() * MAX_DIVISOR) + MIN_DIVISOR;
     let dividend;
@@ -245,7 +261,7 @@ async function generateNewProblem() {
         dividend = Math.floor(Math.random() * MAX_DIVIDEND) + MIN_DIVIDEND;
     } while (dividend <= divisor);
     
-    debugLog(`Generated problem: ${dividend} ÷ ${divisor}`);
+    debug.log(`Generated problem: ${dividend} ÷ ${divisor}`);
     
     await initializeDivisionState(dividend, divisor);
 }
@@ -255,7 +271,7 @@ async function initializeDivisionState(dividend, divisor) {
     const digits = String(dividend).split('').map(Number);
     const n = digits.length;
     
-    debugLog(`Initializing division state`, {
+    debug.log(`Initializing division state`, {
         dividend,
         divisor,
         digits,
@@ -286,7 +302,7 @@ async function initializeDivisionState(dividend, divisor) {
         visibleRows: 2 * n + 1    // Number of rows to show (2n+1)
     };
     
-    debugLog('Current problem state initialized', currentProblem);
+    debug.log('Current problem state initialized', currentProblem);
 
     updateProblemDisplay();
     await animateFromEquationToGrid();
@@ -309,18 +325,18 @@ async function initializeDivisionState(dividend, divisor) {
 
 // Z-2.1: Grid Reset (KEEPING ALL YOUR LOGIC)
 function resetGrid() {
-    debugLog('Resetting grid to initial state');
+    debug.log('Resetting grid to initial state');
     
     // Clear all answer cells (KEEPING YOUR EXACT LOGIC)
     for (let key in answerCells) {
         if (answerCells[key]) {
             answerCells[key].textContent = '?';
-            debugLog(`Reset answer cell ${key} to ?`);
+            debug.log(`Reset answer cell ${key} to ?`);
         }
     }
     if (gridCells['ans-rem']) {
         gridCells['ans-rem'].textContent = '?';
-        debugLog('Reset remainder cell to ?');
+        debug.log('Reset remainder cell to ?');
     }
     
     // Clear all work grid cells (KEEPING YOUR EXACT LOOPS)
@@ -332,7 +348,7 @@ function resetGrid() {
                 // Reset to empty
                 cell.textContent = '';
                 cell.classList.remove('hidden');
-                debugLog(`Reset cell ${cellId} to ""`);
+                debug.log(`Reset cell ${cellId} to ""`);
             }
         }
     }
@@ -347,12 +363,12 @@ function resetGrid() {
 function updateDivisor(divisor) {
     if (gridCells['divisor']) {
         gridCells['divisor'].textContent = divisor;
-        debugLog(`Updated divisor cell to ${divisor}`);
+        debug.log(`Updated divisor cell to ${divisor}`);
     }
 }
 
 function updateDividend(digits) {
-    debugLog(`Updating dividend cells with digits: ${digits}`);
+    debug.log(`Updating dividend cells with digits: ${digits}`);
     
     // Update the dividend row (KEEPING YOUR EXACT LOGIC)
     for (let i = 0; i < 5; i++) {
@@ -362,11 +378,11 @@ function updateDividend(digits) {
             if (i < digits.length) {
                 cell.textContent = digits[i];
                 cell.style.display = 'flex';
-                debugLog(`Set dividend cell ${cellId} to ${digits[i]}`);
+                debug.log(`Set dividend cell ${cellId} to ${digits[i]}`);
             } else {
                 cell.textContent = '';
                 cell.style.display = 'none';
-                debugLog(`Hid dividend cell ${cellId}`);
+                debug.log(`Hid dividend cell ${cellId}`);
             }
         }
     }
@@ -374,7 +390,7 @@ function updateDividend(digits) {
 
 function updateVisibleRows(n) {
     const visibleRows = 2 * n + 1;
-    debugLog(`Showing ${visibleRows} rows for n=${n} (2n+1)`);
+    debug.log(`Showing ${visibleRows} rows for n=${n} (2n+1)`);
     
     // Show/hide rows based on n (KEEPING YOUR EXACT LOGIC)
     for (let row = 1; row <= 10; row++) {
@@ -389,7 +405,7 @@ function updateVisibleRows(n) {
                     cell.style.display = shouldShow ? 'flex' : 'none';
                 }
                 if (DEBUG && row <= 8) {
-                    debugLog(`${shouldShow ? 'Showing' : 'Hiding'} cell ${cellId}`);
+                    debug.log(`${shouldShow ? 'Showing' : 'Hiding'} cell ${cellId}`);
                 }
             }
         }
@@ -404,17 +420,17 @@ function updateQuotientInGrid(stepNumber, value) {
         const cell = gridCells[cellId];
         if (cell) {
             cell.textContent = value;
-            debugLog(`Updated quotient cell ${cellId} to ${value}`);
+            debug.log(`Updated quotient cell ${cellId} to ${value}`);
         } else {
-            debugError(`Quotient cell ${cellId} not found`);
+            debug.error(`Quotient cell ${cellId} not found`);
         }
     } else {
-        debugError(`Step number ${stepNumber} out of range for quotient cells`);
+        debug.error(`Step number ${stepNumber} out of range for quotient cells`);
     }
 }
 
 function updateProductInGrid(stepNumber, product) {
-    debugLog(`Updating product in grid`, {
+    debug.log(`Updating product in grid`, {
         stepNumber,
         product
     });
@@ -448,14 +464,14 @@ function updateProductInGrid(stepNumber, product) {
             const cell = gridCells[cellId];
             if (cell) {
                 cell.textContent = productStr[i];
-                debugLog(`Set product cell ${cellId} to ${productStr[i]} (step ${stepNumber}, right-aligned in ${workingColumns} columns)`);
+                debug.log(`Set product cell ${cellId} to ${productStr[i]} (step ${stepNumber}, right-aligned in ${workingColumns} columns)`);
             }
         }
     }
 }
 
 function updateRemainderInGrid(stepNumber, remainder) {
-    debugLog(`Updating remainder in grid`, {
+    debug.log(`Updating remainder in grid`, {
         stepNumber,
         remainder
     });
@@ -489,7 +505,7 @@ function updateRemainderInGrid(stepNumber, remainder) {
             const cell = gridCells[cellId];
             if (cell) {
                 cell.textContent = remainderStr[i];
-                debugLog(`Set remainder cell ${cellId} to ${remainderStr[i]} (step ${stepNumber}, right-aligned in ${workingColumns} columns)`);
+                debug.log(`Set remainder cell ${cellId} to ${remainderStr[i]} (step ${stepNumber}, right-aligned in ${workingColumns} columns)`);
             }
         }
     }
@@ -502,7 +518,7 @@ function updateRemainderInGrid(stepNumber, remainder) {
 
 // Z-3.1: Bring Down Animation (KEEPING ALL YOUR DETAILED ANIMATION)
 function animateBringDown(nextDigit, sourceRow, sourceCol, targetRow, targetCol) {
-    debugLog(`Animating bring down of ${nextDigit} from (r${sourceRow}c${sourceCol}) to (r${targetRow}c${targetCol})`);
+    debug.log(`Animating bring down of ${nextDigit} from (r${sourceRow}c${sourceCol}) to (r${targetRow}c${targetCol})`);
     
     return new Promise((resolve) => {
         // Get source and target cells first (KEEPING YOUR EXACT CHECKS)
@@ -510,7 +526,7 @@ function animateBringDown(nextDigit, sourceRow, sourceCol, targetRow, targetCol)
         const targetCell = gridCells[`r${targetRow}c${targetCol}`];
         
         if (!sourceCell || !targetCell) {
-            debugError('Source or target cell not found for animation');
+            debug.error('Source or target cell not found for animation');
             resolve();
             return;
         }
@@ -603,7 +619,7 @@ function animateNumberToCell(value, sourceElement, targetCellId) {
         const targetCell = gridCells[targetCellId];
         
         if (!targetCell) {
-            debugError(`Target cell ${targetCellId} not found`);
+            debug.error(`Target cell ${targetCellId} not found`);
             resolve();
             return;
         }
@@ -684,7 +700,7 @@ async function animateFromEquationToGrid() {
     const [dividend, divisor] = text.split(' ÷ ').map(num => parseInt(num));
     const digits = String(dividend).split('');
     
-    debugLog(`Animating numbers from equation to grid: ${dividend} ÷ ${divisor}`);
+    debug.log(`Animating numbers from equation to grid: ${dividend} ÷ ${divisor}`);
     
     // Animate divisor (2) to divisor cell
     await animateNumberToCell(divisor, equation, 'divisor');
@@ -791,12 +807,12 @@ function createFocusArrow(fromElement, toElement) {
 // Z-4.1: Problem Display (KEEPING ALL YOUR LOGIC)
 function updateProblemDisplay() {
     if (!currentProblem) {
-        debugLog('No current problem to display');
+        debug.log('No current problem to display');
         return;
     }
     
     const p = currentProblem;
-    debugLog('Updating problem display', {
+    debug.log('Updating problem display', {
         currentStep: p.currentStep,
         currentDigitIndex: p.currentDigitIndex,
         partial: p.partial,
@@ -864,13 +880,13 @@ function updateProblemDisplay() {
 function updateGuessDisplay() {
     if (DOMReferences.guessDisplay) {
         DOMReferences.guessDisplay.textContent = currentGuess;
-        debugLog(`Updated guess display to ${currentGuess}`);
+        debug.log(`Updated guess display to ${currentGuess}`);
     }
 }
 
 function adjustGuess(delta) {
     if (!currentProblem || currentProblem.finished) {
-        debugLog(`Cannot adjust guess: ${currentProblem ? 'problem finished' : 'no problem'}`);
+        debug.log(`Cannot adjust guess: ${currentProblem ? 'problem finished' : 'no problem'}`);
         return;
     }
     
@@ -878,14 +894,14 @@ function adjustGuess(delta) {
     if (newGuess >= 0 && newGuess <= 99) {
         currentGuess = newGuess;
         updateGuessDisplay();
-        debugLog(`Guess adjusted to ${currentGuess}`);
+        debug.log(`Guess adjusted to ${currentGuess}`);
     } else {
-        debugLog(`Guess out of bounds: ${newGuess}`);
+        debug.log(`Guess out of bounds: ${newGuess}`);
     }
 }
 
 function clearGuess() {
-    debugLog(`Clearing guess (was ${currentGuess})`);
+    debug.log(`Clearing guess (was ${currentGuess})`);
     currentGuess = 0;
     updateGuessDisplay();
 }
@@ -900,7 +916,7 @@ async function processQuotientInput(problem) {
     const correctDigit = calculateQuotientDigit(problem.partial, problem.divisor);
     const correctProduct = calculateProduct(correctDigit, problem.divisor);
     
-    debugLog(`Quotient: ${currentGuess} vs ${correctProduct}`);
+    debug.log(`Quotient: ${currentGuess} vs ${correctProduct}`);
     restoreCommitButton();
 
     // Validation checks (KEEPING ALL YOUR CHECKS)
@@ -949,7 +965,7 @@ async function processQuotientInput(problem) {
     problem.currentStep = 1;
     currentGuess = 0;
     
-    debugLog(`→ Moving to subtraction step ${stepNumber}`);
+    debug.log(`→ Moving to subtraction step ${stepNumber}`);
     updateProblemDisplay();
     updateGuessDisplay();
 }
@@ -962,7 +978,7 @@ async function processSubtraction(problem) {
     const expectedRemainder = calculateRemainder(lastStep.partialBefore, lastStep.product);
     const stepNumber = lastStep.stepNumber;
     
-    debugLog(`Subtract: ${currentGuess} vs ${expectedRemainder}`);
+    debug.log(`Subtract: ${currentGuess} vs ${expectedRemainder}`);
     restoreCommitButton();
 
     if (currentGuess !== expectedRemainder) {
@@ -995,14 +1011,14 @@ async function processSubtraction(problem) {
 
 // Z-5.3: Bring Down Processing (KEEPING ALL YOUR LOGIC)
 function processBringDown(problem) {
-    debugLog(`Bring down processing`, {
+    debug.log(`Bring down processing`, {
         currentDigitIndex: problem.currentDigitIndex,
         n: problem.n
     });
     
     // This function shouldn't transform the button anymore
     if (problem.currentDigitIndex >= problem.n - 1) {
-        debugLog(`No more digits to bring down. Completing problem.`);
+        debug.log(`No more digits to bring down. Completing problem.`);
         completeProblem(problem);
         return;
     }
@@ -1011,7 +1027,7 @@ function processBringDown(problem) {
     
     // Double-check button is transformed
     if (commitButton && !commitButton.innerHTML.includes('Bring Down')) {
-        debugLog(`Button not transformed, transforming now`);
+        debug.log(`Button not transformed, transforming now`);
         transformToBringDownButton(nextDigit);
     }
     
@@ -1020,7 +1036,7 @@ function processBringDown(problem) {
 }
 
 async function executeBringDown(problem, nextDigit) {
-    debugLog(`Executing bring down for digit ${nextDigit}`, {
+    debug.log(`Executing bring down for digit ${nextDigit}`, {
         currentDigitIndex: problem.currentDigitIndex,
         n: problem.n,
         partialBefore: problem.partial,
@@ -1029,19 +1045,19 @@ async function executeBringDown(problem, nextDigit) {
     
     // CRITICAL CHECKS (KEEPING ALL YOUR CHECKS)
     if (problem.currentDigitIndex >= problem.n - 1) {
-        debugLog(`No more digits to bring down. Should complete problem.`);
+        debug.log(`No more digits to bring down. Should complete problem.`);
         await completeProblem(problem);
         return;
     }
     
     if (problem.currentStep !== 2) {
-        debugLog(`Not in bring down state (currentStep=${problem.currentStep}). Ignoring.`);
+        debug.log(`Not in bring down state (currentStep=${problem.currentStep}). Ignoring.`);
         return;
     }
     
     const expectedDigit = problem.digits[problem.currentDigitIndex + 1];
     if (nextDigit !== expectedDigit) {
-        debugLog(`Digit mismatch: expected ${expectedDigit}, got ${nextDigit}. Ignoring.`);
+        debug.log(`Digit mismatch: expected ${expectedDigit}, got ${nextDigit}. Ignoring.`);
         return;
     }
     
@@ -1050,7 +1066,7 @@ async function executeBringDown(problem, nextDigit) {
     // Update the partial
     problem.partial = getNextPartial(problem.partial, nextDigit);
     
-    debugLog(`Brought down ${nextDigit}. New partial: ${problem.partial}`);
+    debug.log(`Brought down ${nextDigit}. New partial: ${problem.partial}`);
     
     const stepNumber = problem.steps.length - 1;
     
@@ -1064,12 +1080,12 @@ async function executeBringDown(problem, nextDigit) {
     currentGuess = 0;
     
     if (problem.currentDigitIndex >= problem.n - 1) {
-        debugLog(`No more digits after this. Next step should be final quotient.`);
+        debug.log(`No more digits after this. Next step should be final quotient.`);
     }
     
     restoreCommitButton();
     
-    debugLog(`Moving to step 0 (new quotient). New partial: ${problem.partial}, next digit index: ${problem.currentDigitIndex}`);
+    debug.log(`Moving to step 0 (new quotient). New partial: ${problem.partial}, next digit index: ${problem.currentDigitIndex}`);
     
     updateProblemDisplay();
     updateGuessDisplay();
@@ -1082,14 +1098,14 @@ async function completeProblem(problem) {
     const finalRemainder = problem.partial;
     if (gridCells['ans-rem']) {
         gridCells['ans-rem'].textContent = finalRemainder;
-        debugLog(`Set final remainder to ${finalRemainder} in ans-rem cell`);
+        debug.log(`Set final remainder to ${finalRemainder} in ans-rem cell`);
     }
     
     solvedCount++;
     currentStreak++;
     
     const quotient = problem.quotientDigits.join('').replace(/^0+/, '') || '0';
-    debugLog(`Problem completed! Quotient: ${quotient}, Remainder: ${finalRemainder}`);
+    debug.log(`Problem completed! Quotient: ${quotient}, Remainder: ${finalRemainder}`);
     
     await showFeedback(`🎉 Complete! ${problem.dividend} ÷ ${problem.divisor} = ${quotient} R ${finalRemainder}`, 'success');
     
@@ -1104,11 +1120,11 @@ async function completeProblem(problem) {
 
 // Z-6.1: Feedback Display (KEEPING ALL YOUR LOGIC)
 function showFeedback(message, type = 'error') {
-    debugLog(`Showing feedback: ${type} - ${message}`);
+    debug.log(`Showing feedback: ${type} - ${message}`);
     
     const numberDisplay = document.querySelector('.number-display');
     if (!numberDisplay) {
-        debugError('Number display not found');
+        debug.error('Number display not found');
         return new Promise(resolve => resolve());
     }
     
@@ -1133,7 +1149,7 @@ function showFeedback(message, type = 'error') {
 }
 
 function clearFeedback() {
-    debugLog('Clearing feedback');
+    debug.log('Clearing feedback');
     const feedbackMsg = document.querySelector('.feedback-message');
     if (feedbackMsg) {
         feedbackMsg.remove();
@@ -1147,7 +1163,7 @@ function clearFeedback() {
 
 // Z-7.1: Button Setup (KEEPING ALL YOUR LOGIC)
 function setupButtonHandlers() {
-    debugLog('Setting up button handlers');
+    debug.log('Setting up button handlers');
     
     DOMReferences.newProblemBtn.addEventListener('click', async () => {
         await generateNewProblem();
@@ -1159,22 +1175,22 @@ function setupButtonHandlers() {
 }
 
 function createControlButtons() {
-    debugLog('Setting up existing control buttons');
+    debug.log('Setting up existing control buttons');
     setupControlButtonListeners();
     updateGuessDisplay();
     commitButton = DOMReferences.commitGuessBtn;
-    if (commitButton) {debugLog('Found commit button');}
+    if (commitButton) {debug.log('Found commit button');}
 }
 
 function setupControlButtonListeners() {
-    debugLog('Setting up control button listeners');
+    debug.log('Setting up control button listeners');
     
     document.querySelectorAll('[data-change]').forEach(btn => {
         btn.addEventListener('click', () => {
             if (!currentProblem || currentProblem.finished) return;
             
             const delta = parseInt(btn.dataset.change);
-            debugLog(`Adjusting guess by ${delta}, current guess: ${currentGuess}`);
+            debug.log(`Adjusting guess by ${delta}, current guess: ${currentGuess}`);
             adjustGuess(delta);
         });
     });
@@ -1186,30 +1202,30 @@ function setupControlButtonListeners() {
 // Z-7.2: Commit Logic (KEEPING ALL YOUR LOGIC)
 async function commitGuess() {
     if (!currentProblem) {
-        debugError('Cannot commit: No current problem');
+        debug.error('Cannot commit: No current problem');
         showFeedback('No problem loaded. Click "New Problem"', 'error');
         return;
     }
     
     if (currentProblem.finished) {
-        debugLog('Cannot commit: Problem already finished');
+        debug.log('Cannot commit: Problem already finished');
         showFeedback('Problem already completed!', 'info');
         return;
     }
     
     const p = currentProblem;
-    debugLog(`Committing guess ${currentGuess}`, {
+    debug.log(`Committing guess ${currentGuess}`, {
         currentStep: p.currentStep
     });
     
     if (p.currentStep === 0) {
-        debugLog('Processing quotient input');
+        debug.log('Processing quotient input');
         await processQuotientInput(p);
     } else if (p.currentStep === 1) {
-        debugLog('Processing subtraction');
+        debug.log('Processing subtraction');
         await processSubtraction(p);
     } else if (p.currentStep === 2) {
-        debugLog('In bring down phase - button should handle this');
+        debug.log('In bring down phase - button should handle this');
     }
 }
 
@@ -1276,7 +1292,7 @@ function hideBringDownButton() {
 function transformToBringDownButton(nextDigit) {
     if (!commitButton) return;
     
-    debugLog(`Transforming commit button to "Bring Down ${nextDigit}"`);
+    debug.log(`Transforming commit button to "Bring Down ${nextDigit}"`);
     
     commitButton.disabled = true;
     
@@ -1330,7 +1346,7 @@ function transformToBringDownButton(nextDigit) {
 function restoreCommitButton() {
     if (!commitButton || !commitButton.originalHTML) return;
     
-    debugLog('Restoring commit button to original state');
+    debug.log('Restoring commit button to original state');
     
     commitButton.disabled = false;
     commitButton.style.opacity = '';
@@ -1359,7 +1375,7 @@ function restoreCommitButton() {
 
 // Z-7.5: Bring Down Grid Update (KEEPING ALL YOUR LOGIC)
 function updateBringDownInGrid(stepNumber, nextDigit) {
-    debugLog(`Updating bring down in grid for step ${stepNumber}`, {
+    debug.log(`Updating bring down in grid for step ${stepNumber}`, {
         stepNumber,
         nextDigit
     });
@@ -1383,14 +1399,14 @@ function updateBringDownInGrid(stepNumber, nextDigit) {
         
         if (targetCell) {
             if (targetCell.textContent !== '') {
-                debugLog(`Target cell ${cellId} already has value: ${targetCell.textContent}. Skipping animation.`);
+                debug.log(`Target cell ${cellId} already has value: ${targetCell.textContent}. Skipping animation.`);
                 return Promise.resolve();
             }
             
             const sourceCol = stepNumber + 2;
             return animateBringDown(nextDigit, 1, sourceCol, row, targetCol).then(() => {
                 targetCell.textContent = nextDigit;
-                debugLog(`Appended brought down digit ${nextDigit} to ${cellId} via animation`);
+                debug.log(`Appended brought down digit ${nextDigit} to ${cellId} via animation`);
             });
         }
     }
@@ -1500,16 +1516,16 @@ function addAnimationStyles() {
 
 function resetCurrentProblem() {
     if (currentProblem) {
-        debugLog(`Resetting current problem: ${currentProblem.dividend} ÷ ${currentProblem.divisor}`);
+        debug.log(`Resetting current problem: ${currentProblem.dividend} ÷ ${currentProblem.divisor}`);
         initializeDivisionState(currentProblem.dividend, currentProblem.divisor);
     } else {
-        debugLog('No current problem to reset');
+        debug.log('No current problem to reset');
     }
 }
 
 // MAIN INITIALIZATION (KEEPING YOUR EXACT LOGIC)
 document.addEventListener('DOMContentLoaded', () => {
-    debugLog('Division practice initialized');
+    debug.log('Division practice initialized');
     
     initializeGridReferences();
     addAnimationStyles();
@@ -1519,5 +1535,5 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ============================================================================
-// LINE COUNT: ~1600 LINES (KEEPING ALL FUNCTIONALITY + ADDING Z-LAYER ORGANIZATION)
+// LINE COUNT: ~1600 LINES (SAME FUNCTIONALITY, ONLY DEBUG OPTIMIZED)
 // ============================================================================
