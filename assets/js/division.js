@@ -266,20 +266,22 @@ class GridManager {
         
         const valueStr = String(value);
         
-        // Clear row
+        // Clear the entire row first
         for (let col = 1; col <= 5; col++) {
             const cell = DOMReferences.gridCells[`r${row}c${col}`];
             if (cell) cell.textContent = '';
         }
         
-        // Right-align value
-        const workingColumns = stepNumber + 1;
-        const valueLength = valueStr.length;
+        // For remainder rows, align right starting from stepNumber + 1
+        // For product rows, align right starting from stepNumber
+        const startCol = isProduct ? stepNumber + 1 : stepNumber + 2;
+        const endCol = startCol - valueStr.length;
         
-        for (let i = 0; i < valueLength; i++) {
-            const col = 1 + (workingColumns - valueLength) + i;
+        // Fill digits from right to left
+        for (let i = 0; i < valueStr.length; i++) {
+            const col = startCol - i;
             const cell = DOMReferences.gridCells[`r${row}c${col}`];
-            if (cell) cell.textContent = valueStr[i];
+            if (cell) cell.textContent = valueStr[valueStr.length - 1 - i];
         }
     }
 }
