@@ -124,18 +124,6 @@ class State {
 // Z = -1: CORE BUSINESS LOGIC LAYER
 // ============================================================================
 class DivisionLogic {
-    static async generateNewProblem() {
-        let divisor = Math.floor(Math.random() * Config.MAX_DIVISOR) + Config.MIN_DIVISOR;
-        let dividend;
-        
-        do {
-            dividend = Math.floor(Math.random() * Config.MAX_DIVIDEND) + Config.MIN_DIVIDEND;
-        } while (dividend <= divisor);
-        
-        Debug.instance.log(`Generated problem: ${dividend} ÷ ${divisor}`);
-        await this.initializeDivisionState(dividend, divisor);
-    }
-    
     static async initializeDivisionState(dividend, divisor) {
         const digits = String(dividend).split('').map(Number);
         const n = digits.length;
@@ -153,10 +141,29 @@ class DivisionLogic {
             visibleRows: 2 * n + 1
         };
         
-        UI.updateProblemDisplay();
-        await Animations.animateFromEquationToGrid();
-        await Animations.animateFocusOnCurrentStep();
+        // 1. Update problem display structure
+        DOMReferences.elements.problemDisplay.innerHTML = `
+            <div class="equation-display">
+                <div class="large-equation">${dividend} ÷ ${divisor}</div>
+            </div>
+            <div class="current-step-container">
+                <div class="current-step-title">Current Step</div>
+                <div class="current-step-equation" id="currentStepEquation"></div>
+                <div class="current-instruction" id="currentInstruction"></div>
+            </div>
+        `;
         
+        // 2. Animate numbers from equation to work area grid
+        await Animations.animateFromEquationToGrid();
+        
+        // 3. Update work area display (set divisor, dividend in grid)
+        GridManager.updateDivisor(divisor);
+        GridManager.updateDividend(digits);
+        
+        // 4. Now animate from work area to current step
+        await Animations.animateWorkAreaToCurrentStep();
+        
+        // Rest of initialization
         State.currentGuess = 0;
         UI.updateGuessDisplay();
         UI.clearFeedback();
@@ -263,31 +270,12 @@ class GridManager {
 // Z = -3: ANIMATION LAYER
 // ============================================================================
 class Animations {
-    static async animateBringDown(nextDigit, sourceRow, sourceCol, targetRow, targetCol) {
-        return this._animateDigit(
-            nextDigit,
-            DOMReferences.gridCells[`r${sourceRow}c${sourceCol}`],
-            `r${targetRow}c${targetCol}`,
-            { color: '#3498db', border: '2px solid #3498db', highlightColor: '#e3f2fd' }
-        );
-    }
-    
-    static async animateNumberToCell(value, sourceElement, targetCellId) {
-        return this._animateDigit(
-            value,
-            sourceElement,
-            targetCellId,
-            { color: '#e74c3c', border: '2px solid #e74c3c', highlightColor: '#ffeaa7' }
-        );
-    }
-    
-    static async _animateDigit(value, sourceElement, targetCellId, styles = {}) {
+    static async _animateDigit(value, sourceElement, targetElement, animationType = 'bring-down') {
         return new Promise((resolve) => {
-            const targetCell = DOMReferences.gridCells[targetCellId];
-            if (!targetCell) { Debug.instance.error(`Target cell ${targetCellId} not found`); resolve(); return; }
+            if (!sourceElement || !targetElement) return resolve();
             
             const sourceRect = sourceElement.getBoundingClientRect();
-            const targetRect = targetCell.getBoundingClientRect();
+            const targetRect = targetElement.getBoundingClientRect();
             const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
             const scrollY = window.pageYOffset || document.documentElement.scrollTop;
             
@@ -295,48 +283,49 @@ class Animations {
             animElement.className = 'digit-animation';
             animElement.textContent = value;
             
-            const defaultStyles = {
-                fontSize: '24px', fontWeight: 'bold', color: '#3498db',
-                background: 'white', border: '2px solid #3498db', highlightColor: '#e3f2fd'
-            };
-            const finalStyles = { ...defaultStyles, ...styles };
-            
-            animElement.style.cssText = `
-                position: fixed; font-size: ${finalStyles.fontSize}; font-weight: ${finalStyles.fontWeight};
-                color: ${finalStyles.color}; background: ${finalStyles.background}; border: ${finalStyles.border};
-                border-radius: 5px; width: ${sourceRect.width}px; height: ${sourceRect.height}px;
-                display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-                z-index: 10000; transition: all 0.5s ease-in-out; pointer-events: none;
-                transform: translate(-50%, -50%);
-            `;
-            
+            // Calculate positions
             const fromLeft = sourceRect.left + sourceRect.width/2 + scrollX;
             const fromTop = sourceRect.top + sourceRect.height/2 + scrollY;
             const toLeft = targetRect.left + targetRect.width/2 + scrollX;
             const toTop = targetRect.top + targetRect.height/2 + scrollY;
             
-            animElement.style.left = `${fromLeft}px`;
-            animElement.style.top = `${fromTop}px`;
-            document.body.appendChild(animElement);
-            void animElement.offsetWidth;
+            // Set initial position using inline styles (CSS can't do dynamic positioning)
+            animElement.style.cssText = `
+                left: ${fromLeft}px;
+                top: ${fromTop}px;
+                width: ${sourceRect.width}px;
+                height: ${sourceRect.height}px;
+            `;
             
+            // Add type-specific class if needed
+            if (animationType === 'number-move') {
+                animElement.style.color = '#e74c3c';
+                animElement.style.borderColor = '#e74c3c';
+            }
+            
+            document.body.appendChild(animElement);
+            void animElement.offsetWidth; // Force reflow
+            
+            // Animate to target
             requestAnimationFrame(() => {
                 animElement.style.left = `${toLeft}px`;
                 animElement.style.top = `${toTop}px`;
                 animElement.style.transform = 'translate(-50%, -50%) scale(1.2)';
-                animElement.style.backgroundColor = finalStyles.highlightColor;
+                
+                // Use existing CSS class for highlight
+                targetElement.classList.add('digit-highlight');
                 
                 setTimeout(() => {
-                    targetCell.textContent = value;
-                    targetCell.classList.add('digit-highlight');
-                    targetCell.style.backgroundColor = finalStyles.highlightColor;
-                    targetCell.style.border = finalStyles.border;
+                    // Update target element content
+                    if (targetElement instanceof HTMLElement) {
+                        targetElement.textContent = value;
+                    }
                     
+                    // Clean up animation element
                     animElement.remove();
+                    
                     setTimeout(() => {
-                        targetCell.classList.remove('digit-highlight');
-                        targetCell.style.backgroundColor = '';
-                        targetCell.style.border = '';
+                        targetElement.classList.remove('digit-highlight');
                         resolve();
                     }, 500);
                 }, 500);
@@ -344,12 +333,147 @@ class Animations {
         });
     }
     
+    static async animateBringDown(nextDigit, sourceRow, sourceCol, targetRow, targetCol) {
+        const sourceCell = DOMReferences.gridCells[`r${sourceRow}c${sourceCol}`];
+        const targetCell = DOMReferences.gridCells[`r${targetRow}c${targetCol}`];
+        
+        if (!sourceCell || !targetCell) return;
+        
+        return this._animateDigit(nextDigit, sourceCell, targetCell, 'bring-down');
+    }
+    
+    static async animateNumberToCell(value, sourceElement, targetCellId) {
+        const targetCell = DOMReferences.gridCells[targetCellId];
+        if (!targetCell) return;
+        
+        return this._animateDigit(value, sourceElement, targetCell, 'number-move');
+    }
+    
+    static async animateWorkAreaToCurrentStep() {
+        const problem = State.currentProblem;
+        if (!problem) return;
+        
+        const currentStepBox = document.querySelector('.current-step-container');
+        if (!currentStepBox) return;
+        
+        // Add highlight using existing CSS class
+        currentStepBox.classList.add('current-step-highlight');
+        
+        // Clear current step content first
+        const equationEl = document.getElementById('currentStepEquation');
+        const instructionEl = document.getElementById('currentInstruction');
+        
+        if (!equationEl || !instructionEl) return;
+        
+        equationEl.innerHTML = '';
+        instructionEl.innerHTML = '';
+        
+        switch (problem.currentStep) {
+            case 0: // Quotient step
+                await this._animateToQuotientStep(problem, equationEl, instructionEl);
+                break;
+            case 1: // Subtraction step
+                await this._animateToSubtractionStep(problem, equationEl, instructionEl);
+                break;
+            case 2: // Bring down step
+                await this._animateToBringDownStep(problem, equationEl, instructionEl);
+                break;
+        }
+        
+        // Remove highlight after animation
+        setTimeout(() => {
+            currentStepBox.classList.remove('current-step-highlight');
+        }, 2000);
+    }
+    
+    static async _animateToQuotientStep(problem, equationEl, instructionEl) {
+        // Get the partial from work area (first digit of current partial)
+        const partialStr = String(problem.partial);
+        const firstDigit = partialStr[0];
+        const sourceCell = this._findSourceCellForPartial(problem);
+        
+        // Create target display
+        equationEl.innerHTML = `<span class="current-step-digit" id="partial-target">${firstDigit}</span> ÷ <span class="current-step-digit">${problem.divisor}</span> = ?`;
+        instructionEl.textContent = `Find the largest multiple of ${problem.divisor} ≤ ${problem.partial}`;
+        
+        // If we found a source cell, animate from it
+        if (sourceCell) {
+            const targetElement = document.getElementById('partial-target');
+            if (targetElement) {
+                await this._animateDigit(firstDigit, sourceCell, targetElement, 'number-move');
+            }
+        }
+    }
+    
+    static async _animateToSubtractionStep(problem, equationEl, instructionEl) {
+        const lastStep = problem.steps[problem.steps.length - 1];
+        if (!lastStep) return;
+        
+        // Find the remainder cell that has the partialBefore value
+        const row = 3 + (lastStep.stepNumber * 2);
+        const sourceCell = DOMReferences.gridCells[`r${row}c${lastStep.stepNumber + 1}`];
+        
+        // Create equation
+        equationEl.innerHTML = `
+            <span class="current-step-digit" id="partial-target">${lastStep.partialBefore}</span> - 
+            <span class="current-step-digit">${lastStep.product}</span> = ?
+        `;
+        instructionEl.textContent = `Subtract: ${lastStep.partialBefore} - ${lastStep.product}`;
+        
+        // Animate from work area
+        if (sourceCell && sourceCell.textContent) {
+            const targetElement = document.getElementById('partial-target');
+            if (targetElement) {
+                await this._animateDigit(lastStep.partialBefore, sourceCell, targetElement, 'number-move');
+            }
+        }
+    }
+    
+    static async _animateToBringDownStep(problem, equationEl, instructionEl) {
+        if (problem.currentDigitIndex >= problem.n - 1) return;
+        
+        const nextDigit = problem.digits[problem.currentDigitIndex + 1];
+        const sourceCell = DOMReferences.gridCells[`r1c${problem.currentDigitIndex + 2}`];
+        
+        equationEl.innerHTML = `<span class="current-step-digit" id="digit-target">Bring down ${nextDigit}</span>`;
+        instructionEl.textContent = `Click "Bring Down" to bring down ${nextDigit}`;
+        
+        // Animate the digit from dividend
+        if (sourceCell && sourceCell.textContent) {
+            const targetElement = document.getElementById('digit-target');
+            if (targetElement) {
+                await this._animateDigit(nextDigit, sourceCell, targetElement, 'bring-down');
+            }
+        }
+    }
+    
+    static _findSourceCellForPartial(problem) {
+        // Find which cell in row 1 has the first digit of the current partial
+        const partialStr = String(problem.partial);
+        const firstDigit = partialStr[0];
+        
+        // Check row 1 cells (dividend row)
+        for (let col = 1; col <= 5; col++) {
+            const cell = DOMReferences.gridCells[`r1c${col}`];
+            if (cell && cell.textContent === firstDigit) {
+                return cell;
+            }
+        }
+        return null;
+    }
+    
     static async animateFromEquationToGrid() {
         const equation = document.querySelector('.large-equation');
-        const [dividend, divisor] = equation.textContent.split(' ÷ ').map(Number);
+        if (!equation) return;
+        
+        const text = equation.textContent;
+        const [dividend, divisor] = text.split(' ÷ ').map(num => parseInt(num));
         const digits = String(dividend).split('');
         
+        // Animate divisor to divisor cell
         await this.animateNumberToCell(divisor, equation, 'divisor');
+        
+        // Animate each dividend digit to dividend row
         for (let i = 0; i < digits.length; i++) {
             await this.animateNumberToCell(digits[i], equation, `r1c${i+1}`);
         }
@@ -358,20 +482,22 @@ class Animations {
     static async animateFocusOnCurrentStep() {
         return new Promise((resolve) => {
             const currentStepBox = document.querySelector('.current-step-container');
-            if (!currentStepBox) { resolve(); return; }
+            if (!currentStepBox) {
+                resolve();
+                return;
+            }
             
-            currentStepBox.style.transition = 'all 0.5s ease';
-            currentStepBox.style.boxShadow = '0 0 0 4px rgba(52, 152, 219, 0.5)';
-            currentStepBox.style.transform = 'scale(1.05)';
-            currentStepBox.style.backgroundColor = '#e3f2fd';
+            // Use existing CSS for highlighting
+            currentStepBox.classList.add('current-step-highlight');
             
+            // Also highlight relevant grid cells
             if (State.currentProblem?.currentStep === 0) {
                 if (DOMReferences.gridCells['r1c1']) DOMReferences.gridCells['r1c1'].classList.add('digit-highlight');
                 if (DOMReferences.gridCells['divisor']) DOMReferences.gridCells['divisor'].classList.add('digit-highlight');
             }
             
             setTimeout(() => {
-                currentStepBox.style.boxShadow = currentStepBox.style.transform = currentStepBox.style.backgroundColor = '';
+                currentStepBox.classList.remove('current-step-highlight');
                 if (DOMReferences.gridCells['r1c1']) DOMReferences.gridCells['r1c1'].classList.remove('digit-highlight');
                 if (DOMReferences.gridCells['divisor']) DOMReferences.gridCells['divisor'].classList.remove('digit-highlight');
                 resolve();
@@ -384,7 +510,7 @@ class Animations {
 // Z = -4: UI DISPLAY LAYER
 // ============================================================================
 class UI {
-    static updateProblemDisplay() {
+    static async updateProblemDisplay() {
         if (!State.currentProblem) return;
         
         const p = State.currentProblem;
@@ -398,6 +524,10 @@ class UI {
             const remainder = p.steps[p.steps.length - 1]?.subtraction || 0;
             currentStep = `The answer is ${quotient} R ${remainder}`;
             instruction = 'Problem completed!';
+            
+            // For finished problems, just update display normally
+            this._updateDisplayStructure(dividend, divisor, currentStep, instruction);
+            return;
         } else {
             switch (p.currentStep) {
                 case 0:
@@ -424,14 +554,45 @@ class UI {
             }
         }
         
-        DOMReferences.elements.problemDisplay.innerHTML = `
-            <div class="equation-display"><div class="large-equation">${dividend} ÷ ${divisor}</div></div>
-            <div class="current-step-container">
-                <div class="current-step-title">Current Step</div>
-                <div class="current-step-equation">${currentStep}</div>
-                <div class="current-instruction">${instruction}</div>
-            </div>
-        `;
+        // Update the display structure first
+        this._updateDisplayStructure(dividend, divisor, currentStep, instruction);
+        
+        // Then animate from work area to current step (only if not finished)
+        if (!p.finished) {
+            await Animations.animateWorkAreaToCurrentStep();
+        }
+    }
+    
+    static _updateDisplayStructure(dividend, divisor, currentStep, instruction) {
+        // Check if we already have the structure
+        let equationDisplay = DOMReferences.elements.problemDisplay.querySelector('.equation-display');
+        let currentStepContainer = DOMReferences.elements.problemDisplay.querySelector('.current-step-container');
+        
+        if (!equationDisplay || !currentStepContainer) {
+            // Create fresh structure if it doesn't exist
+            DOMReferences.elements.problemDisplay.innerHTML = `
+                <div class="equation-display">
+                    <div class="large-equation">${dividend} ÷ ${divisor}</div>
+                </div>
+                <div class="current-step-container">
+                    <div class="current-step-title">Current Step</div>
+                    <div class="current-step-equation" id="currentStepEquation">${currentStep}</div>
+                    <div class="current-instruction" id="currentInstruction">${instruction}</div>
+                </div>
+            `;
+        } else {
+            // Just update the content without replacing entire structure
+            const largeEquation = equationDisplay.querySelector('.large-equation');
+            if (largeEquation) {
+                largeEquation.textContent = `${dividend} ÷ ${divisor}`;
+            }
+            
+            const equationEl = currentStepContainer.querySelector('.current-step-equation');
+            const instructionEl = currentStepContainer.querySelector('.current-instruction');
+            
+            if (equationEl) equationEl.textContent = currentStep;
+            if (instructionEl) instructionEl.textContent = instruction;
+        }
     }
     
     static updateGuessDisplay() {
@@ -455,7 +616,6 @@ class UI {
         this.updateGuessDisplay();
     }
 }
-
 // ============================================================================
 // Z = -5: GAME LOGIC LAYER
 // ============================================================================
