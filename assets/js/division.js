@@ -878,9 +878,21 @@ function updateProblemDisplay() {
 
 // Z-4.2: Guess Display (KEEPING ALL YOUR LOGIC)
 function updateGuessDisplay() {
-    if (DOMReferences.guessDisplay) {
-        DOMReferences.guessDisplay.textContent = currentGuess;
-        debug.log(`Updated guess display to ${currentGuess}`);
+    // Get the element fresh each time to ensure we have the latest reference
+    const guessDisplayElement = document.getElementById('currentGuessDisplay');
+    if (guessDisplayElement) {
+        guessDisplayElement.textContent = currentGuess;
+        debug.log(`Updated guess display to ${currentGuess}`, { 
+            elementExists: true, 
+            currentGuess,
+            previousContent: guessDisplayElement.textContent 
+        });
+    } else {
+        debug.error('currentGuessDisplay element not found!');
+        // Try to find it again
+        console.log('Searching for currentGuessDisplay element...');
+        const allElements = document.querySelectorAll('[id*="Guess"]');
+        console.log('Found elements with "Guess" in id:', allElements);
     }
 }
 
@@ -894,7 +906,9 @@ function adjustGuess(delta) {
     if (newGuess >= 0 && newGuess <= 99) {
         currentGuess = newGuess;
         updateGuessDisplay();
-        debug.log(`Guess adjusted to ${currentGuess}`);
+        // Also log to console for debugging
+        console.log(`adjustGuess: ${newGuess}, DOM should show: ${newGuess}`);
+        debug.log(`Guess adjusted to ${currentGuess}`, { delta, newGuess });
     } else {
         debug.log(`Guess out of bounds: ${newGuess}`);
     }
