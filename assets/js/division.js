@@ -164,7 +164,7 @@ class DivisionLogic {
         };
         
         Debug.instance.log('Current problem state initialized', State.currentProblem);
-
+    
         // Update the display structure first
         UI._updateDisplay(dividend, divisor, `${State.currentProblem.partial} ÷ ${divisor} = ?`, 
                          `Find the largest multiple of ${divisor} ≤ ${State.currentProblem.partial}`);
@@ -182,13 +182,12 @@ class DivisionLogic {
         // Update UI
         State.currentGuess = 0;
         UI.updateGuessDisplay();
-        UI.clearFeedback();
+        Feedback.clearFeedback(); // Fixed: Use Feedback class instead of UI
         
         // Show/hide rows based on n
         GridManager.updateVisibleRows(n);
         ButtonManager.restoreCommitButton();
         GridManager.debugRowStructure(n);
-
     }
 }
 
@@ -235,22 +234,30 @@ class GridManager {
     }
     
     static updateVisibleRows(n) {
-                const totalRowsNeeded = 2 * n + 1; // For 3 digits: 7 rows needed
-                Debug.instance.log(`Updating visible rows: n=${n}, totalRowsNeeded=${totalRowsNeeded}`);
-                
-                // Show/hide rows based on the problem size
-                for (let row = 1; row <= 10; row++) {
-                    const shouldShow = row <= totalRowsNeeded;
-                    for (let col = 1; col <= 5; col++) {
-                        const cell = DOMReferences.gridCells[`r${row}c${col}`];
-                        if (cell) {
-                            cell.style.display = shouldShow ? 'flex' : 'none';
-                            // Clear content for hidden rows
-                            if (!shouldShow) cell.textContent = '';
-                        }
-                    }
+        const totalRowsNeeded = 2 * n + 1; // For 3 digits: 7 rows needed
+        Debug.instance.log(`Updating visible rows: n=${n}, totalRowsNeeded=${totalRowsNeeded}`);
+        
+        // Show/hide rows based on the problem size
+        for (let row = 1; row <= 10; row++) {
+            const shouldShow = row <= totalRowsNeeded;
+            
+            // Get the row element
+            const rowElement = document.querySelector(`.work-row:nth-child(${row})`);
+            if (rowElement) {
+                rowElement.style.display = shouldShow ? 'flex' : 'none';
+            }
+            
+            // Also update individual cells
+            for (let col = 1; col <= 5; col++) {
+                const cell = DOMReferences.gridCells[`r${row}c${col}`];
+                if (cell) {
+                    cell.style.display = shouldShow ? 'flex' : 'none';
+                    // Clear content for hidden rows
+                    if (!shouldShow) cell.textContent = '';
                 }
             }
+        }
+    }
     
     static updateQuotientInGrid(stepNumber, value) {
         const quotientCellIds = ['ans-q0', 'ans-q1', 'ans-q2'];
@@ -282,27 +289,33 @@ class GridManager {
             if (cell) cell.textContent = '';
         }
         
-        // For alignment: position the value right-aligned under the current working digits
-        // Start column depends on step number and whether it's product or remainder
-        const startCol = stepNumber + 1; // Start at column matching step number
-        
-        if (isProduct) {
-            // Product row: align right starting from startCol
-            for (let i = 0; i < valueLength; i++) {
-                const col = startCol - (valueLength - 1) + i;
-                const cell = DOMReferences.gridCells[`r${row}c${col}`];
-                if (cell && col >= 1 && col <= 5) {
-                    cell.textContent = valueStr[i];
-                }
-            }
+        // For single-digit products/remainders, place them in the correct column
+        if (valueLength === 1) {
+            // Single digit: place in column stepNumber + 1 for product, stepNumber + 2 for remainder
+            const col = isProduct ? stepNumber + 1 : stepNumber + 2;
+            const cell = DOMReferences.gridCells[`r${row}c${col}`];
+            if (cell) cell.textContent = valueStr;
         } else {
-            // Remainder row: align right starting from startCol + 1
-            // (one column to the right of product row)
-            for (let i = 0; i < valueLength; i++) {
-                const col = (startCol + 1) - (valueLength - 1) + i;
-                const cell = DOMReferences.gridCells[`r${row}c${col}`];
-                if (cell && col >= 1 && col <= 5) {
-                    cell.textContent = valueStr[i];
+            // Multi-digit: align right
+            const startCol = stepNumber + 1; // Start at column matching step number
+            
+            if (isProduct) {
+                // Product row: align right starting from startCol
+                for (let i = 0; i < valueLength; i++) {
+                    const col = startCol - (valueLength - 1) + i;
+                    const cell = DOMReferences.gridCells[`r${row}c${col}`];
+                    if (cell && col >= 1 && col <= 5) {
+                        cell.textContent = valueStr[i];
+                    }
+                }
+            } else {
+                // Remainder row: align right starting from startCol + 1
+                for (let i = 0; i < valueLength; i++) {
+                    const col = (startCol + 1) - (valueLength - 1) + i;
+                    const cell = DOMReferences.gridCells[`r${row}c${col}`];
+                    if (cell && col >= 1 && col <= 5) {
+                        cell.textContent = valueStr[i];
+                    }
                 }
             }
         }
@@ -615,6 +628,26 @@ class UI {
             }, 300);
         }
     }
+
+    static clearFeedback() {
+        // Remove any feedback messages
+        const feedbackMsg = document.querySelector('.feedback-message');
+        if (feedbackMsg) feedbackMsg.remove();
+        
+        // Restore original number display if it exists
+        const numberDisplay = document.querySelector('.number-display');
+        if (numberDisplay) {
+            if (numberDisplay.originalHTML) {
+                numberDisplay.innerHTML = numberDisplay.originalHTML;
+            }
+            numberDisplay.classList.remove('showing-feedback');
+        }
+        
+        // Clear any feedback classes
+        document.querySelectorAll('.feedback-error, .feedback-success, .feedback-info').forEach(el => {
+            el.remove();
+        });
+    }
     
     static async _animateSubtractionStep(problem, lastStep) {
         // Find the source cell (partialBefore in remainder row)
@@ -791,8 +824,16 @@ class Feedback {
     }
     
     static clearFeedback() {
-        const feedbackMsg = document.querySelector('.feedback-message');
-        if (feedbackMsg) feedbackMsg.remove();
+        // Clear all feedback elements
+        const feedbackElements = document.querySelectorAll('.feedback-error, .feedback-success, .feedback-info');
+        feedbackElements.forEach(el => el.remove());
+        
+        // Restore number display
+        const numberDisplay = document.querySelector('.number-display');
+        if (numberDisplay && numberDisplay.originalHTML) {
+            numberDisplay.innerHTML = numberDisplay.originalHTML;
+            numberDisplay.classList.remove('showing-feedback');
+        }
     }
 }
 
