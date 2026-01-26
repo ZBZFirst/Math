@@ -233,15 +233,22 @@ class GridManager {
     }
     
     static updateVisibleRows(n) {
-        const visibleRows = 2 * n + 1;
-        for (let row = 1; row <= 10; row++) {
-            const shouldShow = row <= (visibleRows + 1);
-            for (let col = 1; col <= 5; col++) {
-                const cell = DOMReferences.gridCells[`r${row}c${col}`];
-                if (cell) cell.style.display = shouldShow ? 'flex' : 'none';
+                const totalRowsNeeded = 2 * n + 1; // For 3 digits: 7 rows needed
+                Debug.instance.log(`Updating visible rows: n=${n}, totalRowsNeeded=${totalRowsNeeded}`);
+                
+                // Show/hide rows based on the problem size
+                for (let row = 1; row <= 10; row++) {
+                    const shouldShow = row <= totalRowsNeeded;
+                    for (let col = 1; col <= 5; col++) {
+                        const cell = DOMReferences.gridCells[`r${row}c${col}`];
+                        if (cell) {
+                            cell.style.display = shouldShow ? 'flex' : 'none';
+                            // Clear content for hidden rows
+                            if (!shouldShow) cell.textContent = '';
+                        }
+                    }
+                }
             }
-        }
-    }
     
     static updateQuotientInGrid(stepNumber, value) {
         const quotientCellIds = ['ans-q0', 'ans-q1', 'ans-q2'];
@@ -265,6 +272,7 @@ class GridManager {
         if (row === undefined) return;
         
         const valueStr = String(value);
+        const valueLength = valueStr.length;
         
         // Clear the entire row first
         for (let col = 1; col <= 5; col++) {
@@ -272,16 +280,29 @@ class GridManager {
             if (cell) cell.textContent = '';
         }
         
-        // For remainder rows, align right starting from stepNumber + 1
-        // For product rows, align right starting from stepNumber
-        const startCol = isProduct ? stepNumber + 1 : stepNumber + 2;
-        const endCol = startCol - valueStr.length;
+        // For alignment: position the value right-aligned under the current working digits
+        // Start column depends on step number and whether it's product or remainder
+        const startCol = stepNumber + 1; // Start at column matching step number
         
-        // Fill digits from right to left
-        for (let i = 0; i < valueStr.length; i++) {
-            const col = startCol - i;
-            const cell = DOMReferences.gridCells[`r${row}c${col}`];
-            if (cell) cell.textContent = valueStr[valueStr.length - 1 - i];
+        if (isProduct) {
+            // Product row: align right starting from startCol
+            for (let i = 0; i < valueLength; i++) {
+                const col = startCol - (valueLength - 1) + i;
+                const cell = DOMReferences.gridCells[`r${row}c${col}`];
+                if (cell && col >= 1 && col <= 5) {
+                    cell.textContent = valueStr[i];
+                }
+            }
+        } else {
+            // Remainder row: align right starting from startCol + 1
+            // (one column to the right of product row)
+            for (let i = 0; i < valueLength; i++) {
+                const col = (startCol + 1) - (valueLength - 1) + i;
+                const cell = DOMReferences.gridCells[`r${row}c${col}`];
+                if (cell && col >= 1 && col <= 5) {
+                    cell.textContent = valueStr[i];
+                }
+            }
         }
     }
 }
@@ -834,20 +855,24 @@ class ButtonManager {
         const row = rowMap[stepNumber];
         if (row === undefined) return Promise.resolve();
         
-        let rightmostCol = 0;
-        for (let col = 1; col <= 5; col++) {
-            const cell = DOMReferences.gridCells[`r${row}c${col}`];
-            if (cell && cell.textContent !== '') rightmostCol = col;
+        // Find the target column: it should be in the next available column
+        // after the current remainder
+        const targetCol = stepNumber + 2; // One column to the right of current working area
+        
+        const sourceRow = 1; // Dividend row
+        const sourceCol = stepNumber + 2; // Next digit in dividend
+        
+        // Check if target cell exists and is empty
+        const targetCell = DOMReferences.gridCells[`r${row}c${targetCol}`];
+        if (!targetCell || targetCell.style.display === 'none') {
+            return Promise.resolve();
         }
         
-        const targetCol = rightmostCol + 1;
-        const targetCell = DOMReferences.gridCells[`r${row}c${targetCol}`];
-        if (!targetCell) return Promise.resolve();
+        // Clear any existing content in target cell
+        targetCell.textContent = '';
         
-        if (targetCell.textContent !== '') return Promise.resolve();
-        
-        const sourceCol = stepNumber + 2;
-        return Animations.animateBringDown(nextDigit, 1, sourceCol, row, targetCol).then(() => {
+        // Animate the digit
+        return Animations.animateBringDown(nextDigit, sourceRow, sourceCol, row, targetCol).then(() => {
             targetCell.textContent = nextDigit;
         });
     }
