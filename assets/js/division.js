@@ -396,7 +396,7 @@ class UI {
         if (p.finished) {
             const quotient = p.quotientDigits.join('').replace(/^0+/, '') || '0';
             const remainder = p.steps[p.steps.length - 1]?.subtraction || 0;
-            currentStep = `${dividend} ÷ ${divisor} = ${quotient} R ${remainder}`;
+            currentStep = `The answer is ${quotient} R ${remainder}`;
             instruction = 'Problem completed!';
         } else {
             switch (p.currentStep) {
