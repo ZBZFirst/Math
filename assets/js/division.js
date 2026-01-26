@@ -187,6 +187,8 @@ class DivisionLogic {
         // Show/hide rows based on n
         GridManager.updateVisibleRows(n);
         ButtonManager.restoreCommitButton();
+        GridManager.debugRowStructure(n);
+
     }
 }
 
@@ -302,6 +304,33 @@ class GridManager {
                 if (cell && col >= 1 && col <= 5) {
                     cell.textContent = valueStr[i];
                 }
+            }
+        }
+    }
+
+    static debugRowStructure(n) {
+        Debug.instance.log('Current grid structure:', {
+            totalRows: 2 * n + 1,
+            expectedRows: {
+                'Row 1 (dividend)': 'data-step="0"',
+                'Row 2 (product step 0)': 'data-step="1"',
+                'Row 3 (remainder step 0)': 'data-step="1"',
+                'Row 4 (product step 1)': 'data-step="2"',
+                'Row 5 (remainder step 1)': 'data-step="2"',
+                'Row 6 (product step 2)': 'data-step="3"',
+                'Row 7 (remainder step 2)': 'data-step="3"'
+            }
+        });
+        
+        // Log which rows are actually visible
+        for (let row = 1; row <= 10; row++) {
+            const rowElement = document.querySelector(`[id^="r${row}c"]`)?.parentElement;
+            if (rowElement) {
+                Debug.instance.log(`Row ${row}:`, {
+                    visible: rowElement.style.display !== 'none',
+                    class: rowElement.className,
+                    'data-step': rowElement.dataset.step
+                });
             }
         }
     }
