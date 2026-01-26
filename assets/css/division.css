@@ -1,85 +1,173 @@
-/* division.css - Clean, Organized Version */
+/* division.css - Refactored Clean Version */
 
 /* ============================================
-   ANIMATION KEYFRAMES
+   GLOBAL VARIABLES & RESETS
    ============================================ */
-@keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
-    20%, 40%, 60%, 80% { transform: translateX(3px); }
+:root {
+    /* Colors */
+    --color-primary: #007bff;
+    --color-primary-dark: #0056b3;
+    --color-secondary: #6c757d;
+    --color-success: #28a745;
+    --color-error: #dc3545;
+    --color-warning: #ffc107;
+    --color-info: #17a2b8;
+    --color-light: #f8f9fa;
+    --color-dark: #212529;
+    --color-white: #ffffff;
+    
+    /* Grid Colors */
+    --grid-blue: #00a6e6;
+    --grid-blue-dark: #0086c6;
+    --grid-green: #2db84d;
+    --grid-green-dark: #1f9c3d;
+    --grid-orange: #ff8c2a;
+    --grid-orange-dark: #e67a00;
+    --grid-pink: #ffb6c1;
+    --grid-pink-dark: #ff8da1;
+    --grid-yellow: #ffee00;
+    --grid-yellow-dark: #e6d600;
+    
+    /* Typography */
+    --font-math: "Latin Modern Math", "STIX Two Math", "Cambria Math", serif;
+    --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: 'Courier New', monospace;
+    
+    /* Spacing */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    
+    /* Border Radius */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --radius-xl: 12px;
+    
+    /* Breakpoints */
+    --breakpoint-tablet: 768px;
+    --breakpoint-mobile: 480px;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(52, 152, 219, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0); }
-}
-
-@keyframes digitPulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
-}
-
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-3px); }
-}
-
-@keyframes arrowPulse {
-    0% { opacity: 0.7; }
-    50% { opacity: 1; }
-    100% { opacity: 0.7; }
-}
-
-@keyframes pulseHighlight {
-    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.7); }
-    70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(52, 152, 219, 0); }
-    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(52, 152, 219, 0); }
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 /* ============================================
-   CONTAINER LAYOUT
+   ANIMATION KEYFRAMES (Consolidated)
+   ============================================ */
+@keyframes shake { 0%, 100% { transform: translateX(0); } 
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); } 
+    20%, 40%, 60%, 80% { transform: translateX(3px); } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } 
+    to { opacity: 1; transform: translateY(0); } }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.7); } 
+    70% { box-shadow: 0 0 0 10px rgba(52, 152, 219, 0); } 
+    100% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0); } }
+@keyframes digitPulse { 0% { transform: scale(1); } 
+    50% { transform: scale(1.1); } 
+    100% { transform: scale(1); } }
+@keyframes bounce { 0%, 100% { transform: translateY(0); } 
+    50% { transform: translateY(-3px); } }
+@keyframes arrowPulse { 0% { opacity: 0.7; } 
+    50% { opacity: 1; } 
+    100% { opacity: 0.7; } }
+@keyframes pulseHighlight { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.7); } 
+    70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(52, 152, 219, 0); } 
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(52, 152, 219, 0); } }
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--spacing-lg);
+}
+
+.card {
+    background-color: var(--color-white);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    border: 1px solid #dee2e6;
+}
+
+.btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: var(--font-ui);
+}
+
+.btn:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn-primary {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+}
+
+.btn-success {
+    background-color: var(--color-success);
+    color: var(--color-white);
+}
+
+.btn-danger {
+    background-color: var(--color-error);
+    color: var(--color-white);
+}
+
+.btn-warning {
+    background-color: var(--color-warning);
+    color: var(--color-dark);
+}
+
+/* ============================================
+   LAYOUT STRUCTURES
    ============================================ */
 .division-container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 20px;
+    padding: var(--spacing-lg);
 }
 
 .dual-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin: 20px 0;
+    gap: var(--spacing-lg);
+    margin: var(--spacing-lg) 0;
 }
 
-@media (max-width: 768px) {
-    .dual-container {
-        grid-template-columns: 1fr;
-    }
+/* Main Sections */
+.main-problem-container,
+.work-container {
+    composes: card;
+    min-height: 400px;
+}
+
+.work-feedback {
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
 }
 
 /* ============================================
-   PROBLEM DISPLAY (LEFT SIDE)
+   PROBLEM DISPLAY STYLES
    ============================================ */
-.main-problem-container {
-    background-color: white;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    border: 1px solid #dee2e6;
-}
-
-.main-problem {
-    min-height: 300px;
-}
-
 .equation-display {
     display: flex;
     align-items: center;
@@ -89,13 +177,13 @@
 }
 
 .large-equation {
-    font-family: "Latin Modern Math", "STIX Two Math", "Cambria Math", serif;
+    font-family: var(--font-math);
     font-size: 4em;
     text-align: center;
     color: #1a237e;
     padding: 30px 40px;
-    background: white;
-    border-radius: 12px;
+    background: var(--color-white);
+    border-radius: var(--radius-xl);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
     border: 2px solid #e8eaf6;
     display: inline-block;
@@ -116,63 +204,55 @@
 .large-equation::before { top: -10px; }
 .large-equation::after { bottom: -10px; }
 
-/* Current Step Area */
+/* Current Step */
 .current-step-container {
-    margin-top: 20px;
-    padding: 20px;
+    margin-top: var(--spacing-lg);
+    padding: var(--spacing-lg);
     background: #e3f2fd;
-    border-radius: 8px;
+    border-radius: var(--radius-lg);
     border: 2px solid #2196f3;
 }
 
 .current-step-title {
     font-weight: bold;
     color: #0d47a1;
-    margin-bottom: 10px;
+    margin-bottom: var(--spacing-sm);
     font-size: 1.2em;
 }
 
 .current-step-equation {
-    font-family: "Latin Modern Math", "STIX Two Math", serif;
+    font-family: var(--font-math);
     font-size: 1.5em;
     color: #1a237e;
-    margin: 10px 0;
-    padding: 15px;
-    background: white;
-    border-radius: 6px;
+    margin: var(--spacing-sm) 0;
+    padding: var(--spacing-md);
+    background: var(--color-white);
+    border-radius: var(--radius-md);
     border: 1px solid #bbdefb;
 }
 
 .current-instruction {
     font-style: italic;
     color: #546e7a;
-    margin: 10px 0;
-    padding: 10px;
+    margin: var(--spacing-sm) 0;
+    padding: var(--spacing-sm);
     background: #f1f8fe;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
 }
 
 /* ============================================
-   WORK AREA (RIGHT SIDE)
+   WORK AREA & GRID SYSTEM
    ============================================ */
-.work-container {
-    background-color: white;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    border: 1px solid #dee2e6;
-}
-
 .Work-Container {
     min-height: 280px;
-    padding: 15px;
-    background-color: #f8f9fa;
-    border-radius: 6px;
+    padding: var(--spacing-md);
+    background-color: var(--color-light);
+    border-radius: var(--radius-md);
     border: 1px solid #dee2e6;
-    margin-bottom: 15px;
+    margin-bottom: var(--spacing-md);
 }
 
-/* Division Work Layout */
+/* Division Layout Structure */
 .division-work-layout {
     position: relative;
     display: inline-block;
@@ -180,7 +260,6 @@
     height: 600px;
 }
 
-/* 1. DIVISOR SECTION */
 .divisor-section {
     position: absolute;
     left: 0;
@@ -193,17 +272,15 @@
     z-index: 10;
 }
 
-/* 2. ANSWER SECTION */
 .answer-section {
     position: absolute;
     left: 60px;
     top: 0;
     display: flex;
-    gap: 2px;
+    gap: var(--spacing-xs);
     z-index: 10;
 }
 
-/* 3. WORK GRID SECTION */
 .work-grid-section {
     position: absolute;
     left: 60px;
@@ -231,27 +308,25 @@
     background: #333;
 }
 
-/* ============================================
-   GRID SYSTEM
-   ============================================ */
+/* Grid System */
 .work-grid {
     display: grid;
     grid-template-columns: repeat(5, 50px);
     grid-template-rows: repeat(10, 50px);
-    gap: 2px;
-    background-color: white;
-    padding: 2px;
-    border-radius: 4px;
+    gap: var(--spacing-xs);
+    background-color: var(--color-white);
+    padding: var(--spacing-xs);
+    border-radius: var(--radius-sm);
     border: 1px solid #dee2e6;
-    margin-top: 10px;
-    row-gap: 10px;
+    margin-top: var(--spacing-sm);
+    row-gap: var(--spacing-sm);
 }
 
 .work-row {
     display: contents;
 }
 
-/* Base Grid Cell */
+/* Grid Cells - Consolidated Color Classes */
 .grid-cell {
     width: 50px;
     height: 50px;
@@ -261,50 +336,20 @@
     border: 2px solid #333;
     font-size: 1.3em;
     font-weight: bold;
-    font-family: 'Courier New', monospace;
+    font-family: var(--font-mono);
     box-sizing: border-box;
     position: relative;
 }
 
-/* Cell Colors - JS RELIES ON THESE */
-.grid-cell.blue {
-    background-color: #00a6e6;
-    color: white;
-    border-color: #0086c6;
-}
+.grid-cell.blue { background-color: var(--grid-blue); color: var(--color-white); border-color: var(--grid-blue-dark); }
+.grid-cell.green { background-color: var(--grid-green); color: var(--color-white); border-color: var(--grid-green-dark); }
+.grid-cell.orange { background-color: var(--grid-orange); color: var(--color-white); border-color: var(--grid-orange-dark); }
+.grid-cell.pink { background-color: var(--grid-pink); border-color: var(--grid-pink-dark); }
+.grid-cell.yellow { background-color: var(--grid-yellow); border-color: var(--grid-yellow-dark); }
+.grid-cell.empty { background-color: transparent; border-color: transparent; }
+.grid-cell.hidden { display: none; }
 
-.grid-cell.green {
-    background-color: #2db84d;
-    color: white;
-    border-color: #1f9c3d;
-}
-
-.grid-cell.orange {
-    background-color: #ff8c2a;
-    color: white;
-    border-color: #e67a00;
-}
-
-.grid-cell.pink {
-    background-color: #ffb6c1;
-    border-color: #ff8da1;
-}
-
-.grid-cell.yellow {
-    background-color: #ffee00;
-    border-color: #e6d600;
-}
-
-.grid-cell.empty {
-    background-color: transparent;
-    border-color: transparent;
-}
-
-.grid-cell.hidden {
-    display: none;
-}
-
-/* Subtraction Styling - JS RELIES ON THIS STRUCTURE */
+/* Subtraction Styling */
 .product-row .grid-cell:first-child::before {
     content: "−";
     position: absolute;
@@ -331,92 +376,81 @@
 }
 
 /* ============================================
-   CONTROLS & FEEDBACK
+   CONTROLS & INTERACTIVE ELEMENTS
    ============================================ */
-.work-feedback {
-    margin-top: 15px;
-    padding: 12px;
-    border-radius: 6px;
-    min-height: 50px;
-    font-size: 0.95em;
-}
-
-/* Control Grid - JS RELIES ON THIS STRUCTURE */
 .control-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 10px;
-    margin-bottom: 15px;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
 }
 
 .grid-btn {
-    padding: 10px;
-    border: none;
-    border-radius: 6px;
+    composes: btn;
     font-size: 1.2em;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.2s;
 }
 
-.grid-btn.decrement {
-    background-color: #dc3545;
-    color: white;
-}
-
-.grid-btn.increment {
-    background-color: #28a745;
-    color: white;
-}
-
-.grid-btn.clear {
-    background-color: #ffc107;
-    color: #212529;
-}
-
-.grid-btn:hover {
-    opacity: 0.9;
-    transform: translateY(-2px);
-}
-
-.grid-btn:active {
-    transform: translateY(0);
-}
+.grid-btn.decrement { composes: btn-danger; }
+.grid-btn.increment { composes: btn-success; }
+.grid-btn.clear { composes: btn-warning; }
 
 .number-display {
     text-align: center;
     font-size: 1.3em;
-    margin: 15px 0;
-    padding: 10px;
-    background-color: #f8f9fa;
-    border-radius: 6px;
+    margin: var(--spacing-md) 0;
+    padding: var(--spacing-sm);
+    background-color: var(--color-light);
+    border-radius: var(--radius-md);
     border: 2px solid #dee2e6;
 }
 
 .commit-btn {
+    composes: btn;
+    composes: btn-primary;
     width: 100%;
-    padding: 15px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 8px;
+    padding: var(--spacing-md);
     font-size: 1.2em;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s;
+    border-radius: var(--radius-lg);
 }
 
 .commit-btn:hover {
-    background-color: #0056b3;
-    transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
-.commit-btn:active {
-    transform: translateY(0);
+/* ============================================
+   FEEDBACK & ANIMATION UTILITIES
+   ============================================ */
+/* Feedback States */
+.feedback-message {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+    font-weight: bold;
+    text-align: center;
+    animation: fadeIn 0.3s ease-in;
 }
 
-/* Feedback Styles - JS RELIES ON THESE CLASSES */
+.feedback-success {
+    composes: feedback-message;
+    background: #d4edda;
+    color: #155724;
+    border: 2px solid var(--color-success);
+}
+
+.feedback-error {
+    composes: feedback-message;
+    background: #f8d7da;
+    color: #721c24;
+    border: 2px solid var(--color-error);
+    animation: fadeIn 0.3s ease-in, shake 0.5s ease-in-out;
+}
+
+.feedback-info {
+    composes: feedback-message;
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 2px solid var(--color-info);
+}
+
 .number-display.showing-feedback {
     min-height: 60px;
     display: flex;
@@ -427,48 +461,13 @@
     border: none !important;
 }
 
-.feedback-success,
-.feedback-error,
-.feedback-info {
-    padding: 10px 15px;
-    border-radius: 6px;
-    font-weight: bold;
-    text-align: center;
-    animation: fadeIn 0.3s ease-in;
-}
-
-.feedback-success {
-    background: #d4edda;
-    color: #155724;
-    border: 2px solid #28a745;
-}
-
-.feedback-error {
-    background: #f8d7da;
-    color: #721c24;
-    border: 2px solid #dc3545;
-    animation: shake 0.5s ease-in-out;
-}
-
-.feedback-info {
-    background: #d1ecf1;
-    color: #0c5460;
-    border: 2px solid #17a2b8;
-}
-
-.revealed-step {
-    animation: fadeIn 0.5s ease-in;
-}
-
-/* ============================================
-   ANIMATION UTILITIES
-   ============================================ */
+/* Animation Elements */
 .digit-animation {
     position: fixed;
     font-size: 24px;
     font-weight: bold;
     color: #3498db;
-    background: white;
+    background: var(--color-white);
     border: 2px solid #3498db;
     border-radius: 5px;
     display: flex;
@@ -486,34 +485,27 @@
     border: 2px solid #3498db !important;
 }
 
-/* Bring Down Button - JS CREATES THESE */
+.current-step-highlight {
+    animation: pulseHighlight 2s ease-in-out;
+    background-color: #e3f2fd !important;
+    border: 3px solid #3498db !important;
+}
+
+/* Special Interactive Elements */
 .bring-down-button {
+    composes: btn;
     background: linear-gradient(135deg, #3498db, #2980b9);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 12px 24px;
+    color: var(--color-white);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-sm) var(--spacing-lg);
     font-size: 18px;
-    font-weight: bold;
-    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    margin: 10px auto;
+    gap: var(--spacing-sm);
+    margin: var(--spacing-sm) auto;
     box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3);
-    transition: all 0.3s ease;
     width: 100%;
-}
-
-.bring-down-button:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(52, 152, 219, 0.4);
-}
-
-.bring-down-button:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
 }
 
 .bring-down-icon {
@@ -521,7 +513,6 @@
     animation: bounce 1s infinite;
 }
 
-/* Focus Arrow - JS CREATES THESE */
 .focus-arrow {
     position: fixed;
     z-index: 9999;
@@ -541,89 +532,64 @@
     border-bottom: 10px solid transparent;
 }
 
-.current-step-highlight {
-    animation: pulseHighlight 2s ease-in-out;
-    background-color: #e3f2fd !important;
-    border: 3px solid #3498db !important;
-}
-
-/* Data Attribute States */
-[data-role].active {
-    background-color: #ff9800 !important;
-    color: white;
-    transition: all 0.3s ease;
-}
-
-[data-role].animating-from {
-    opacity: 0.5;
-    transform: scale(0.9);
-    transition: all 0.3s ease;
-}
-
-[data-role].animating-to {
-    background-color: #e3f2fd !important;
-    border: 2px solid #3498db !important;
-    transition: all 0.3s ease;
-}
-
-[data-zone="current-step-container"].highlight {
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.5);
-    animation: pulse 2s infinite;
-}
-
 /* ============================================
-   SCORE DISPLAY
+   SCORE & STATS DISPLAY
    ============================================ */
 .enhanced-score-container {
-    background-color: #f8f9fa;
-    border-radius: 10px;
-    padding: 20px;
-    margin-top: 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    composes: card;
+    background-color: var(--color-light);
+    margin-top: var(--spacing-lg);
 }
 
 .score-stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 15px;
-    margin: 15px 0;
+    gap: var(--spacing-md);
+    margin: var(--spacing-md) 0;
 }
 
 .stat {
-    background-color: white;
-    padding: 15px;
-    border-radius: 8px;
+    background-color: var(--color-white);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-lg);
     text-align: center;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-.stat.correct { border-left: 4px solid #28a745; }
-.stat.incorrect { border-left: 4px solid #dc3545; }
-.stat.accuracy { border-left: 4px solid #ffc107; }
-.stat.streak { border-left: 4px solid #17a2b8; }
+.stat.correct { border-left: 4px solid var(--color-success); }
+.stat.incorrect { border-left: 4px solid var(--color-error); }
+.stat.accuracy { border-left: 4px solid var(--color-warning); }
+.stat.streak { border-left: 4px solid var(--color-info); }
 
 .stat-label {
     display: block;
     font-size: 0.9em;
-    color: #6c757d;
-    margin-bottom: 5px;
+    color: var(--color-secondary);
+    margin-bottom: var(--spacing-xs);
 }
 
 .stat-value {
     display: block;
     font-size: 1.5em;
     font-weight: bold;
-    color: #212529;
+    color: var(--color-dark);
 }
 
 /* ============================================
-   RESPONSIVE ADJUSTMENTS
+   RESPONSIVE DESIGN
    ============================================ */
-@media (max-width: 768px) and (min-width: 481px) {
-    .division-container { padding: 15px; }
-    .dual-container { gap: 15px; }
+/* Tablet (481px - 768px) */
+@media (max-width: 768px) {
+    .dual-container {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+    }
+    
+    .container,
     .main-problem-container,
-    .work-container { padding: 15px; }
+    .work-container {
+        padding: var(--spacing-md);
+    }
     
     .large-equation {
         font-size: 2.8em;
@@ -634,7 +600,7 @@
         grid-template-columns: repeat(2, 1fr);
     }
     
-    /* Division layout for tablet */
+    /* Grid adjustments for tablet */
     .division-work-layout { height: 500px; }
     .divisor-section {
         width: 40px;
@@ -673,9 +639,16 @@
     }
 }
 
+/* Mobile (≤ 480px) */
 @media (max-width: 480px) {
-    .division-container { padding: 10px; }
-    .dual-container { gap: 10px; }
+    .division-container,
+    .container {
+        padding: var(--spacing-sm);
+    }
+    
+    .dual-container {
+        gap: var(--spacing-sm);
+    }
     
     .large-equation {
         font-size: 2.2em;
@@ -684,12 +657,12 @@
     
     .Work-Container {
         min-height: 250px;
-        padding: 12px;
+        padding: var(--spacing-sm);
     }
     
     .score-stats { grid-template-columns: 1fr; }
     
-    /* Division layout for mobile */
+    /* Grid adjustments for mobile */
     .division-work-layout { height: 450px; }
     .divisor-section {
         width: 35px;
@@ -734,18 +707,48 @@
         height: 1.5px;
     }
     
-    /* Control buttons for mobile */
-    .control-grid { gap: 5px; }
+    /* Control adjustments for mobile */
+    .control-grid { gap: var(--spacing-xs); }
     .grid-btn {
-        padding: 8px;
+        padding: var(--spacing-xs);
         font-size: 1em;
     }
     .number-display {
         font-size: 1.1em;
-        padding: 8px;
+        padding: var(--spacing-xs);
     }
     .commit-btn {
-        padding: 12px;
+        padding: var(--spacing-sm);
         font-size: 1.1em;
     }
+}
+
+/* ============================================
+   ACCESSIBILITY & DATA ATTRIBUTES
+   ============================================ */
+[data-role].active {
+    background-color: var(--grid-orange) !important;
+    color: var(--color-white);
+    transition: all 0.3s ease;
+}
+
+[data-role].animating-from {
+    opacity: 0.5;
+    transform: scale(0.9);
+    transition: all 0.3s ease;
+}
+
+[data-role].animating-to {
+    background-color: #e3f2fd !important;
+    border: 2px solid #3498db !important;
+    transition: all 0.3s ease;
+}
+
+[data-zone="current-step-container"].highlight {
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.5);
+    animation: pulse 2s infinite;
+}
+
+.revealed-step {
+    animation: fadeIn 0.5s ease-in;
 }
