@@ -124,9 +124,31 @@ class State {
 // Z = -1: CORE BUSINESS LOGIC LAYER
 // ============================================================================
 class DivisionLogic {
+    static async generateNewProblem() {
+        Debug.instance.log('Generating new problem');
+        
+        let divisor = Math.floor(Math.random() * Config.MAX_DIVISOR) + Config.MIN_DIVISOR;
+        let dividend;
+        
+        do {
+            dividend = Math.floor(Math.random() * Config.MAX_DIVIDEND) + Config.MIN_DIVIDEND;
+        } while (dividend <= divisor);
+        
+        Debug.instance.log(`Generated problem: ${dividend} ÷ ${divisor}`);
+        await this.initializeDivisionState(dividend, divisor);
+    }
+    
     static async initializeDivisionState(dividend, divisor) {
         const digits = String(dividend).split('').map(Number);
         const n = digits.length;
+        
+        Debug.instance.log(`Initializing division state`, {
+            dividend,
+            divisor,
+            digits,
+            n,
+            currentGuess: State.currentGuess
+        });
         
         GridManager.resetGrid();
         
@@ -141,32 +163,28 @@ class DivisionLogic {
             visibleRows: 2 * n + 1
         };
         
-        // 1. Update problem display structure
-        DOMReferences.elements.problemDisplay.innerHTML = `
-            <div class="equation-display">
-                <div class="large-equation">${dividend} ÷ ${divisor}</div>
-            </div>
-            <div class="current-step-container">
-                <div class="current-step-title">Current Step</div>
-                <div class="current-step-equation" id="currentStepEquation"></div>
-                <div class="current-instruction" id="currentInstruction"></div>
-            </div>
-        `;
+        Debug.instance.log('Current problem state initialized', State.currentProblem);
+
+        // Update the display structure first
+        UI._updateDisplay(dividend, divisor, `${State.currentProblem.partial} ÷ ${divisor} = ?`, 
+                         `Find the largest multiple of ${divisor} ≤ ${State.currentProblem.partial}`);
         
-        // 2. Animate numbers from equation to work area grid
+        // Animate numbers from equation to grid
         await Animations.animateFromEquationToGrid();
         
-        // 3. Update work area display (set divisor, dividend in grid)
+        // Update grid with divisor and dividend
         GridManager.updateDivisor(divisor);
         GridManager.updateDividend(digits);
         
-        // 4. Now animate from work area to current step
-        await Animations.animateWorkAreaToCurrentStep();
+        // Focus animation
+        await Animations.animateFocusOnCurrentStep();
         
-        // Rest of initialization
+        // Update UI
         State.currentGuess = 0;
         UI.updateGuessDisplay();
         UI.clearFeedback();
+        
+        // Show/hide rows based on n
         GridManager.updateVisibleRows(n);
         ButtonManager.restoreCommitButton();
     }
@@ -865,6 +883,7 @@ class Styles {
     }
 }
 
+
 // ============================================================================
 // Z = -9: INITIALIZATION LAYER
 // ============================================================================
@@ -876,10 +895,10 @@ class App {
         
         // Initialize all components
         DOMReferences.initialize();
-        Styles.addAnimationStyles();
+        // Note: We removed Styles.addAnimationStyles() since CSS is in separate file
         State.updateScoreDisplay();
         ButtonManager.setupButtonHandlers();
-        DivisionLogic.generateNewProblem();
+        DivisionLogic.generateNewProblem();  // This should work now
     }
 }
 
