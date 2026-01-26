@@ -234,7 +234,7 @@ class GridManager {
     
     static updateVisibleRows(n) {
         const visibleRows = 2 * n + 1;
-        for (let row = 2; row <= 10; row++) {
+        for (let row = 1; row <= 10; row++) {
             const shouldShow = row <= (visibleRows + 1);
             for (let col = 1; col <= 5; col++) {
                 const cell = DOMReferences.gridCells[`r${row}c${col}`];
