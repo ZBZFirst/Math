@@ -3,10 +3,12 @@
 // ============================================================================
 class Config {
     static DEBUG = true;
-    static MAX_DIVIDEND = 999;
-    static MIN_DIVIDEND = 1;
-    static MAX_DIVISOR = 15;
-    static MIN_DIVISOR = 1;
+    static MAX_DIVIDEND = 999999;
+    static MIN_DIVIDEND = 100;
+    static MAX_DIVISOR = 99;
+    static MIN_DIVISOR = 2;
+    static GRID_ROWS = 12;
+    static GRID_COLS = 9;
 }
 
 // ============================================================================
@@ -29,15 +31,33 @@ class Debug {
 }
 
 class MathUtils {
-    static calculateQuotientDigit(partial, divisor) { return Math.floor(partial / divisor); }
-    static calculateProduct(quotientDigit, divisor) { return quotientDigit * divisor; }
-    static calculateRemainder(partial, product) { return partial - product; }
-    static shouldBringDownNextDigit(currentDigitIndex, totalDigits) { return currentDigitIndex < totalDigits - 1; }
-    static getNextPartial(currentPartial, nextDigit) { return currentPartial * 10 + nextDigit; }
+    static calculateQuotientDigit(partial, divisor) { 
+        return Math.floor(partial / divisor); 
+    }
+    
+    static calculateProduct(quotientDigit, divisor) { 
+        return quotientDigit * divisor; 
+    }
+    
+    static calculateRemainder(partial, product) { 
+        return partial - product; 
+    }
+    
+    static shouldBringDownNextDigit(currentDigitIndex, totalDigits) { 
+        return currentDigitIndex < totalDigits - 1; 
+    }
+    
+    static getNextPartial(currentPartial, nextDigit) { 
+        return currentPartial * 10 + nextDigit; 
+    }
+    
+    static formatNumber(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
 }
 
 // ============================================================================
-// Z = +1: DOM ELEMENT REFERENCES LAYER
+// Z = +1: DOM ELEMENT REFERENCES LAYER (UPDATED FOR 12x9 GRID)
 // ============================================================================
 class DOMReferences {
     static elements = {
@@ -53,39 +73,81 @@ class DOMReferences {
         currentStreakEl: document.getElementById('currentStreak'),
         clearGuessBtn: document.getElementById('clearGuess'),
         commitGuessBtn: document.getElementById('commitGuessBtn'),
-        guessDisplay: document.getElementById('currentGuessDisplay')
+        guessDisplay: document.getElementById('currentGuessDisplay'),
+        mainEquation: document.getElementById('mainEquation'),
+        currentStepEquation: document.getElementById('currentStepEquation'),
+        currentInstruction: document.getElementById('currentInstruction')
     };
     
     static gridCells = {};
-    static answerCells = {};
+    static workGrid = null;
     
     static initialize() {
-        Debug.instance.log('Initializing grid cell references');
+        Debug.instance.log('Initializing DOM references for 12x9 grid');
         
-        // Initialize all grid cells
+        // Get the main grid
+        this.workGrid = document.getElementById('divisionGrid');
         this.gridCells = {};
         
-        // Answer and divisor cells
-        ['ans-q0', 'ans-q1', 'ans-q2', 'ans-r', 'ans-rem', 'divisor'].forEach(id => {
-            this.gridCells[id] = document.getElementById(id);
-        });
-        
-        // Grid cells r1c1 to r10c5
-        for (let row = 1; row <= 10; row++) {
-            for (let col = 1; col <= 5; col++) {
-                this.gridCells[`r${row}c${col}`] = document.getElementById(`r${row}c${col}`);
+        // Initialize all grid cells r1c1 through r12c9
+        for (let row = 1; row <= Config.GRID_ROWS; row++) {
+            for (let col = 1; col <= Config.GRID_COLS; col++) {
+                const cellId = `r${row}c${col}`;
+                this.gridCells[cellId] = document.getElementById(cellId);
+                
+                // Debug logging for missing cells
+                if (!this.gridCells[cellId] && Config.DEBUG) {
+                    console.warn(`Missing cell: ${cellId}`);
+                }
             }
         }
         
-        // Store answer cells for easy access
-        this.answerCells = {
-            'q0': this.gridCells['ans-q0'],
-            'q1': this.gridCells['ans-q1'],
-            'q2': this.gridCells['ans-q2'],
-            'rem': this.gridCells['ans-rem']
-        };
+        Debug.instance.log(`Initialized ${Object.keys(this.gridCells).length} grid cells`);
         
-        Debug.instance.log('Grid cell references initialized');
+        // Verify key elements exist
+        const requiredElements = [
+            'mainEquation',
+            'currentStepEquation',
+            'currentInstruction',
+            'commitGuessBtn'
+        ];
+        
+        requiredElements.forEach(id => {
+            if (!this.elements[id]) {
+                console.error(`Missing required element: ${id}`);
+            }
+        });
+    }
+    
+    static getGridCell(row, col) {
+        const cellId = `r${row}c${col}`;
+        const cell = this.gridCells[cellId];
+        if (!cell && Config.DEBUG) {
+            console.warn(`Cell not found: ${cellId}`);
+        }
+        return cell;
+    }
+    
+    static getQuotientCell(position) {
+        // Quotient digits are in row 1, columns 1-3
+        return this.getGridCell(1, position + 1);
+    }
+    
+    static getDividendCell(position) {
+        // Dividend digits are in row 3, columns 4-9
+        return this.getGridCell(3, position + 4);
+    }
+    
+    static getProductCell(step, position) {
+        // Product rows are 4, 6, 8, 10 (even rows starting from 4)
+        const row = 4 + (step * 2);
+        return this.getGridCell(row, position + 4);
+    }
+    
+    static getRemainderCell(step, position) {
+        // Remainder rows are 5, 7, 9, 11 (odd rows starting from 5)
+        const row = 5 + (step * 2);
+        return this.getGridCell(row, position + 4);
     }
 }
 
@@ -101,13 +163,21 @@ class State {
     static commitButton = null;
     
     static updateScoreDisplay() {
-        DOMReferences.elements.solvedCountEl.textContent = this.solvedCount;
-        DOMReferences.elements.mistakeCountEl.textContent = this.mistakeCount;
-        DOMReferences.elements.currentStreakEl.textContent = this.currentStreak;
+        if (DOMReferences.elements.solvedCountEl) {
+            DOMReferences.elements.solvedCountEl.textContent = this.solvedCount;
+        }
+        if (DOMReferences.elements.mistakeCountEl) {
+            DOMReferences.elements.mistakeCountEl.textContent = this.mistakeCount;
+        }
+        if (DOMReferences.elements.currentStreakEl) {
+            DOMReferences.elements.currentStreakEl.textContent = this.currentStreak;
+        }
         
-        const total = this.solvedCount + this.mistakeCount;
-        const accuracy = total > 0 ? Math.round((this.solvedCount / total) * 100) : 0;
-        DOMReferences.elements.divisionAccuracyEl.textContent = accuracy + '%';
+        if (DOMReferences.elements.divisionAccuracyEl) {
+            const total = this.solvedCount + this.mistakeCount;
+            const accuracy = total > 0 ? Math.round((this.solvedCount / total) * 100) : 0;
+            DOMReferences.elements.divisionAccuracyEl.textContent = accuracy + '%';
+        }
         
         localStorage.setItem('divisionSolvedCount', this.solvedCount);
         localStorage.setItem('divisionMistakeCount', this.mistakeCount);
@@ -125,13 +195,13 @@ class State {
 // ============================================================================
 class DivisionLogic {
     static async generateNewProblem() {
-        Debug.instance.log('Generating new problem');
+        Debug.instance.log('Generating new problem for 12x9 grid');
         
-        let divisor = Math.floor(Math.random() * Config.MAX_DIVISOR) + Config.MIN_DIVISOR;
+        let divisor = Math.floor(Math.random() * (Config.MAX_DIVISOR - Config.MIN_DIVISOR + 1)) + Config.MIN_DIVISOR;
         let dividend;
         
         do {
-            dividend = Math.floor(Math.random() * Config.MAX_DIVIDEND) + Config.MIN_DIVIDEND;
+            dividend = Math.floor(Math.random() * (Config.MAX_DIVIDEND - Config.MIN_DIVIDEND + 1)) + Config.MIN_DIVIDEND;
         } while (dividend <= divisor);
         
         Debug.instance.log(`Generated problem: ${dividend} ÷ ${divisor}`);
@@ -150,321 +220,284 @@ class DivisionLogic {
             currentGuess: State.currentGuess
         });
         
+        // Reset the grid
         GridManager.resetGrid();
         
+        // Initialize problem state
         State.currentProblem = {
-            dividend, divisor, digits, n,
+            dividend,
+            divisor,
+            digits,
+            n,
             currentStep: 0,
             currentDigitIndex: 0,
             partial: digits[0],
             quotientDigits: [],
             steps: [],
             finished: false,
-            visibleRows: 2 * n + 1
+            maxDigits: 6  // C4-C9 can hold 6 digits
         };
         
         Debug.instance.log('Current problem state initialized', State.currentProblem);
-    
-        // Update the display structure first
-        UI._updateDisplay(dividend, divisor, `${State.currentProblem.partial} ÷ ${divisor} = ?`, 
-                         `Find the largest multiple of ${divisor} ≤ ${State.currentProblem.partial}`);
         
-        // Animate numbers from equation to grid
-        await Animations.animateFromEquationToGrid();
+        // Update the main display
+        this.updateMainDisplay(dividend, divisor);
         
-        // Update grid with divisor and dividend
-        GridManager.updateDivisor(divisor);
-        GridManager.updateDividend(digits);
+        // Update current step display
+        this.updateCurrentStepDisplay();
         
-        // Focus animation
-        await Animations.animateFocusOnCurrentStep();
+        // Place initial values in grid
+        GridManager.placeInitialValues(dividend, divisor);
         
-        // Update UI
+        // Reset guess
         State.currentGuess = 0;
         UI.updateGuessDisplay();
-        Feedback.clearFeedback(); // Fixed: Use Feedback class instead of UI
+        Feedback.clearFeedback();
         
-        // Show/hide rows based on n
-        GridManager.updateVisibleRows(n);
+        // Restore commit button
         ButtonManager.restoreCommitButton();
-        GridManager.debugRowStructure(n);
+    }
+    
+    static updateMainDisplay(dividend, divisor) {
+        if (DOMReferences.elements.mainEquation) {
+            DOMReferences.elements.mainEquation.textContent = 
+                `${MathUtils.formatNumber(dividend)} ÷ ${MathUtils.formatNumber(divisor)}`;
+        }
+    }
+    
+    static updateCurrentStepDisplay() {
+        if (!State.currentProblem || !DOMReferences.elements.currentStepEquation) return;
+        
+        const p = State.currentProblem;
+        
+        if (p.finished) {
+            const quotient = p.quotientDigits.join('').replace(/^0+/, '') || '0';
+            const remainder = p.steps[p.steps.length - 1]?.subtraction || 0;
+            this.setCurrentStep(
+                `The answer is ${quotient} R ${remainder}`,
+                'Problem completed!'
+            );
+        } else {
+            switch (p.currentStep) {
+                case 0:
+                    this.setCurrentStep(
+                        `${p.partial} ÷ ${p.divisor} = ?`,
+                        `Find the largest multiple of ${p.divisor} ≤ ${p.partial}`
+                    );
+                    break;
+                case 1:
+                    const lastStep = p.steps[p.steps.length - 1];
+                    if (lastStep) {
+                        this.setCurrentStep(
+                            `${lastStep.partialBefore} - ${lastStep.product} = ?`,
+                            `Subtract: ${lastStep.partialBefore} - ${lastStep.product}`
+                        );
+                    }
+                    break;
+                case 2:
+                    if (p.currentDigitIndex >= p.n - 1) {
+                        this.setCurrentStep(
+                            "Complete the problem",
+                            "No more digits to bring down"
+                        );
+                    } else {
+                        const nextDigit = p.digits[p.currentDigitIndex + 1];
+                        this.setCurrentStep(
+                            `Bring down ${nextDigit}`,
+                            `Click "Bring Down" to bring down ${nextDigit}`
+                        );
+                    }
+                    break;
+            }
+        }
+    }
+    
+    static setCurrentStep(equation, instruction) {
+        if (DOMReferences.elements.currentStepEquation) {
+            DOMReferences.elements.currentStepEquation.textContent = equation;
+        }
+        if (DOMReferences.elements.currentInstruction) {
+            DOMReferences.elements.currentInstruction.textContent = instruction;
+        }
     }
 }
 
 // ============================================================================
-// Z = -2: GRID MANAGEMENT LAYER
+// Z = -2: GRID MANAGEMENT LAYER (UPDATED FOR 12x9)
 // ============================================================================
 class GridManager {
     static resetGrid() {
-        Debug.instance.log('Resetting grid to initial state');
-        
-        // Clear answer cells
-        Object.values(DOMReferences.answerCells).forEach(cell => {
-            if (cell) cell.textContent = '?';
-        });
+        Debug.instance.log('Resetting 12x9 grid to initial state');
         
         // Clear all grid cells
-        for (let key in DOMReferences.gridCells) {
-            const cell = DOMReferences.gridCells[key];
-            if (cell && key.startsWith('r')) {
-                cell.textContent = '';
-                cell.classList.remove('hidden');
-            }
-        }
-        
-        // Set initial values
-        if (DOMReferences.gridCells['ans-rem']) DOMReferences.gridCells['ans-rem'].textContent = '?';
-        if (DOMReferences.gridCells['divisor']) DOMReferences.gridCells['divisor'].textContent = '?';
-    }
-    
-    static updateDivisor(divisor) {
-        if (DOMReferences.gridCells['divisor']) {
-            DOMReferences.gridCells['divisor'].textContent = divisor;
-        }
-    }
-    
-    static updateDividend(digits) {
-        for (let i = 0; i < 5; i++) {
-            const cell = DOMReferences.gridCells[`r1c${i + 1}`];
-            if (cell) {
-                cell.textContent = i < digits.length ? digits[i] : '';
-                cell.style.display = i < digits.length ? 'flex' : 'none';
-            }
-        }
-    }
-    
-    static updateVisibleRows(n) {
-        const totalRowsNeeded = 2 * n + 1; // For 3 digits: 7 rows needed
-        Debug.instance.log(`Updating visible rows: n=${n}, totalRowsNeeded=${totalRowsNeeded}`);
-        
-        // Show/hide rows based on the problem size
-        for (let row = 1; row <= 10; row++) {
-            const shouldShow = row <= totalRowsNeeded;
-            
-            // Get the row element
-            const rowElement = document.querySelector(`.work-row:nth-child(${row})`);
-            if (rowElement) {
-                rowElement.style.display = shouldShow ? 'flex' : 'none';
-            }
-            
-            // Also update individual cells
-            for (let col = 1; col <= 5; col++) {
-                const cell = DOMReferences.gridCells[`r${row}c${col}`];
+        for (let row = 1; row <= Config.GRID_ROWS; row++) {
+            for (let col = 1; col <= Config.GRID_COLS; col++) {
+                const cell = DOMReferences.getGridCell(row, col);
                 if (cell) {
-                    cell.style.display = shouldShow ? 'flex' : 'none';
-                    // Clear content for hidden rows
-                    if (!shouldShow) cell.textContent = '';
+                    cell.textContent = '';
+                    cell.className = 'grid-cell'; // Reset to base class
+                    
+                    // Add color classes based on position
+                    this.applyCellColor(cell, row, col);
+                    
+                    // Show all cells
+                    cell.style.display = 'flex';
                 }
             }
         }
-    }
-    
-    static updateQuotientInGrid(stepNumber, value) {
-        const quotientCellIds = ['ans-q0', 'ans-q1', 'ans-q2'];
-        if (stepNumber < quotientCellIds.length) {
-            const cell = DOMReferences.gridCells[quotientCellIds[stepNumber]];
-            if (cell) cell.textContent = value;
+        
+        // Set remainder label
+        const remainderLabel = DOMReferences.getGridCell(1, 7);
+        if (remainderLabel) {
+            remainderLabel.textContent = 'R';
+            remainderLabel.className = 'grid-cell green';
+        }
+        
+        // Set final remainder cell
+        const finalRemainder = DOMReferences.getGridCell(1, 8);
+        if (finalRemainder) {
+            finalRemainder.textContent = '?';
+            remainderLabel.className = 'grid-cell green';
         }
     }
     
-    static updateProductInGrid(stepNumber, product) {
-        this._updateGridRow(stepNumber, product, true);
-    }
-    
-    static updateRemainderInGrid(stepNumber, remainder) {
-        this._updateGridRow(stepNumber, remainder, false);
-    }
-    
-    static _updateGridRow(stepNumber, value, isProduct) {
-        const rowMap = isProduct ? {0: 2, 1: 4, 2: 6} : {0: 3, 1: 5, 2: 7};
-        const row = rowMap[stepNumber];
-        if (row === undefined) return;
+    static applyCellColor(cell, row, col) {
+        // Remove all color classes
+        cell.classList.remove('blue', 'green', 'orange', 'pink', 'yellow', 'empty');
         
-        const valueStr = String(value);
-        const valueLength = valueStr.length;
-        
-        // Clear the entire row first
-        for (let col = 1; col <= 5; col++) {
-            const cell = DOMReferences.gridCells[`r${row}c${col}`];
-            if (cell) cell.textContent = '';
-        }
-        
-        // For single-digit products/remainders, place them in the correct column
-        if (valueLength === 1) {
-            // Single digit: place in column stepNumber + 1 for product, stepNumber + 2 for remainder
-            const col = isProduct ? stepNumber + 1 : stepNumber + 2;
-            const cell = DOMReferences.gridCells[`r${row}c${col}`];
-            if (cell) cell.textContent = valueStr;
-        } else {
-            // Multi-digit: align right
-            const startCol = stepNumber + 1; // Start at column matching step number
-            
-            if (isProduct) {
-                // Product row: align right starting from startCol
-                for (let i = 0; i < valueLength; i++) {
-                    const col = startCol - (valueLength - 1) + i;
-                    const cell = DOMReferences.gridCells[`r${row}c${col}`];
-                    if (cell && col >= 1 && col <= 5) {
-                        cell.textContent = valueStr[i];
-                    }
-                }
+        // Apply colors based on position in the division layout
+        if (row === 1) {
+            // Answer row: columns 1-3 = quotient, 4-6 = lines, 7 = R, 8 = remainder, 9 = empty
+            if (col <= 3 || col === 7 || col === 8) {
+                cell.classList.add('green');
+            } else if (col <= 6) {
+                cell.classList.add('empty');
+                cell.style.borderBottom = '2px solid #000';
             } else {
-                // Remainder row: align right starting from startCol + 1
-                for (let i = 0; i < valueLength; i++) {
-                    const col = (startCol + 1) - (valueLength - 1) + i;
-                    const cell = DOMReferences.gridCells[`r${row}c${col}`];
-                    if (cell && col >= 1 && col <= 5) {
-                        cell.textContent = valueStr[i];
-                    }
-                }
+                cell.classList.add('empty');
+            }
+        } else if (row === 2) {
+            // Line row
+            cell.classList.add('empty');
+            if (col >= 4 && col <= 6) {
+                cell.style.borderBottom = '2px solid #000';
+            }
+        } else if (row === 3) {
+            // Divisor and dividend row
+            if (col <= 2) {
+                cell.classList.add('blue'); // Divisor
+            } else if (col === 3) {
+                cell.classList.add('empty'); // Vertical/horizontal line cell
+                cell.style.borderRight = '2px solid #000';
+                cell.style.borderBottom = '2px solid #000';
+            } else {
+                cell.classList.add('orange'); // Dividend
+            }
+        } else if (row >= 4 && row <= 11) {
+            // Calculation rows
+            if (row % 2 === 0) {
+                // Even rows: products (pink)
+                cell.classList.add(col >= 4 ? 'pink' : 'empty');
+            } else {
+                // Odd rows: remainders (yellow)
+                cell.classList.add(col >= 4 ? 'yellow' : 'empty');
+            }
+        } else if (row === 12) {
+            // Final output row
+            cell.classList.add(col >= 4 ? 'green' : 'empty');
+        }
+    }
+    
+    static placeInitialValues(dividend, divisor) {
+        // Place divisor in C1-C2 of row 3
+        const divisorStr = divisor.toString().padStart(2, ' ');
+        for (let i = 0; i < 2; i++) {
+            const cell = DOMReferences.getGridCell(3, i + 1);
+            if (cell) {
+                cell.textContent = divisorStr[i] !== ' ' ? divisorStr[i] : '';
+            }
+        }
+        
+        // Place dividend in C4-C9 of row 3
+        const dividendStr = dividend.toString().padStart(6, ' ');
+        for (let i = 0; i < 6; i++) {
+            const cell = DOMReferences.getGridCell(3, i + 4);
+            if (cell) {
+                cell.textContent = dividendStr[i] !== ' ' ? dividendStr[i] : '';
             }
         }
     }
-
-    static debugRowStructure(n) {
-        Debug.instance.log('Current grid structure:', {
-            totalRows: 2 * n + 1,
-            expectedRows: {
-                'Row 1 (dividend)': 'data-step="0"',
-                'Row 2 (product step 0)': 'data-step="1"',
-                'Row 3 (remainder step 0)': 'data-step="1"',
-                'Row 4 (product step 1)': 'data-step="2"',
-                'Row 5 (remainder step 1)': 'data-step="2"',
-                'Row 6 (product step 2)': 'data-step="3"',
-                'Row 7 (remainder step 2)': 'data-step="3"'
+    
+    static updateQuotientDigit(step, value) {
+        const cell = DOMReferences.getQuotientCell(step);
+        if (cell) {
+            cell.textContent = value;
+        }
+    }
+    
+    static updateProduct(step, product) {
+        const productStr = product.toString();
+        const startCol = 9 - productStr.length; // Align right in columns 4-9
+        
+        for (let i = 0; i < productStr.length; i++) {
+            const cell = DOMReferences.getProductCell(step, startCol - 4 + i);
+            if (cell) {
+                cell.textContent = productStr[i];
+            }
+        }
+    }
+    
+    static updateRemainder(step, remainder) {
+        const remainderStr = remainder.toString();
+        const startCol = 9 - remainderStr.length; // Align right in columns 4-9
+        
+        for (let i = 0; i < remainderStr.length; i++) {
+            const cell = DOMReferences.getRemainderCell(step, startCol - 4 + i);
+            if (cell) {
+                cell.textContent = remainderStr[i];
+            }
+        }
+    }
+    
+    static updateFinalRemainder(remainder) {
+        const cell = DOMReferences.getGridCell(1, 8);
+        if (cell) {
+            cell.textContent = remainder;
+        }
+    }
+    
+    static debugGridStructure() {
+        Debug.instance.log('Grid structure:', {
+            totalRows: Config.GRID_ROWS,
+            totalCols: Config.GRID_COLS,
+            layout: {
+                'Row 1': 'Answer row (quotient + remainder)',
+                'Row 2': 'Horizontal line row',
+                'Row 3': 'Divisor (C1-C2) + Dividend (C4-C9)',
+                'Rows 4-11': 'Calculation steps (product/remainder pairs)',
+                'Row 12': 'Final output'
             }
         });
         
-        // Log which rows are actually visible
-        for (let row = 1; row <= 10; row++) {
-            const rowElement = document.querySelector(`[id^="r${row}c"]`)?.parentElement;
-            if (rowElement) {
-                Debug.instance.log(`Row ${row}:`, {
-                    visible: rowElement.style.display !== 'none',
-                    class: rowElement.className,
-                    'data-step': rowElement.dataset.step
-                });
+        // Log which cells have content
+        const cellsWithContent = [];
+        for (let row = 1; row <= Config.GRID_ROWS; row++) {
+            for (let col = 1; col <= Config.GRID_COLS; col++) {
+                const cell = DOMReferences.getGridCell(row, col);
+                if (cell && cell.textContent.trim()) {
+                    cellsWithContent.push(`${row},${col}: "${cell.textContent}"`);
+                }
             }
         }
+        
+        Debug.instance.log('Cells with content:', cellsWithContent);
     }
 }
 
 // ============================================================================
-// Z = -3: ANIMATION LAYER (Simplified Version)
+// Z = -3: ANIMATION LAYER (Simplified for now)
 // ============================================================================
 class Animations {
-    static async _animateDigit(value, sourceElement, targetElement, animationType = 'bring-down') {
-        return new Promise((resolve) => {
-            if (!sourceElement || !targetElement) return resolve();
-            
-            const sourceRect = sourceElement.getBoundingClientRect();
-            const targetRect = targetElement.getBoundingClientRect();
-            const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
-            const scrollY = window.pageYOffset || document.documentElement.scrollTop;
-            
-            const animElement = document.createElement('div');
-            animElement.className = 'digit-animation';
-            animElement.textContent = value;
-            
-            // Calculate positions
-            const fromLeft = sourceRect.left + sourceRect.width/2 + scrollX;
-            const fromTop = sourceRect.top + sourceRect.height/2 + scrollY;
-            const toLeft = targetRect.left + targetRect.width/2 + scrollX;
-            const toTop = targetRect.top + targetRect.height/2 + scrollY;
-            
-            animElement.style.cssText = `
-                left: ${fromLeft}px;
-                top: ${fromTop}px;
-                width: ${sourceRect.width}px;
-                height: ${sourceRect.height}px;
-            `;
-            
-            if (animationType === 'number-move') {
-                animElement.style.color = '#e74c3c';
-                animElement.style.borderColor = '#e74c3c';
-            }
-            
-            document.body.appendChild(animElement);
-            void animElement.offsetWidth;
-            
-            requestAnimationFrame(() => {
-                animElement.style.left = `${toLeft}px`;
-                animElement.style.top = `${toTop}px`;
-                animElement.style.transform = 'translate(-50%, -50%) scale(1.2)';
-                
-                targetElement.classList.add('digit-highlight');
-                
-                setTimeout(() => {
-                    // Only update target if it's a cell (not current step text)
-                    if (targetElement.classList.contains('grid-cell')) {
-                        targetElement.textContent = value;
-                    }
-                    
-                    animElement.remove();
-                    
-                    setTimeout(() => {
-                        targetElement.classList.remove('digit-highlight');
-                        resolve();
-                    }, 500);
-                }, 500);
-            });
-        });
-    }
-    
-    static async animateBringDown(nextDigit, sourceRow, sourceCol, targetRow, targetCol) {
-        const sourceCell = DOMReferences.gridCells[`r${sourceRow}c${sourceCol}`];
-        const targetCell = DOMReferences.gridCells[`r${targetRow}c${targetCol}`];
-        
-        if (!sourceCell || !targetCell) return;
-        
-        return this._animateDigit(nextDigit, sourceCell, targetCell, 'bring-down');
-    }
-    
-    static async animateNumberToCell(value, sourceElement, targetCellId) {
-        const targetCell = DOMReferences.gridCells[targetCellId];
-        if (!targetCell) return;
-        
-        return this._animateDigit(value, sourceElement, targetCell, 'number-move');
-    }
-    
-    static async animateNumberToCurrentStep(value, sourceElement) {
-        // Find the current step equation element
-        const equationEl = document.getElementById('currentStepEquation');
-        if (!equationEl) return;
-        
-        // Create a temporary target span inside the equation
-        const tempTarget = document.createElement('span');
-        tempTarget.style.display = 'inline-block';
-        tempTarget.style.padding = '2px';
-        tempTarget.textContent = value;
-        
-        // Insert at the beginning of the equation
-        equationEl.insertBefore(tempTarget, equationEl.firstChild);
-        
-        // Animate to it
-        await this._animateDigit(value, sourceElement, tempTarget, 'number-move');
-        
-        // Remove the temporary span after animation
-        setTimeout(() => tempTarget.remove(), 100);
-    }
-    
-    static async animateFromEquationToGrid() {
-        const equation = document.querySelector('.large-equation');
-        if (!equation) return;
-        
-        const text = equation.textContent;
-        const [dividend, divisor] = text.split(' ÷ ').map(num => parseInt(num));
-        const digits = String(dividend).split('');
-        
-        // Animate divisor to divisor cell
-        await this.animateNumberToCell(divisor, equation, 'divisor');
-        
-        // Animate each dividend digit to dividend row
-        for (let i = 0; i < digits.length; i++) {
-            await this.animateNumberToCell(digits[i], equation, `r1c${i+1}`);
-        }
-    }
-    
     static async animateFocusOnCurrentStep() {
         return new Promise((resolve) => {
             const currentStepBox = document.querySelector('.current-step-container');
@@ -473,205 +506,44 @@ class Animations {
                 return;
             }
             
-            // Use existing CSS for highlighting
             currentStepBox.classList.add('current-step-highlight');
-            
-            // Also highlight relevant grid cells for step 0
-            if (State.currentProblem?.currentStep === 0) {
-                if (DOMReferences.gridCells['r1c1']) DOMReferences.gridCells['r1c1'].classList.add('digit-highlight');
-                if (DOMReferences.gridCells['divisor']) DOMReferences.gridCells['divisor'].classList.add('digit-highlight');
-            }
             
             setTimeout(() => {
                 currentStepBox.classList.remove('current-step-highlight');
-                if (DOMReferences.gridCells['r1c1']) DOMReferences.gridCells['r1c1'].classList.remove('digit-highlight');
-                if (DOMReferences.gridCells['divisor']) DOMReferences.gridCells['divisor'].classList.remove('digit-highlight');
                 resolve();
             }, 1500);
         });
     }
     
-    static async animateDigitToCurrentStep(digitValue, sourceCell) {
-        const equationEl = document.getElementById('currentStepEquation');
-        if (!equationEl || !sourceCell) return;
-        
-        // Create a highlight box in the current step
-        const highlightBox = document.createElement('div');
-        highlightBox.className = 'digit-highlight';
-        highlightBox.style.cssText = `
-            display: inline-block;
-            padding: 5px 10px;
-            margin: 0 5px;
-            border-radius: 4px;
-            font-size: 1.2em;
-            font-weight: bold;
-        `;
-        highlightBox.textContent = digitValue;
-        
-        // Find where to insert it (before the "?" or at the end)
-        const equationText = equationEl.textContent;
-        if (equationText.includes('?')) {
-            // Replace "?" with our highlighted digit
-            const newText = equationText.replace('?', highlightBox.outerHTML);
-            equationEl.innerHTML = newText;
+    static async animateDigitMove(value, sourceCell, targetCell) {
+        return new Promise((resolve) => {
+            if (!sourceCell || !targetCell) return resolve();
             
-            // Get the newly created element
-            const insertedElement = equationEl.querySelector('.digit-highlight');
-            if (insertedElement) {
-                // Animate from source cell to this element
-                await this._animateDigit(digitValue, sourceCell, insertedElement, 'number-move');
-            }
-        }
+            // Simple highlight animation for now
+            targetCell.classList.add('digit-highlight');
+            
+            setTimeout(() => {
+                targetCell.classList.remove('digit-highlight');
+                resolve();
+            }, 500);
+        });
     }
 }
+
 // ============================================================================
 // Z = -4: UI DISPLAY LAYER
 // ============================================================================
 class UI {
-    static async updateProblemDisplay() {
-        if (!State.currentProblem) return;
-        
-        const p = State.currentProblem;
-        const dividend = p.dividend;
-        const divisor = p.divisor;
-        
-        let currentStep = '', instruction = '';
-        
-        if (p.finished) {
-            const quotient = p.quotientDigits.join('').replace(/^0+/, '') || '0';
-            const remainder = p.steps[p.steps.length - 1]?.subtraction || 0;
-            currentStep = `The answer is ${quotient} R ${remainder}`;
-            instruction = 'Problem completed!';
-        } else {
-            switch (p.currentStep) {
-                case 0:
-                    currentStep = `${p.partial} ÷ ${divisor} = ?`;
-                    instruction = `Find the largest multiple of ${divisor} ≤ ${p.partial}`;
-                    
-                    // Trigger animation for quotient step
-                    if (p.partial > 0) {
-                        setTimeout(() => this._animateQuotientStep(p), 100);
-                    }
-                    break;
-                case 1:
-                    const lastStep = p.steps[p.steps.length - 1];
-                    if (lastStep) {
-                        currentStep = `${lastStep.partialBefore} - ${lastStep.product} = ?`;
-                        instruction = `Subtract: ${lastStep.partialBefore} - ${lastStep.product}`;
-                        
-                        // Trigger animation for subtraction step
-                        setTimeout(() => this._animateSubtractionStep(p, lastStep), 100);
-                    }
-                    break;
-                case 2:
-                    if (p.currentDigitIndex >= p.n - 1) {
-                        currentStep = "Complete the problem";
-                        instruction = "No more digits to bring down";
-                    } else {
-                        const nextDigit = p.digits[p.currentDigitIndex + 1];
-                        currentStep = `Bring down ${nextDigit}`;
-                        instruction = `Click "Bring Down" to bring down ${nextDigit}`;
-                    }
-                    break;
-            }
-        }
-        
-        // Update the display
-        this._updateDisplay(dividend, divisor, currentStep, instruction);
-    }
-    
-    static _updateDisplay(dividend, divisor, currentStep, instruction) {
-        // Get or create elements
-        let equationDisplay = DOMReferences.elements.problemDisplay.querySelector('.equation-display');
-        let currentStepContainer = DOMReferences.elements.problemDisplay.querySelector('.current-step-container');
-        
-        if (!equationDisplay || !currentStepContainer) {
-            DOMReferences.elements.problemDisplay.innerHTML = `
-                <div class="equation-display">
-                    <div class="large-equation">${dividend} ÷ ${divisor}</div>
-                </div>
-                <div class="current-step-container">
-                    <div class="current-step-title">Current Step</div>
-                    <div class="current-step-equation" id="currentStepEquation">${currentStep}</div>
-                    <div class="current-instruction" id="currentInstruction">${instruction}</div>
-                </div>
-            `;
-        } else {
-            const largeEquation = equationDisplay.querySelector('.large-equation');
-            const equationEl = document.getElementById('currentStepEquation');
-            const instructionEl = document.getElementById('currentInstruction');
-            
-            if (largeEquation) largeEquation.textContent = `${dividend} ÷ ${divisor}`;
-            if (equationEl) equationEl.textContent = currentStep;
-            if (instructionEl) instructionEl.textContent = instruction;
-        }
-    }
-    
-    static async _animateQuotientStep(problem) {
-        // Find the source cell (first digit of partial in dividend row)
-        const partialStr = String(problem.partial);
-        const firstDigit = partialStr[0];
-        
-        let sourceCell = null;
-        for (let col = 1; col <= 5; col++) {
-            const cell = DOMReferences.gridCells[`r1c${col}`];
-            if (cell && cell.textContent === firstDigit) {
-                sourceCell = cell;
-                break;
-            }
-        }
-        
-        if (sourceCell) {
-            // Wait a moment for display to update, then animate
-            setTimeout(async () => {
-                await Animations.animateDigitToCurrentStep(firstDigit, sourceCell);
-            }, 300);
-        }
-    }
-
-    static clearFeedback() {
-        // Remove any feedback messages
-        const feedbackMsg = document.querySelector('.feedback-message');
-        if (feedbackMsg) feedbackMsg.remove();
-        
-        // Restore original number display if it exists
-        const numberDisplay = document.querySelector('.number-display');
-        if (numberDisplay) {
-            if (numberDisplay.originalHTML) {
-                numberDisplay.innerHTML = numberDisplay.originalHTML;
-            }
-            numberDisplay.classList.remove('showing-feedback');
-        }
-        
-        // Clear any feedback classes
-        document.querySelectorAll('.feedback-error, .feedback-success, .feedback-info').forEach(el => {
-            el.remove();
-        });
-    }
-    
-    static async _animateSubtractionStep(problem, lastStep) {
-        // Find the source cell (partialBefore in remainder row)
-        const row = 3 + (lastStep.stepNumber * 2); // Row 3, 5, or 7
-        const sourceCell = DOMReferences.gridCells[`r${row}c${lastStep.stepNumber + 1}`];
-        
-        if (sourceCell && sourceCell.textContent) {
-            setTimeout(async () => {
-                await Animations.animateDigitToCurrentStep(lastStep.partialBefore, sourceCell);
-            }, 300);
-        }
-    }
-    
     static updateGuessDisplay() {
-        const guessDisplayElement = document.getElementById('currentGuessDisplay');
-        if (guessDisplayElement) {
-            guessDisplayElement.textContent = State.currentGuess;
+        if (DOMReferences.elements.guessDisplay) {
+            DOMReferences.elements.guessDisplay.textContent = State.currentGuess;
         }
     }
     
     static adjustGuess(delta) {
         if (!State.currentProblem || State.currentProblem.finished) return;
         const newGuess = State.currentGuess + delta;
-        if (newGuess >= 0 && newGuess <= 99) {
+        if (newGuess >= 0 && newGuess <= 999) {
             State.currentGuess = newGuess;
             this.updateGuessDisplay();
         }
@@ -689,30 +561,41 @@ class UI {
 class GameLogic {
     static async processQuotientInput() {
         const problem = State.currentProblem;
+        if (!problem) return;
+        
         const correctDigit = MathUtils.calculateQuotientDigit(problem.partial, problem.divisor);
         const correctProduct = MathUtils.calculateProduct(correctDigit, problem.divisor);
         
+        // Validate input
         if (State.currentGuess % problem.divisor !== 0) {
-            State.mistakeCount++; State.currentStreak = 0;
+            State.mistakeCount++;
+            State.currentStreak = 0;
             await Feedback.showFeedback(`${State.currentGuess} not a multiple of ${problem.divisor}`, 'error');
-            State.updateScoreDisplay(); return;
+            State.updateScoreDisplay();
+            return;
         }
         
         if (State.currentGuess > problem.partial) {
-            State.mistakeCount++; State.currentStreak = 0;
+            State.mistakeCount++;
+            State.currentStreak = 0;
             await Feedback.showFeedback(`${State.currentGuess} > ${problem.partial}`, 'error');
-            State.updateScoreDisplay(); return;
+            State.updateScoreDisplay();
+            return;
         }
         
         if (State.currentGuess !== correctProduct) {
-            State.mistakeCount++; State.currentStreak = 0;
-            await Feedback.showFeedback(`Incorrect.`, 'error');
-            State.updateScoreDisplay(); return;
+            State.mistakeCount++;
+            State.currentStreak = 0;
+            await Feedback.showFeedback(`Incorrect. Try again.`, 'error');
+            State.updateScoreDisplay();
+            return;
         }
 
+        // Correct answer
         const quotientDigit = State.currentGuess / problem.divisor;
         const stepNumber = problem.quotientDigits.length;
         
+        // Update problem state
         problem.quotientDigits.push(quotientDigit);
         problem.steps.push({
             stepNumber,
@@ -723,18 +606,26 @@ class GameLogic {
             digitIndex: problem.currentDigitIndex
         });
         
-        GridManager.updateQuotientInGrid(stepNumber, quotientDigit);
-        GridManager.updateProductInGrid(stepNumber, State.currentGuess);
+        // Update grid
+        GridManager.updateQuotientDigit(stepNumber, quotientDigit);
+        GridManager.updateProduct(stepNumber, State.currentGuess);
+        
+        // Show feedback
         await Feedback.showFeedback(`✓ ${quotientDigit} × ${problem.divisor} = ${State.currentGuess}`, 'success');
         
+        // Move to next step
         problem.currentStep = 1;
         State.currentGuess = 0;
-        UI.updateProblemDisplay();
+        
+        // Update displays
+        DivisionLogic.updateCurrentStepDisplay();
         UI.updateGuessDisplay();
     }
     
     static async processSubtraction() {
         const problem = State.currentProblem;
+        if (!problem) return;
+        
         const lastStep = problem.steps[problem.steps.length - 1];
         if (!lastStep) return;
         
@@ -742,15 +633,20 @@ class GameLogic {
         const stepNumber = lastStep.stepNumber;
         
         if (State.currentGuess !== expectedRemainder) {
-            State.mistakeCount++; State.currentStreak = 0;
+            State.mistakeCount++;
+            State.currentStreak = 0;
             await Feedback.showFeedback(`✗ ${lastStep.partialBefore} - ${lastStep.product} ≠ ${State.currentGuess}`, 'error');
-            State.updateScoreDisplay(); return;
+            State.updateScoreDisplay();
+            return;
         }
         
-        GridManager.updateRemainderInGrid(stepNumber, expectedRemainder);
+        // Correct subtraction
+        GridManager.updateRemainder(stepNumber, expectedRemainder);
         problem.partial = expectedRemainder;
+        
         await Feedback.showFeedback(`✓ ${lastStep.partialBefore} - ${lastStep.product} = ${expectedRemainder}`, 'success');
         
+        // Move to next step
         problem.currentStep = 2;
         State.currentGuess = 0;
         
@@ -762,13 +658,19 @@ class GameLogic {
             await this.completeProblem();
         }
         
-        UI.updateProblemDisplay();
+        DivisionLogic.updateCurrentStepDisplay();
         UI.updateGuessDisplay();
     }
     
     static async executeBringDown(nextDigit) {
         const problem = State.currentProblem;
-        if (problem.currentDigitIndex >= problem.n - 1) { await this.completeProblem(); return; }
+        if (!problem) return;
+        
+        if (problem.currentDigitIndex >= problem.n - 1) {
+            await this.completeProblem();
+            return;
+        }
+        
         if (problem.currentStep !== 2) return;
         
         const expectedDigit = problem.digits[problem.currentDigitIndex + 1];
@@ -777,30 +679,40 @@ class GameLogic {
         ButtonManager.hideBringDownButton();
         problem.partial = MathUtils.getNextPartial(problem.partial, nextDigit);
         
-        const stepNumber = problem.steps.length - 1;
-        await ButtonManager.updateBringDownInGrid(stepNumber, nextDigit);
-        await Feedback.showFeedback(`✓ Brought down ${nextDigit}. New: ${problem.partial}`, 'success');
+        // For now, just show feedback - we can add animation later
+        await Feedback.showFeedback(`✓ Brought down ${nextDigit}. New partial: ${problem.partial}`, 'success');
         
         problem.currentStep = 0;
         problem.currentDigitIndex++;
         State.currentGuess = 0;
+        
         ButtonManager.restoreCommitButton();
-        UI.updateProblemDisplay();
+        DivisionLogic.updateCurrentStepDisplay();
         UI.updateGuessDisplay();
     }
     
     static async completeProblem() {
         const problem = State.currentProblem;
+        if (!problem) return;
+        
         problem.finished = true;
         const finalRemainder = problem.partial;
         
-        if (DOMReferences.gridCells['ans-rem']) DOMReferences.gridCells['ans-rem'].textContent = finalRemainder;
+        // Update grid with final remainder
+        GridManager.updateFinalRemainder(finalRemainder);
         
-        State.solvedCount++; State.currentStreak++;
+        // Update scores
+        State.solvedCount++;
+        State.currentStreak++;
+        
         const quotient = problem.quotientDigits.join('').replace(/^0+/, '') || '0';
-        await Feedback.showFeedback(`🎉 Complete! ${problem.dividend} ÷ ${problem.divisor} = ${quotient} R ${finalRemainder}`, 'success');
+        await Feedback.showFeedback(
+            `🎉 Complete! ${problem.dividend} ÷ ${problem.divisor} = ${quotient} R ${finalRemainder}`,
+            'success'
+        );
+        
         State.updateScoreDisplay();
-        UI.updateProblemDisplay();
+        DivisionLogic.updateCurrentStepDisplay();
     }
 }
 
@@ -809,31 +721,32 @@ class GameLogic {
 // ============================================================================
 class Feedback {
     static async showFeedback(message, type = 'error') {
-        const numberDisplay = document.querySelector('.number-display');
-        if (!numberDisplay) return new Promise(resolve => resolve());
+        const workFeedback = DOMReferences.elements.workFeedback;
+        if (!workFeedback) return new Promise(resolve => resolve());
         
-        if (!numberDisplay.originalHTML) numberDisplay.originalHTML = numberDisplay.innerHTML;
-        numberDisplay.innerHTML = `<div class="feedback-${type}">${message}</div>`;
-        numberDisplay.classList.add('showing-feedback');
+        // Create feedback element
+        const feedbackEl = document.createElement('div');
+        feedbackEl.className = `feedback-${type}`;
+        feedbackEl.textContent = message;
+        feedbackEl.style.cssText = `
+            padding: var(--space-sm);
+            margin: var(--space-sm) 0;
+            border-radius: 6px;
+            animation: fadeIn 0.3s ease-in;
+        `;
+        
+        // Add to work feedback area
+        workFeedback.prepend(feedbackEl);
         
         return new Promise(resolve => setTimeout(() => {
-            if (numberDisplay.originalHTML) numberDisplay.innerHTML = numberDisplay.originalHTML;
-            numberDisplay.classList.remove('showing-feedback');
+            feedbackEl.remove();
             resolve();
         }, type === 'error' ? 4000 : 2000));
     }
     
     static clearFeedback() {
-        // Clear all feedback elements
         const feedbackElements = document.querySelectorAll('.feedback-error, .feedback-success, .feedback-info');
         feedbackElements.forEach(el => el.remove());
-        
-        // Restore number display
-        const numberDisplay = document.querySelector('.number-display');
-        if (numberDisplay && numberDisplay.originalHTML) {
-            numberDisplay.innerHTML = numberDisplay.originalHTML;
-            numberDisplay.classList.remove('showing-feedback');
-        }
     }
 }
 
@@ -842,11 +755,26 @@ class Feedback {
 // ============================================================================
 class ButtonManager {
     static setupButtonHandlers() {
-        DOMReferences.elements.newProblemBtn.addEventListener('click', async () => {
-            await DivisionLogic.generateNewProblem();
-        });
-        DOMReferences.elements.resetProblemBtn.addEventListener('click', this.resetCurrentProblem);
-        DOMReferences.elements.resetScoresBtn.addEventListener('click', State.resetAllScores);
+        if (DOMReferences.elements.newProblemBtn) {
+            DOMReferences.elements.newProblemBtn.addEventListener('click', async () => {
+                await DivisionLogic.generateNewProblem();
+            });
+        }
+        
+        if (DOMReferences.elements.resetProblemBtn) {
+            DOMReferences.elements.resetProblemBtn.addEventListener('click', () => {
+                if (State.currentProblem) {
+                    DivisionLogic.initializeDivisionState(
+                        State.currentProblem.dividend,
+                        State.currentProblem.divisor
+                    );
+                }
+            });
+        }
+        
+        if (DOMReferences.elements.resetScoresBtn) {
+            DOMReferences.elements.resetScoresBtn.addEventListener('click', State.resetAllScores);
+        }
         
         this.createControlButtons();
     }
@@ -858,6 +786,7 @@ class ButtonManager {
     }
     
     static setupControlButtonListeners() {
+        // Number adjustment buttons
         document.querySelectorAll('[data-change]').forEach(btn => {
             btn.addEventListener('click', () => {
                 if (!State.currentProblem || State.currentProblem.finished) return;
@@ -866,8 +795,15 @@ class ButtonManager {
             });
         });
         
-        DOMReferences.elements.clearGuessBtn.addEventListener('click', UI.clearGuess);
-        DOMReferences.elements.commitGuessBtn.addEventListener('click', this.commitGuess);
+        // Clear button
+        if (DOMReferences.elements.clearGuessBtn) {
+            DOMReferences.elements.clearGuessBtn.addEventListener('click', UI.clearGuess);
+        }
+        
+        // Commit button
+        if (DOMReferences.elements.commitGuessBtn) {
+            DOMReferences.elements.commitGuessBtn.addEventListener('click', this.commitGuess);
+        }
     }
     
     static async commitGuess() {
@@ -875,82 +811,55 @@ class ButtonManager {
             Feedback.showFeedback('No problem loaded. Click "New Problem"', 'error');
             return;
         }
+        
         if (State.currentProblem.finished) {
             Feedback.showFeedback('Problem already completed!', 'info');
             return;
         }
         
         const p = State.currentProblem;
-        if (p.currentStep === 0) await GameLogic.processQuotientInput();
-        else if (p.currentStep === 1) await GameLogic.processSubtraction();
-        else if (p.currentStep === 2) Debug.instance.log('In bring down phase');
+        if (p.currentStep === 0) {
+            await GameLogic.processQuotientInput();
+        } else if (p.currentStep === 1) {
+            await GameLogic.processSubtraction();
+        } else if (p.currentStep === 2) {
+            Debug.instance.log('In bring down phase');
+        }
     }
     
     static transformToBringDownButton(nextDigit) {
         if (!State.commitButton) return;
-        State.commitButton.disabled = true;
         
+        // Save original state
         if (!State.commitButton.originalHTML) {
             State.commitButton.originalHTML = State.commitButton.innerHTML;
             State.commitButton.originalOnClick = State.commitButton.onclick;
         }
         
-        State.commitButton.innerHTML = `<span class="bring-down-icon">↓</span><span class="bring-down-text">Bring Down ${nextDigit}</span>`;
-        State.commitButton.style.cssText = `background: linear-gradient(135deg, #3498db, #2980b9); color: white; border: none;
-            border-radius: 8px; padding: 12px 24px; font-size: 18px; font-weight: bold; cursor: pointer; display: flex;
-            align-items: center; justify-content: center; gap: 10px; margin: 10px auto; box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3); width: 100%;`;
+        // Update button
+        State.commitButton.innerHTML = `↓ Bring Down ${nextDigit}`;
+        State.commitButton.style.backgroundColor = '#3498db';
         
-        State.commitButton.onclick = () => { State.commitButton.disabled = true; GameLogic.executeBringDown(nextDigit); };
-        setTimeout(() => { State.commitButton.disabled = false; }, 300);
+        // Set new click handler
+        State.commitButton.onclick = () => {
+            GameLogic.executeBringDown(nextDigit);
+        };
+    }
+    
+    static hideBringDownButton() {
+        // We'll handle this differently - just restore the button
+        this.restoreCommitButton();
     }
     
     static restoreCommitButton() {
         if (!State.commitButton || !State.commitButton.originalHTML) return;
-        State.commitButton.disabled = false;
+        
         State.commitButton.innerHTML = State.commitButton.originalHTML;
+        State.commitButton.style.backgroundColor = '';
         State.commitButton.onclick = State.commitButton.originalOnClick;
-        State.commitButton.style.cssText = `width: 100%; padding: 15px; background-color: #007bff; color: white; border: none;
-            border-radius: 8px; font-size: 1.2em; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;`;
+        
         delete State.commitButton.originalHTML;
         delete State.commitButton.originalOnClick;
-    }
-    
-    static hideBringDownButton() {
-        const existingBtn = document.getElementById('bringDownBtn');
-        if (existingBtn) existingBtn.remove();
-    }
-    
-    static async updateBringDownInGrid(stepNumber, nextDigit) {
-        const rowMap = {0: 3, 1: 5, 2: 7};
-        const row = rowMap[stepNumber];
-        if (row === undefined) return Promise.resolve();
-        
-        // Find the target column: it should be in the next available column
-        // after the current remainder
-        const targetCol = stepNumber + 2; // One column to the right of current working area
-        
-        const sourceRow = 1; // Dividend row
-        const sourceCol = stepNumber + 2; // Next digit in dividend
-        
-        // Check if target cell exists and is empty
-        const targetCell = DOMReferences.gridCells[`r${row}c${targetCol}`];
-        if (!targetCell || targetCell.style.display === 'none') {
-            return Promise.resolve();
-        }
-        
-        // Clear any existing content in target cell
-        targetCell.textContent = '';
-        
-        // Animate the digit
-        return Animations.animateBringDown(nextDigit, sourceRow, sourceCol, row, targetCol).then(() => {
-            targetCell.textContent = nextDigit;
-        });
-    }
-    
-    static resetCurrentProblem() {
-        if (State.currentProblem) {
-            DivisionLogic.initializeDivisionState(State.currentProblem.dividend, State.currentProblem.divisor);
-        }
     }
 }
 
@@ -961,41 +870,71 @@ class Styles {
     static addAnimationStyles() {
         const style = document.createElement('style');
         style.textContent = `
-            @keyframes digitPulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-            .digit-highlight { animation: digitPulse 0.5s ease-in-out; background-color: #e3f2fd !important; border: 2px solid #3498db !important; }
-            .bring-down-button { background: linear-gradient(135deg, #3498db, #2980b9); color: white; border: none; border-radius: 8px;
-                padding: 12px 24px; font-size: 18px; font-weight: bold; cursor: pointer; display: flex; align-items: center;
-                justify-content: center; gap: 10px; margin: 10px auto; box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3); }
-            .bring-down-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(52, 152, 219, 0.4); }
-            .bring-down-icon { font-size: 24px; animation: bounce 1s infinite; }
-            @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
-            .digit-animation { position: absolute !important; z-index: 1000 !important; }
-            @keyframes arrowPulse { 0% { opacity: 0.7; } 50% { opacity: 1; } 100% { opacity: 0.7; } }
-            .focus-arrow::after { content: ''; position: absolute; right: -10px; top: -6px; width: 0; height: 0;
-                border-left: 20px solid rgba(52, 152, 219, 0.8); border-top: 10px solid transparent; border-bottom: 10px solid transparent; }
-            @keyframes pulseHighlight { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.7); }
-                70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(52, 152, 219, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(52, 152, 219, 0); } }
+            @keyframes digitPulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.1); }
+                100% { transform: scale(1); }
+            }
+            
+            .digit-highlight {
+                animation: digitPulse 0.5s ease-in-out;
+                background-color: #e3f2fd !important;
+                border: 2px solid #3498db !important;
+            }
+            
+            .current-step-highlight {
+                animation: digitPulse 1.5s ease-in-out;
+                background-color: #e3f2fd !important;
+                border: 2px solid #3498db !important;
+            }
+            
+            .feedback-success {
+                background: #d4edda;
+                color: #155724;
+                border: 1px solid #c3e6cb;
+            }
+            
+            .feedback-error {
+                background: #f8d7da;
+                color: #721c24;
+                border: 1px solid #f5c6cb;
+            }
+            
+            .feedback-info {
+                background: #d1ecf1;
+                color: #0c5460;
+                border: 1px solid #bee5eb;
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
         `;
         document.head.appendChild(style);
     }
 }
-
 
 // ============================================================================
 // Z = -9: INITIALIZATION LAYER
 // ============================================================================
 class App {
     static init() {
-        // Initialize debug first
+        // Initialize debug
         Debug.instance = new Debug(Config.DEBUG);
-        Debug.instance.log('Division practice initialized');
+        Debug.instance.log('Division Practice Initialized - 12x9 Grid Version');
         
         // Initialize all components
         DOMReferences.initialize();
-        // Note: We removed Styles.addAnimationStyles() since CSS is in separate file
+        Styles.addAnimationStyles();
         State.updateScoreDisplay();
         ButtonManager.setupButtonHandlers();
-        DivisionLogic.generateNewProblem();  // This should work now
+        
+        // Generate initial problem
+        setTimeout(() => {
+            DivisionLogic.generateNewProblem();
+            GridManager.debugGridStructure();
+        }, 500);
     }
 }
 
