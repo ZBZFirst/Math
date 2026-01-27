@@ -263,83 +263,11 @@
 }
 
 /* ============================================
-   POSITION-SPECIFIC STYLES
-   ============================================ */
-
-/* ANSWER cells (top row) */
-.division-table.answer {
-    font-weight: bold;
-    font-size: 1.6em;
-}
-
-.division-table.answer.hundreds {
-    grid-column: 4;
-}
-
-.division-table.answer.tens {
-    grid-column: 5;
-}
-
-.division-table.answer.ones {
-    grid-column: 6;
-}
-
-.division-table.answer.remainderR {
-    font-style: italic;
-    font-size: 1.2em;
-}
-
-.division-table.answer.remainder.tens {
-    grid-column: 8;
-}
-
-.division-table.answer.remainder.ones {
-    grid-column: 9;
-}
-
-/* DIVISOR cells */
-.division-table.divisor {
-    font-weight: bold;
-}
-
-.division-table.divisor.tens {
-    grid-column: 1;
-    grid-row: 3;
-}
-
-.division-table.divisor.ones {
-    grid-column: 2;
-    grid-row: 3;
-}
-
-/* DIVIDEND cells */
-.division-table.dividend {
-    font-weight: bold;
-}
-
-.division-table.dividend.hundreds {
-    grid-column: 4;
-    grid-row: 3;
-}
-
-.division-table.dividend.tens {
-    grid-column: 5;
-    grid-row: 3;
-}
-
-.division-table.dividend.ones {
-    grid-column: 6;
-    grid-row: 3;
-}
-
-/* ============================================
    LINES AND SYMBOLS
    ============================================ */
 
 /* VERTICAL LINE (division bar) */
 .division-table.vertical-line {
-    grid-column: 3;
-    grid-row: 3;
     position: relative;
 }
 
@@ -371,8 +299,6 @@
 
 /* CORNER LINE (between divisor and dividend) */
 .division-table.corner-line {
-    grid-column: 3;
-    grid-row: 2;
     position: relative;
 }
 
@@ -414,64 +340,26 @@
     z-index: 2;
 }
 
-.division-table.minus.sign {
-    grid-row: 4;
-}
-
-.division-table.minus.step1 {
-    grid-row: 4;
-}
-
-.division-table.minus.step2 {
-    grid-row: 7;
-}
-
-.division-table.minus.step3 {
-    grid-row: 10;
-}
-
 /* ============================================
    STEP-SPECIFIC STYLES
    ============================================ */
 
 /* STEP 1 cells */
 .division-table.step1 {
-    animation-delay: 0s;
-}
-
-.division-table.yellow.step1 {
-    grid-row: 4;
-}
-
-.division-table.brown.step1 {
-    grid-row: 6;
+    animation-delay: 1s;
 }
 
 /* STEP 2 cells */
 .division-table.step2 {
-    animation-delay: 0.5s;
+    animation-delay: 1s;
 }
 
-.division-table.yellow.step2 {
-    grid-row: 7;
-}
-
-.division-table.brown.step2 {
-    grid-row: 9;
-}
 
 /* STEP 3 cells */
 .division-table.step3 {
     animation-delay: 1s;
 }
 
-.division-table.yellow.step3 {
-    grid-row: 10;
-}
-
-.division-table.brown.step3 {
-    grid-row: 12;
-}
 
 /* ============================================
    CONTROLS & INTERACTIVE
