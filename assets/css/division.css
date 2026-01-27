@@ -303,30 +303,30 @@
     position: relative;
     background: transparent !important;
     border: none !important;
+    overflow: visible; /* Allow lines to extend beyond cell boundaries */
 }
 
 .division-table.corner-line::before {
     content: '';
     position: absolute;
-    bottom: 0;
+    bottom: -4px; /* Extend 4px below the bottom edge */
     left: 50%;
-    width: 2px; /* Make it a vertical line */
-    height: 50%; /* Only go halfway up */
+    width: 2px;
+    height: calc(50% + 4px); /* Add 4px to extend past the center */
     background: #333;
-    transform: translateX(-50%); /* Center it horizontally */
+    transform: translateX(-50%);
 }
 
 .division-table.corner-line::after {
     content: '';
     position: absolute;
     top: 50%;
-    right: 0;
-    width: 50%; /* Only go halfway across */
-    height: 2px; /* Make it a horizontal line */
+    right: -4px; /* Extend 4px beyond the right edge */
+    width: calc(50% + 4px); /* Add 4px to extend past the center */
+    height: 2px;
     background: #333;
-    transform: translateY(-50%); /* Center it vertically */
+    transform: translateY(-50%);
 }
-
 
 .division-table.minus::before {
     content: '−';
