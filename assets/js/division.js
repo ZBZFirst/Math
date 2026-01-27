@@ -3,7 +3,7 @@
 // ============================================================================
 class Config {
     static DEBUG = true;
-    static MAX_DIVIDEND = 999999;
+    static MAX_DIVIDEND = 999;
     static MIN_DIVIDEND = 100;
     static MAX_DIVISOR = 99;
     static MIN_DIVISOR = 2;
