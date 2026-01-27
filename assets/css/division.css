@@ -326,16 +326,11 @@
     transform: translateX(-50%);
 }
 
-/* MINUS SIGNS */
-.division-table.minus {
-    grid-column: 3;
-    position: relative;
-}
 
 .division-table.minus::before {
     content: '−';
     position: absolute;
-    left: -25px;
+    left: 0px;
     font-size: 28px;
     font-weight: bold;
     color: #333;
