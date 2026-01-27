@@ -266,11 +266,6 @@
    LINES AND SYMBOLS
    ============================================ */
 
-/* VERTICAL LINE (division bar) */
-.division-table.vertical-line {
-    position: relative;
-}
-
 .division-table.vertical-line::before {
     content: '';
     position: absolute;
@@ -279,10 +274,8 @@
     width: 2px;
     height: 100%
     background: #333;
-    transform: translateX(-50%);
 }
 
-/* HORIZONTAL LINES (subtraction lines) */
 .division-table.horizontal-line {
     position: relative;
 }
