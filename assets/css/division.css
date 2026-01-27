@@ -244,7 +244,7 @@
 /* MAIN GRID - Use CSS Grid properly */
 .work-grid {
     display: grid;
-    grid-template-columns: repeat(5, 50px); /* 5 columns, 50px each */
+    grid-template-columns: repeat(9, 50px); /* 5 columns, 50px each */
     grid-auto-rows: 50px; /* Auto-create rows as needed */
     gap: 2px;
     background: var(--white);
