@@ -277,7 +277,7 @@
     top: 0;
     left: 50%;
     width: 2px;
-    height: calc(var(--cell-size) * 9); /* Extend through all steps */
+    height: 100%
     background: #333;
     transform: translateX(-50%);
 }
@@ -290,12 +290,14 @@
 .division-table.horizontal-line::before {
     content: '';
     position: absolute;
-    top: calc(var(--cell-size) + var(--cell-gap));
+    top: 50%;
     left: 0;
-    width: calc(var(--cell-size) * 3 + var(--cell-gap) * 2);
+    width: 100%;
     height: 2px;
     background: #333;
+    transform: translateY(-50%);
 }
+
 
 /* CORNER LINE (between divisor and dividend) */
 .division-table.corner-line {
