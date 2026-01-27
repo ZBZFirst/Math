@@ -298,31 +298,33 @@
 }
 
 
-/* CORNER LINE (between divisor and dividend) */
+/* CORNER LINE (L-shaped from bottom-right corner) */
 .division-table.corner-line {
     position: relative;
+    background: transparent !important;
+    border: none !important;
 }
 
 .division-table.corner-line::before {
     content: '';
     position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 100%;
+    bottom: 0; /* Start from bottom */
+    left: 50%; /* Center horizontally */
+    width: 50%; /* Only half width to the right */
     height: 2px;
     background: #333;
-    transform: translate(-50%, -50%);
+    transform: translateX(-50%);
 }
 
 .division-table.corner-line::after {
     content: '';
     position: absolute;
-    top: 0;
-    left: 50%;
+    top: 50%; /* Start from middle vertically */
+    right: 0; /* Stick to right edge */
     width: 2px;
-    height: calc(var(--cell-size) + var(--cell-gap));
+    height: 50%; /* Only half height going down */
     background: #333;
-    transform: translateX(-50%);
+    transform: translateY(-50%);
 }
 
 
