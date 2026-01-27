@@ -1,4 +1,4 @@
-/* division.css - COMPLETE REWRITE - WORKING VERSION */
+/* division.css - UPDATED FOR NEW 12x9 GRID STRUCTURE */
 /* ============================================
    RESET & BASE STYLES
    ============================================ */
@@ -14,12 +14,13 @@
     --white: #ffffff;
     --gray: #6c757d;
     
-    /* Grid Colors */
+    /* Grid Colors - Updated to match your HTML classes */
     --blue: #00a6e6;
     --green: #2db84d;
     --orange: #ff8c2a;
-    --pink: #ffb6c1;
+    --brown: #8B4513; /* Added for brown answer cells */
     --yellow: #ffee00;
+    --pink: #ffb6c1;
     
     /* Spacing */
     --space-xs: 4px;
@@ -32,6 +33,10 @@
     --font-math: "Latin Modern Math", "STIX Two Math", serif;
     --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     --font-mono: 'Courier New', monospace;
+    
+    /* Grid dimensions */
+    --cell-size: 50px;
+    --cell-gap: 2px;
 }
 
 * {
@@ -52,6 +57,12 @@
     0% { transform: scale(1); }
     50% { transform: scale(1.05); }
     100% { transform: scale(1); }
+}
+
+@keyframes highlightCell {
+    0% { background-color: inherit; }
+    50% { background-color: rgba(255, 255, 0, 0.3); }
+    100% { background-color: inherit; }
 }
 
 /* ============================================
@@ -133,8 +144,14 @@
     border-radius: 6px;
 }
 
+.current-instruction {
+    color: #455a64;
+    font-style: italic;
+    margin-top: var(--space-sm);
+}
+
 /* ============================================
-   WORK AREA (RIGHT SIDE) - FIXED LAYOUT
+   WORK AREA (RIGHT SIDE)
    ============================================ */
 .work-container {
     background: var(--white);
@@ -145,171 +162,324 @@
 }
 
 .Work-Container {
-    min-height: 300px;
+    min-height: 400px;
     padding: var(--space-md);
     background: var(--light);
     border-radius: 8px;
     border: 1px solid #dee2e6;
-    position: relative;
+    overflow: auto;
 }
 
 /* ============================================
-   DIVISION LAYOUT STRUCTURE - SIMPLIFIED
+   12x9 GRID STRUCTURE
    ============================================ */
 .division-work-layout {
     position: relative;
-    min-height: 350px;
-    width: 100%;
-}
-
-/* DIVISOR - Left side */
-.divisor-section {
-    position: absolute;
-    left: 0;
-    top: 50px; /* Aligned with first row */
-    width: 50px;
-    display: flex;
-    justify-content: center;
-}
-
-#divisor {
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--blue);
-    color: var(--white);
-    border: 2px solid #0086c6;
-    font-size: 1.3em;
-    font-weight: bold;
-    border-radius: 4px;
-}
-
-/* ANSWER ROW - Top right */
-.answer-section {
-    position: absolute;
-    left: 70px; /* divisor width + gap */
-    top: 0;
-    display: flex;
-    gap: var(--space-xs);
-    z-index: 10;
-}
-
-.answer-section .grid-cell {
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--green);
-    color: var(--white);
-    border: 2px solid #1f9c3d;
-    font-size: 1.3em;
-    font-weight: bold;
-    border-radius: 4px;
-}
-
-/* DIVISION SYMBOL */
-.division-symbol {
-    position: absolute;
-    left: 55px; /* Align with grid left edge */
-    top: 45px;
-    width: 2px;
-    height: 53px;
-    background: #333;
-    z-index: 1;
-}
-
-.division-symbol::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 260px; /* 5 columns × 50px + gaps */
-    height: 2px;
-    background: #333;
-}
-
-/* ============================================
-   WORK GRID - SIMPLE, WORKING VERSION
-   ============================================ */
-.work-grid-section {
-    position: absolute;
-    left: 70px; /* divisor width + gap */
-    top: 50px; /* below answer row */
-    z-index: 2;
-}
-
-/* MAIN GRID - Use CSS Grid properly */
-.work-grid {
-    display: grid;
-    grid-template-columns: repeat(9, 50px); /* 5 columns, 50px each */
-    grid-auto-rows: 50px; /* Auto-create rows as needed */
-    gap: 2px;
-    background: var(--white);
-    padding: 2px;
-    border-radius: 4px;
-    border: 1px solid #dee2e6;
     width: fit-content;
+    margin: 0 auto;
 }
 
-/* Remove problematic display: contents */
-.work-row {
-    /* No display: contents - let grid handle layout */
-    display: contents; /* This might work now with the proper grid setup */
-}
-
-/* GRID CELLS - Base style */
-.grid-cell {
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid #333;
-    font-size: 1.3em;
-    font-weight: bold;
-    font-family: var(--font-mono);
-    border-radius: 4px;
+.large-grid {
+    display: grid;
+    grid-template-columns: repeat(9, var(--cell-size));
+    grid-auto-rows: var(--cell-size);
+    gap: var(--cell-gap);
+    background: transparent;
     position: relative;
 }
 
-/* Cell Colors */
-.grid-cell.blue { background: var(--blue); color: var(--white); border-color: #0086c6; }
-.grid-cell.green { background: var(--green); color: var(--white); border-color: #1f9c3d; }
-.grid-cell.orange { background: var(--orange); color: var(--white); border-color: #e67a00; }
-.grid-cell.pink { background: var(--pink); border-color: #ff8da1; }
-.grid-cell.yellow { background: var(--yellow); border-color: #e6d600; }
-.grid-cell.empty { background: transparent; border-color: transparent; }
+.work-row {
+    display: contents; /* This allows grid items to participate in grid layout */
+}
 
-/* SUBTRACTION LINES - FIXED POSITIONING */
-.product-row [data-position="0"]::before {
-    content: "−";
+/* ============================================
+   DIVISION TABLE CELL BASE STYLES
+   ============================================ */
+.division-table {
+    width: var(--cell-size);
+    height: var(--cell-size);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 1.5em;
+    font-weight: bold;
+    position: relative;
+    user-select: none;
+}
+
+/* ============================================
+   CELL TYPES & COLORS
+   ============================================ */
+
+/* TRANSPARENT CELLS */
+.division-table.transparent {
+    background: transparent !important;
+    border: none !important;
+    color: transparent !important;
+}
+
+/* COLORED CELLS WITH BORDERS */
+.division-table.blue {
+    background-color: var(--blue);
+    color: var(--white);
+    border: 2px solid darken(var(--blue), 15%);
+    border-radius: 4px;
+}
+
+.division-table.green {
+    background-color: var(--green);
+    color: var(--white);
+    border: 2px solid darken(var(--green), 15%);
+    border-radius: 4px;
+}
+
+.division-table.orange {
+    background-color: var(--orange);
+    color: var(--white);
+    border: 2px solid darken(var(--orange), 15%);
+    border-radius: 4px;
+}
+
+.division-table.yellow {
+    background-color: var(--yellow);
+    color: var(--dark);
+    border: 2px solid darken(var(--yellow), 15%);
+    border-radius: 4px;
+}
+
+.division-table.brown {
+    background-color: var(--brown);
+    color: var(--white);
+    border: 2px solid darken(var(--brown), 15%);
+    border-radius: 4px;
+}
+
+.division-table.pink {
+    background-color: var(--pink);
+    color: var(--dark);
+    border: 2px solid darken(var(--pink), 15%);
+    border-radius: 4px;
+}
+
+/* ============================================
+   POSITION-SPECIFIC STYLES
+   ============================================ */
+
+/* ANSWER cells (top row) */
+.division-table.answer {
+    font-weight: bold;
+    font-size: 1.6em;
+}
+
+.division-table.answer.hundreds {
+    grid-column: 4;
+}
+
+.division-table.answer.tens {
+    grid-column: 5;
+}
+
+.division-table.answer.ones {
+    grid-column: 6;
+}
+
+.division-table.answer.remainderR {
+    font-style: italic;
+    font-size: 1.2em;
+}
+
+.division-table.answer.remainder.tens {
+    grid-column: 8;
+}
+
+.division-table.answer.remainder.ones {
+    grid-column: 9;
+}
+
+/* DIVISOR cells */
+.division-table.divisor {
+    font-weight: bold;
+}
+
+.division-table.divisor.tens {
+    grid-column: 1;
+    grid-row: 3;
+}
+
+.division-table.divisor.ones {
+    grid-column: 2;
+    grid-row: 3;
+}
+
+/* DIVIDEND cells */
+.division-table.dividend {
+    font-weight: bold;
+}
+
+.division-table.dividend.hundreds {
+    grid-column: 4;
+    grid-row: 3;
+}
+
+.division-table.dividend.tens {
+    grid-column: 5;
+    grid-row: 3;
+}
+
+.division-table.dividend.ones {
+    grid-column: 6;
+    grid-row: 3;
+}
+
+/* ============================================
+   LINES AND SYMBOLS
+   ============================================ */
+
+/* VERTICAL LINE (division bar) */
+.division-table.vertical-line {
+    grid-column: 3;
+    grid-row: 3;
+    position: relative;
+}
+
+.division-table.vertical-line::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 2px;
+    height: calc(var(--cell-size) * 9); /* Extend through all steps */
+    background: #333;
+    transform: translateX(-50%);
+}
+
+/* HORIZONTAL LINES (subtraction lines) */
+.division-table.horizontal-line {
+    position: relative;
+}
+
+.division-table.horizontal-line::before {
+    content: '';
+    position: absolute;
+    top: calc(var(--cell-size) + var(--cell-gap));
+    left: 0;
+    width: calc(var(--cell-size) * 3 + var(--cell-gap) * 2);
+    height: 2px;
+    background: #333;
+}
+
+/* CORNER LINE (between divisor and dividend) */
+.division-table.corner-line {
+    grid-column: 3;
+    grid-row: 2;
+    position: relative;
+}
+
+.division-table.corner-line::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: calc(var(--cell-size) * 6 + var(--cell-gap) * 5);
+    height: 2px;
+    background: #333;
+    transform: translate(-50%, -50%);
+}
+
+.division-table.corner-line::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 2px;
+    height: calc(var(--cell-size) + var(--cell-gap));
+    background: #333;
+    transform: translateX(-50%);
+}
+
+/* MINUS SIGNS */
+.division-table.minus {
+    grid-column: 3;
+    position: relative;
+}
+
+.division-table.minus::before {
+    content: '−';
     position: absolute;
     left: -25px;
-    top: 50%;
-    transform: translateY(-50%);
     font-size: 28px;
     font-weight: bold;
     color: #333;
-    z-index: 3;
+    z-index: 2;
 }
 
-.product-row [data-position="0"]::after {
-    content: "";
-    position: absolute;
-    bottom: -8px;
-    left: 0;
-    width: calc(100% * 5 + 8px);
-    height: 2px;
-    background: #333;
-    z-index: 3;
+.division-table.minus.sign {
+    grid-row: 4;
+}
+
+.division-table.minus.step1 {
+    grid-row: 4;
+}
+
+.division-table.minus.step2 {
+    grid-row: 7;
+}
+
+.division-table.minus.step3 {
+    grid-row: 10;
+}
+
+/* ============================================
+   STEP-SPECIFIC STYLES
+   ============================================ */
+
+/* STEP 1 cells */
+.division-table.step1 {
+    animation-delay: 0s;
+}
+
+.division-table.yellow.step1 {
+    grid-row: 4;
+}
+
+.division-table.brown.step1 {
+    grid-row: 6;
+}
+
+/* STEP 2 cells */
+.division-table.step2 {
+    animation-delay: 0.5s;
+}
+
+.division-table.yellow.step2 {
+    grid-row: 7;
+}
+
+.division-table.brown.step2 {
+    grid-row: 9;
+}
+
+/* STEP 3 cells */
+.division-table.step3 {
+    animation-delay: 1s;
+}
+
+.division-table.yellow.step3 {
+    grid-row: 10;
+}
+
+.division-table.brown.step3 {
+    grid-row: 12;
 }
 
 /* ============================================
    CONTROLS & INTERACTIVE
    ============================================ */
+.work-feedback {
+    margin-top: var(--space-lg);
+}
+
 .control-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -327,9 +497,20 @@
     transition: all 0.2s;
 }
 
-.grid-btn.decrement { background: var(--danger); color: var(--white); }
-.grid-btn.increment { background: var(--success); color: var(--white); }
-.grid-btn.clear { background: var(--warning); color: var(--dark); }
+.grid-btn.decrement { 
+    background: var(--danger); 
+    color: var(--white); 
+}
+
+.grid-btn.increment { 
+    background: var(--success); 
+    color: var(--white); 
+}
+
+.grid-btn.clear { 
+    background: var(--warning); 
+    color: var(--dark); 
+}
 
 .grid-btn:hover {
     opacity: 0.9;
@@ -364,6 +545,56 @@
     transform: translateY(-2px);
 }
 
+.commit-btn:active {
+    transform: translateY(0);
+}
+
+/* ============================================
+   MAIN CONTROLS
+   ============================================ */
+.division-controls {
+    margin: var(--space-lg) 0;
+    text-align: center;
+}
+
+.control-buttons {
+    display: flex;
+    gap: var(--space-md);
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.primary-btn, .secondary-btn {
+    padding: var(--space-md) var(--space-xl);
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.primary-btn {
+    background: var(--primary);
+    color: var(--white);
+}
+
+.secondary-btn {
+    background: var(--light);
+    color: var(--dark);
+    border: 2px solid var(--gray);
+}
+
+.primary-btn:hover {
+    background: #0056b3;
+    transform: translateY(-2px);
+}
+
+.secondary-btn:hover {
+    background: #e2e6ea;
+    transform: translateY(-2px);
+}
+
 /* ============================================
    FEEDBACK & ANIMATIONS
    ============================================ */
@@ -390,6 +621,10 @@
     border: 2px solid var(--blue) !important;
 }
 
+.cell-highlight {
+    animation: highlightCell 1s ease-in-out;
+}
+
 .feedback-success {
     padding: var(--space-sm);
     background: #d4edda;
@@ -397,6 +632,7 @@
     border: 2px solid var(--success);
     border-radius: 6px;
     animation: fadeIn 0.3s ease-in;
+    margin-top: var(--space-md);
 }
 
 .feedback-error {
@@ -406,6 +642,7 @@
     border: 2px solid var(--danger);
     border-radius: 6px;
     animation: fadeIn 0.3s ease-in;
+    margin-top: var(--space-md);
 }
 
 /* ============================================
@@ -453,6 +690,23 @@
     color: var(--dark);
 }
 
+/* Reset Scores Button */
+#resetDivisionScores {
+    padding: var(--space-sm) var(--space-md);
+    background: var(--danger);
+    color: var(--white);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9em;
+    margin-top: var(--space-md);
+    transition: all 0.3s;
+}
+
+#resetDivisionScores:hover {
+    background: #c82333;
+}
+
 /* ============================================
    RESPONSIVE ADJUSTMENTS
    ============================================ */
@@ -466,108 +720,77 @@
         padding: var(--space-md);
     }
     
-    .work-grid {
-        grid-template-columns: repeat(5, 40px);
-        grid-auto-rows: 40px;
+    :root {
+        --cell-size: 40px;
     }
     
-    .grid-cell {
-        width: 40px;
-        height: 40px;
-        font-size: 1.1em;
+    .division-table {
+        font-size: 1.3em;
     }
     
-    .divisor-section {
-        width: 40px;
+    .division-table.answer {
+        font-size: 1.4em;
     }
     
-    #divisor {
-        width: 40px;
-        height: 40px;
-    }
-    
-    .answer-section {
-        left: 50px;
-    }
-    
-    .answer-section .grid-cell {
-        width: 40px;
-        height: 40px;
-    }
-    
-    .work-grid-section {
-        left: 50px;
-    }
-    
-    .division-symbol {
-        left: 45px;
-    }
-    
-    .division-symbol::before {
-        width: 210px; /* 5 × 40px + adjustments */
-    }
-    
-    .product-row [data-position="0"]::before {
-        left: -20px;
-        font-size: 24px;
+    .Work-Container {
+        min-height: 350px;
     }
 }
 
 @media (max-width: 480px) {
-    .work-grid {
-        grid-template-columns: repeat(5, 35px);
-        grid-auto-rows: 35px;
+    :root {
+        --cell-size: 35px;
     }
     
-    .grid-cell {
-        width: 35px;
-        height: 35px;
-        font-size: 1em;
+    .division-table {
+        font-size: 1.1em;
     }
     
-    .divisor-section {
-        width: 35px;
+    .division-table.answer {
+        font-size: 1.2em;
     }
     
-    #divisor {
-        width: 35px;
-        height: 35px;
+    .Work-Container {
+        min-height: 300px;
     }
     
-    .answer-section {
-        left: 45px;
+    .control-buttons {
+        flex-direction: column;
+        align-items: center;
     }
     
-    .answer-section .grid-cell {
-        width: 35px;
-        height: 35px;
-    }
-    
-    .work-grid-section {
-        left: 45px;
-    }
-    
-    .division-symbol {
-        left: 40px;
-    }
-    
-    .division-symbol::before {
-        width: 185px; /* 5 × 35px + adjustments */
-    }
-    
-    .product-row [data-position="0"]::before {
-        left: -18px;
-        font-size: 20px;
+    .primary-btn, .secondary-btn {
+        width: 100%;
+        max-width: 300px;
     }
 }
 
 /* ============================================
-   DEBUG & UTILITY CLASSES (Remove in production)
+   UTILITY CLASSES
    ============================================ */
-.debug-border {
-    border: 1px solid red !important;
+.unused {
+    /* Explicitly empty for unused cells */
 }
 
-.debug-bg {
-    background: rgba(255, 0, 0, 0.1) !important;
+.hidden {
+    display: none !important;
+}
+
+.visible {
+    display: block !important;
+}
+
+/* Debugging helper */
+.debug-outline {
+    outline: 1px solid red !important;
+}
+
+/* For JavaScript toggling */
+.active-step {
+    background-color: rgba(255, 255, 0, 0.2) !important;
+    border: 2px dashed var(--warning) !important;
+}
+
+.completed-step {
+    opacity: 0.7;
 }
