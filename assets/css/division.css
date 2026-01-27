@@ -323,12 +323,17 @@
 .division-table.minus::before {
     content: '−';
     position: absolute;
-    left: 0px;
+    left: 0;
+    top: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
     font-size: 28px;
     font-weight: bold;
     color: #333;
     z-index: 2;
 }
+
 
 /* ============================================
    STEP-SPECIFIC STYLES
