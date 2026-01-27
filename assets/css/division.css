@@ -298,7 +298,7 @@
 }
 
 
-/* CORNER LINE (L-shaped from bottom-right corner) */
+/* CORNER LINE (L-shaped from bottom-center to center to right-middle) */
 .division-table.corner-line {
     position: relative;
     background: transparent !important;
@@ -308,23 +308,23 @@
 .division-table.corner-line::before {
     content: '';
     position: absolute;
-    bottom: 0; /* Start from bottom */
-    left: 50%; /* Center horizontally */
-    width: 50%; /* Only half width to the right */
-    height: 2px;
+    bottom: 0;
+    left: 50%;
+    width: 2px; /* Make it a vertical line */
+    height: 50%; /* Only go halfway up */
     background: #333;
-    transform: translateX(-50%);
+    transform: translateX(-50%); /* Center it horizontally */
 }
 
 .division-table.corner-line::after {
     content: '';
     position: absolute;
-    top: 50%; /* Start from middle vertically */
-    right: 0; /* Stick to right edge */
-    width: 2px;
-    height: 50%; /* Only half height going down */
+    top: 50%;
+    right: 0;
+    width: 50%; /* Only go halfway across */
+    height: 2px; /* Make it a horizontal line */
     background: #333;
-    transform: translateY(-50%);
+    transform: translateY(-50%); /* Center it vertically */
 }
 
 
