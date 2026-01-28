@@ -1,4 +1,4 @@
-// division.js - FIXED RENDER SEQUENCE
+// division.js - FIXED ALIGNMENT VERSION
 
 const PHASES = ['DIVIDE', 'MULTIPLY', 'SUBTRACT', 'BRING_DOWN'];
 
@@ -10,13 +10,32 @@ function $(id) {
   return el;
 }
 
+// Helper function to format numbers for 3-digit display with right alignment
+function formatForThreeDigitDisplay(number, padChar = ' ') {
+  const str = number.toString();
+  
+  if (str.length === 1) {
+    // Single digit: show in ones column (rightmost)
+    return { hundreds: '', tens: '', ones: str };
+  } else if (str.length === 2) {
+    // Two digits: show in tens and ones columns
+    return { hundreds: '', tens: str[0], ones: str[1] };
+  } else if (str.length === 3) {
+    // Three digits: show in all columns
+    return { hundreds: str[0], tens: str[1], ones: str[2] };
+  } else {
+    // Shouldn't happen with our 3-digit grid
+    return { hundreds: '', tens: '', ones: '' };
+  }
+}
+
 function setCell(id, value) {
   const el = $(id);
   if (!el) return;
   
   const oldValue = el.textContent;
   
-  if (value === '' || value === undefined || value === null) {
+  if (value === '' || value === undefined || value === null || value === ' ') {
     el.textContent = '';
     // DON'T add transparent class to answer or problem cells
     if (!el.classList.contains('answer') && !el.classList.contains('dividend') && !el.classList.contains('divisor')) {
@@ -336,15 +355,15 @@ function renderCurrentPhase() {
     case 'MULTIPLY':
       if (currentStep.userGuess !== null) {
         const multiplyValue = currentStep.userGuess * STATE.divisor;
-        const multiplyDigits = multiplyValue.toString().padStart(3, '0').split('');
+        const formatted = formatForThreeDigitDisplay(multiplyValue, '0');
         
         console.log(`Multiplication: ${currentStep.userGuess} × ${STATE.divisor} = ${multiplyValue}`);
-        console.log(`Digits: ${multiplyDigits}`);
+        console.log(`Formatted: hundreds="${formatted.hundreds}", tens="${formatted.tens}", ones="${formatted.ones}"`);
         console.log(`Target cells: ${currentStep.cells.multiply.hundreds}, ${currentStep.cells.multiply.tens}, ${currentStep.cells.multiply.ones}`);
         
-        setCell(currentStep.cells.multiply.hundreds, multiplyDigits[0]);
-        setCell(currentStep.cells.multiply.tens, multiplyDigits[1]);
-        setCell(currentStep.cells.multiply.ones, multiplyDigits[2]);
+        setCell(currentStep.cells.multiply.hundreds, formatted.hundreds);
+        setCell(currentStep.cells.multiply.tens, formatted.tens);
+        setCell(currentStep.cells.multiply.ones, formatted.ones);
         
         // Show lines
         Object.values(currentStep.cells.lines).forEach(id => {
@@ -360,15 +379,15 @@ function renderCurrentPhase() {
     case 'SUBTRACT':
       if (currentStep.userGuess !== null) {
         const subtractResult = currentStep.bringDownValue - (currentStep.userGuess * STATE.divisor);
-        const subtractDigits = subtractResult.toString().padStart(3, ' ').split('');
+        const formatted = formatForThreeDigitDisplay(subtractResult, ' ');
         
         console.log(`Subtraction: ${currentStep.bringDownValue} - ${currentStep.userGuess * STATE.divisor} = ${subtractResult}`);
-        console.log(`Digits: ${subtractDigits}`);
+        console.log(`Formatted: hundreds="${formatted.hundreds}", tens="${formatted.tens}", ones="${formatted.ones}"`);
         console.log(`Target cells: ${currentStep.cells.subtract.hundreds}, ${currentStep.cells.subtract.tens}, ${currentStep.cells.subtract.ones}`);
         
-        setCell(currentStep.cells.subtract.hundreds, subtractDigits[0]);
-        setCell(currentStep.cells.subtract.tens, subtractDigits[1]);
-        setCell(currentStep.cells.subtract.ones, subtractDigits[2]);
+        setCell(currentStep.cells.subtract.hundreds, formatted.hundreds);
+        setCell(currentStep.cells.subtract.tens, formatted.tens);
+        setCell(currentStep.cells.subtract.ones, formatted.ones);
       }
       break;
       
