@@ -107,6 +107,8 @@
     align-items: center;
     justify-content: center;
     min-height: 200px;
+    transition: all 3s ease;
+
 }
 
 .large-equation {
