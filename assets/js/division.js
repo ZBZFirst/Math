@@ -1,4 +1,4 @@
-// division.js - DEBUGGING VERSION WITH CELL TRACKING
+// division.js - FIXED VERSION WITH PROPER UI HANDLING
 
 const PHASES = ['DIVIDE', 'MULTIPLY', 'SUBTRACT', 'BRING_DOWN'];
 
@@ -18,7 +18,10 @@ function setCell(id, value) {
   
   if (value === '' || value === undefined || value === null) {
     el.textContent = '';
-    el.classList.add('transparent');
+    // DON'T add transparent class to answer or problem cells
+    if (!el.classList.contains('answer') && !el.classList.contains('dividend') && !el.classList.contains('divisor')) {
+      el.classList.add('transparent');
+    }
   } else {
     el.textContent = value;
     el.classList.remove('transparent');
@@ -34,9 +37,6 @@ function setCell(id, value) {
     setTimeout(() => el.style.outline = '', 1000);
   }
 }
-
-// Track all cell updates
-const cellUpdateLog = [];
 
 // Calculate the COMPLETE division solution upfront
 function calculateCompleteSolution() {
@@ -75,7 +75,7 @@ function calculateCompleteSolution() {
       userMultiply: null,
       userSubtract: null,
       
-      // CELL MAPPINGS (DEBUG THESE!)
+      // CELL MAPPINGS
       cells: {
         // QUOTIENT CELL (green answer cells in row 1)
         quotient: `r1c${4 + i}`,  // r1c4, r1c5, r1c6
@@ -102,12 +102,6 @@ function calculateCompleteSolution() {
         }
       }
     };
-    
-    console.log(`  Cell mappings for step ${i}:`);
-    console.log(`    Quotient: ${stepCells.cells.quotient}`);
-    console.log(`    Multiply: ${stepCells.cells.multiply.hundreds}, ${stepCells.cells.multiply.tens}, ${stepCells.cells.multiply.ones}`);
-    console.log(`    Lines: ${stepCells.cells.lines.left}, ${stepCells.cells.lines.middle}, ${stepCells.cells.lines.right}`);
-    console.log(`    Subtract: ${stepCells.cells.subtract.hundreds}, ${stepCells.cells.subtract.tens}, ${stepCells.cells.subtract.ones}`);
     
     steps.push(stepCells);
     carry = subtractResult;
@@ -161,7 +155,7 @@ function initializeGrid() {
   const divisorOnes = document.querySelector('.mainEquation.divisor.ones');
   if (divisorOnes) divisorOnes.textContent = PROBLEM.divisor;
   
-  // Initialize division table
+  // Initialize division table - DON'T clear answer cells!
   const tableDividendElements = [
     document.querySelector('.division-table.dividend.hundreds'),
     document.querySelector('.division-table.dividend.tens'),
@@ -181,15 +175,40 @@ function initializeGrid() {
     tableDivisorOnes.classList.remove('transparent');
   }
   
-  // Clear ALL work cells
-  console.log("Clearing all work cells...");
+  // Initialize answer row cells (quotient digits)
+  console.log("Initializing answer row cells...");
+  const answerCells = [
+    document.getElementById('r1c4'),
+    document.getElementById('r1c5'), 
+    document.getElementById('r1c6')
+  ];
   
-  // Clear quotient cells (row 1)
-  for (let i = 4; i <= 6; i++) {
-    setCell(`r1c${i}`, '');
-  }
+  // Set answer cells to "?" initially
+  answerCells.forEach(cell => {
+    if (cell) {
+      cell.textContent = '?';
+      cell.classList.remove('transparent');
+    }
+  });
   
-  // Clear all step cells
+  // Initialize remainder cells
+  const remainderCells = [
+    document.getElementById('r1c7'),
+    document.getElementById('r1c8'),
+    document.getElementById('r1c9')
+  ];
+  
+  remainderCells.forEach(cell => {
+    if (cell) {
+      cell.textContent = '';
+      cell.classList.add('transparent');
+    }
+  });
+  
+  // Clear ONLY the work area cells (yellow and brown cells)
+  console.log("Clearing work area cells (yellow and brown cells)...");
+  
+  // Clear all step cells (multiplication and subtraction)
   for (let step = 0; step < 3; step++) {
     const stepData = {
       cells: {
@@ -211,16 +230,30 @@ function initializeGrid() {
       }
     };
     
-    // Clear multiplication cells
-    Object.values(stepData.cells.multiply).forEach(id => setCell(id, ''));
+    // Clear multiplication cells (yellow)
+    Object.values(stepData.cells.multiply).forEach(id => {
+      const el = $(id);
+      if (el) {
+        el.textContent = '';
+        el.classList.add('transparent');
+      }
+    });
     
-    // Clear subtraction cells
-    Object.values(stepData.cells.subtract).forEach(id => setCell(id, ''));
+    // Clear subtraction cells (brown)
+    Object.values(stepData.cells.subtract).forEach(id => {
+      const el = $(id);
+      if (el) {
+        el.textContent = '';
+        el.classList.add('transparent');
+      }
+    });
     
     // Hide lines
     Object.values(stepData.cells.lines).forEach(id => {
       const el = $(id);
-      if (el) el.classList.add('transparent');
+      if (el) {
+        el.classList.add('transparent');
+      }
     });
   }
   
@@ -235,13 +268,26 @@ function updateCurrentStepDisplay() {
   const currentInstruction = document.getElementById('currentInstruction');
   
   if (STATE.isComplete) {
-    if (currentStepContainer) currentStepContainer.classList.add('hidden');
+    // Division is complete - show a completion message
+    if (currentStepContainer) {
+      currentStepContainer.classList.remove('hidden');
+      currentStepContainer.style.background = '#d4edda';
+      currentStepContainer.style.borderColor = '#28a745';
+    }
+    if (currentInstruction) {
+      currentInstruction.textContent = `Division complete! Answer: ${SOLUTION.finalAnswer} R${SOLUTION.remainder}`;
+    }
     if (workFeedback) workFeedback.classList.add('hidden');
     return;
   }
   
   if (STATE.isWaitingForUserInput) {
-    if (currentStepContainer) currentStepContainer.classList.remove('hidden');
+    // Show UI for user input
+    if (currentStepContainer) {
+      currentStepContainer.classList.remove('hidden');
+      currentStepContainer.style.background = '#e3f2fd';
+      currentStepContainer.style.borderColor = '#2196f3';
+    }
     if (workFeedback) workFeedback.classList.remove('hidden');
     if (currentGuessDisplay) currentGuessDisplay.textContent = '0';
     
@@ -259,8 +305,11 @@ function updateCurrentStepDisplay() {
     console.log(`Correct answer: ${currentStep.correctAnswer}`);
     console.log(`Target quotient cell: ${currentStep.cells.quotient}`);
   } else {
-    if (currentStepContainer) currentStepContainer.classList.add('hidden');
-    if (workFeedback) workFeedback.classList.add('hidden');
+    // Hide controls during automatic phases, but show them again after a delay
+    setTimeout(() => {
+      STATE.isWaitingForUserInput = true;
+      updateCurrentStepDisplay();
+    }, 500); // Small delay before showing next input
   }
 }
 
@@ -338,9 +387,8 @@ function advancePhase() {
     return;
   }
   
-  console.log(`=== ADVANCING PHASE: ${STATE.currentPhase} -> ${STATE.currentPhase === 'DIVIDE' ? 'MULTIPLY' : 
-                    STATE.currentPhase === 'MULTIPLY' ? 'SUBTRACT' :
-                    STATE.currentPhase === 'SUBTRACT' ? (STATE.currentStepIndex < 2 ? 'BRING_DOWN' : 'COMPLETE') : 'DIVIDE'} ===`);
+  console.log(`=== ADVANCING PHASE ===`);
+  console.log(`Current phase: ${STATE.currentPhase}`);
   
   if (STATE.currentPhase === 'DIVIDE') {
     const currentGuessDisplay = document.getElementById('currentGuessDisplay');
@@ -375,8 +423,13 @@ function advancePhase() {
     console.log(`Moved to step ${STATE.currentStepIndex + 1}`);
   }
   
+  // Render the current phase
   renderCurrentPhase();
-  updateCurrentStepDisplay();
+  
+  // Update UI after a small delay to let rendering complete
+  setTimeout(() => {
+    updateCurrentStepDisplay();
+  }, 100);
 }
 
 function completeDivision() {
@@ -384,44 +437,43 @@ function completeDivision() {
   
   STATE.isComplete = true;
   
-  // Show final answer in main equation
-  const answerElements = [
-    document.querySelector('.mainEquation.answer.hundreds'),
-    document.querySelector('.mainEquation.answer.tens'),
-    document.querySelector('.mainEquation.answer.ones')
-  ];
-  
+  // Update answer row with final answer (remove the "?" placeholder)
   const answerDigits = SOLUTION.finalAnswer.split('');
+  const answerCells = ['r1c4', 'r1c5', 'r1c6'];
   
-  answerElements.forEach((el, i) => {
-    if (el && i < answerDigits.length) {
-      el.textContent = answerDigits[i];
-      console.log(`Set main equation answer digit ${i} to ${answerDigits[i]}`);
+  answerCells.forEach((id, i) => {
+    if (i < answerDigits.length) {
+      setCell(id, answerDigits[i]);
     }
   });
   
-  // Show remainder if needed
+  // Show remainder cells
   if (SOLUTION.remainder > 0) {
     const remainderDigits = SOLUTION.remainder.toString().padStart(2, '0').split('');
     
-    document.querySelector('.mainEquation.remainder.R')?.classList.remove('hidden');
-    
-    const remainderTens = document.querySelector('.mainEquation.remainder.tens');
-    const remainderOnes = document.querySelector('.mainEquation.remainder.ones');
-    
-    if (remainderTens) {
-      remainderTens.textContent = remainderDigits[0];
-      remainderTens.classList.remove('hidden');
-      console.log(`Set remainder tens to ${remainderDigits[0]}`);
+    // Show "R" cell
+    const rCell = document.getElementById('r1c7');
+    if (rCell) {
+      rCell.textContent = 'R';
+      rCell.classList.remove('transparent');
     }
-    if (remainderOnes) {
-      remainderOnes.textContent = remainderDigits[1];
-      remainderOnes.classList.remove('hidden');
-      console.log(`Set remainder ones to ${remainderDigits[1]}`);
+    
+    // Show remainder tens
+    const remainderTensCell = document.getElementById('r1c8');
+    if (remainderTensCell && remainderDigits[0] !== '0') {
+      remainderTensCell.textContent = remainderDigits[0];
+      remainderTensCell.classList.remove('transparent');
+    }
+    
+    // Show remainder ones
+    const remainderOnesCell = document.getElementById('r1c9');
+    if (remainderOnesCell) {
+      remainderOnesCell.textContent = remainderDigits[1];
+      remainderOnesCell.classList.remove('transparent');
     }
   }
   
-  // Hide controls
+  // Update UI to show completion
   updateCurrentStepDisplay();
   
   console.log(`Final answer displayed: ${SOLUTION.finalAnswer} R${SOLUTION.remainder}`);
