@@ -1,4 +1,4 @@
-// division.js - DEBUG VERSION
+// division.js - FIXED VERSION
 
 const PHASES = ['DIVIDE', 'MULTIPLY', 'SUBTRACT', 'BRING_DOWN'];
 
@@ -6,7 +6,7 @@ function $(id) {
   return document.getElementById(id);
 }
 
-function setCell(id, value, debug = false) {
+function setCell(id, value, isDebug = false) {
   const el = $(id);
   if (!el) return;
   
@@ -16,52 +16,11 @@ function setCell(id, value, debug = false) {
   } else {
     el.textContent = value;
     el.classList.remove('transparent');
-    // Add debug styling
-    if (debug) {
-      el.style.outline = '2px solid red';
-      el.style.backgroundColor = '#ffcccc';
-      setTimeout(() => {
-        el.style.outline = '';
-        el.style.backgroundColor = '';
-      }, 1000);
-    }
   }
-}
-
-// Debug logging function
-function debugLog(stepIndex, phase, message, data = null) {
-  console.log(`[Step ${stepIndex}][${phase}] ${message}`, data || '');
   
-  // Also update a debug display if available
-  const debugDiv = document.getElementById('debug-info') || createDebugDisplay();
-  const entry = document.createElement('div');
-  entry.innerHTML = `<strong>Step ${stepIndex} - ${phase}:</strong> ${message}`;
-  if (data) entry.innerHTML += ` <em>${JSON.stringify(data)}</em>`;
-  debugDiv.appendChild(entry);
-  debugDiv.scrollTop = debugDiv.scrollHeight;
-}
-
-function createDebugDisplay() {
-  const debugDiv = document.createElement('div');
-  debugDiv.id = 'debug-info';
-  debugDiv.style.cssText = `
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    width: 400px;
-    height: 300px;
-    background: rgba(0,0,0,0.8);
-    color: white;
-    padding: 10px;
-    font-family: monospace;
-    font-size: 12px;
-    overflow-y: auto;
-    z-index: 9999;
-    border: 2px solid yellow;
-    border-radius: 5px;
-  `;
-  document.body.appendChild(debugDiv);
-  return debugDiv;
+  if (isDebug) {
+    console.log(`SET CELL: ${id} = "${value}"`);
+  }
 }
 
 const PROBLEM = {
@@ -69,216 +28,305 @@ const PROBLEM = {
   divisor: 5
 };
 
-function createStep(stepIndex, digit, carry) {
-  const bringDownValue = carry * 10 + digit;
-  const quotientDigit = Math.floor(bringDownValue / PROBLEM.divisor);
-  const multiplyValue = quotientDigit * PROBLEM.divisor;
-  const subtractResult = bringDownValue - multiplyValue;
-
-  debugLog(stepIndex, 'CREATE_STEP', `Creating step ${stepIndex}`, {
-    digit,
-    carry,
-    bringDownValue,
-    quotientDigit,
-    multiplyValue,
-    subtractResult
-  });
-
-  // DEBUG: Check what cells we're targeting
-  const quotientCellId = `r1c${4 + stepIndex}`;
-  const multiplyRowStart = 4 + stepIndex * 3;
-  const lineRowStart = 5 + stepIndex * 3;
-  const subtractRowStart = 6 + stepIndex * 3;
+// Calculate the COMPLETE division solution upfront
+function calculateCompleteSolution() {
+  const steps = [];
+  let carry = 0;
   
-  debugLog(stepIndex, 'CELL_MAPPING', 'Cell IDs:', {
-    quotientCell: quotientCellId,
-    multiplyRow: [`r${multiplyRowStart}c4`, `r${multiplyRowStart}c5`, `r${multiplyRowStart}c6`],
-    lineRow: [`r${lineRowStart}c4`, `r${lineRowStart}c5`, `r${lineRowStart}c6`],
-    subtractRow: [`r${subtractRowStart}c4`, `r${subtractRowStart}c5`, `r${subtractRowStart}c6`]
-  });
-
-  return {
-    stepIndex,
-    digit,
-    bringDownValue,
-
-    divide: {
-      correct: quotientDigit,
-      userGuess: null,
-      isCorrect: null
-    },
-
-    multiply: {
-      value: multiplyValue
-    },
-
-    subtract: {
-      result: subtractResult
-    },
-
-    carry: subtractResult,
-
-    dom: {
-      quotientCell: quotientCellId,
-      multiplyRow: [`r${multiplyRowStart}c4`, `r${multiplyRowStart}c5`, `r${multiplyRowStart}c6`],
-      lineRow:     [`r${lineRowStart}c4`, `r${lineRowStart}c5`, `r${lineRowStart}c6`],
-      subtractRow: [`r${subtractRowStart}c4`, `r${subtractRowStart}c5`, `r${subtractRowStart}c6`]
-    },
+  console.log("=== CALCULATING COMPLETE SOLUTION ===");
+  console.log(`Problem: ${PROBLEM.dividendDigits.join('')} ÷ ${PROBLEM.divisor}`);
+  
+  PROBLEM.dividendDigits.forEach((digit, i) => {
+    const bringDownValue = carry * 10 + digit;
+    const quotientDigit = Math.floor(bringDownValue / PROBLEM.divisor);
+    const multiplyValue = quotientDigit * PROBLEM.divisor;
+    const subtractResult = bringDownValue - multiplyValue;
     
-    completedPhases: {
-      DIVIDE: false,
-      MULTIPLY: false,
-      SUBTRACT: false,
-      BRING_DOWN: false
-    }
+    console.log(`Step ${i}: ${carry}${digit} ÷ ${PROBLEM.divisor}`);
+    console.log(`  Bring down: ${bringDownValue}`);
+    console.log(`  Quotient digit: ${quotientDigit} (${quotientDigit} × ${PROBLEM.divisor} = ${multiplyValue})`);
+    console.log(`  Subtract: ${bringDownValue} - ${multiplyValue} = ${subtractResult}`);
+    console.log(`  Carry to next step: ${subtractResult}`);
+    
+    steps.push({
+      stepIndex: i,
+      digit: digit,
+      bringDownValue: bringDownValue,
+      
+      // CORRECT ANSWERS (pre-calculated)
+      correctAnswer: quotientDigit,
+      correctMultiply: multiplyValue,
+      correctSubtract: subtractResult,
+      
+      // User's guesses (start empty)
+      userGuess: null,
+      userMultiply: null,
+      userSubtract: null,
+      
+      // Cell mappings
+      dom: {
+        quotientCell: `r1c${4 + i}`,  // Row 1, columns 4,5,6
+        multiplyRow: [`r${4 + i * 3}c4`, `r${4 + i * 3}c5`, `r${4 + i * 3}c6`],
+        lineRow: [`r${5 + i * 3}c4`, `r${5 + i * 3}c5`, `r${5 + i * 3}c6`],
+        subtractRow: [`r${6 + i * 3}c4`, `r${6 + i * 3}c5`, `r${6 + i * 3}c6`]
+      }
+    });
+    
+    carry = subtractResult;
+  });
+  
+  // Calculate final answer and remainder
+  const finalAnswer = steps.map(s => s.correctAnswer).join('');
+  const remainder = carry;
+  
+  console.log(`=== FINAL ANSWER: ${finalAnswer} R${remainder} ===`);
+  
+  return {
+    steps: steps,
+    finalAnswer: finalAnswer,
+    remainder: remainder
   };
 }
 
-function generateSteps() {
-  const steps = [];
-  let carry = 0;
-
-  debugLog('INIT', 'GENERATE_STEPS', 'Starting to generate steps from dividend digits:', PROBLEM.dividendDigits);
-
-  PROBLEM.dividendDigits.forEach((digit, i) => {
-    debugLog(i, 'GENERATE', `Processing digit ${digit} at position ${i}, carry = ${carry}`);
-    const step = createStep(i, digit, carry);
-    carry = step.carry;
-    steps.push(step);
-    debugLog(i, 'GENERATE', `Step created. New carry = ${carry}`);
-  });
-
-  debugLog('INIT', 'GENERATE_STEPS', `Generated ${steps.length} steps total`);
-  return steps;
-}
+const SOLUTION = calculateCompleteSolution();
 
 const STATE = {
   divisor: PROBLEM.divisor,
-  steps: [],
+  steps: SOLUTION.steps,
   currentStepIndex: 0,
   currentPhase: 'DIVIDE',
-  isWaitingForUserInput: true
+  isWaitingForUserInput: true,
+  isComplete: false
 };
 
-function advancePhase() {
+function initializeGrid() {
+  console.log("=== INITIALIZING GRID ===");
+  
+  // Initialize main equation
+  const dividendHundreds = document.querySelector('.mainEquation.dividend.hundreds');
+  const dividendTens = document.querySelector('.mainEquation.dividend.tens');
+  const dividendOnes = document.querySelector('.mainEquation.dividend.ones');
+  
+  if (dividendHundreds) dividendHundreds.textContent = PROBLEM.dividendDigits[0];
+  if (dividendTens) dividendTens.textContent = PROBLEM.dividendDigits[1];
+  if (dividendOnes) dividendOnes.textContent = PROBLEM.dividendDigits[2];
+  
+  const divisorOnes = document.querySelector('.mainEquation.divisor.ones');
+  if (divisorOnes) divisorOnes.textContent = PROBLEM.divisor;
+  
+  // Initialize division table (just show the problem, not the solution)
+  const tableDividendHundreds = document.querySelector('.division-table.dividend.hundreds');
+  const tableDividendTens = document.querySelector('.division-table.dividend.tens');
+  const tableDividendOnes = document.querySelector('.division-table.dividend.ones');
+  const tableDivisorOnes = document.querySelector('.division-table.divisor.ones');
+  
+  if (tableDividendHundreds) {
+    tableDividendHundreds.textContent = PROBLEM.dividendDigits[0];
+    tableDividendHundreds.classList.remove('transparent');
+  }
+  if (tableDividendTens) {
+    tableDividendTens.textContent = PROBLEM.dividendDigits[1];
+    tableDividendTens.classList.remove('transparent');
+  }
+  if (tableDividendOnes) {
+    tableDividendOnes.textContent = PROBLEM.dividendDigits[2];
+    tableDividendOnes.classList.remove('transparent');
+  }
+  if (tableDivisorOnes) {
+    tableDivisorOnes.textContent = PROBLEM.divisor;
+    tableDivisorOnes.classList.remove('transparent');
+  }
+  
+  // Hide all answer cells initially
+  const answerCells = document.querySelectorAll('.division-table.answer');
+  answerCells.forEach(cell => {
+    cell.textContent = '';
+    cell.classList.add('transparent');
+  });
+  
+  // Clear all work cells
+  for (let i = 0; i < 3; i++) {
+    const multiplyCells = [
+      `r${4 + i * 3}c4`, `r${4 + i * 3}c5`, `r${4 + i * 3}c6`
+    ];
+    const lineCells = [
+      `r${5 + i * 3}c4`, `r${5 + i * 3}c5`, `r${5 + i * 3}c6`
+    ];
+    const subtractCells = [
+      `r${6 + i * 3}c4`, `r${6 + i * 3}c5`, `r${6 + i * 3}c6`
+    ];
+    
+    [...multiplyCells, ...subtractCells].forEach(id => setCell(id, ''));
+    lineCells.forEach(id => {
+      const el = $(id);
+      if (el) el.classList.add('transparent');
+    });
+  }
+  
+  console.log("Grid initialized - showing problem only");
+}
+
+function updateCurrentStepDisplay() {
   const currentStep = STATE.steps[STATE.currentStepIndex];
-  if (!currentStep) {
-    debugLog('ERROR', 'ADVANCE', 'No current step!');
+  const currentStepContainer = document.querySelector('.current-step-container');
+  const workFeedback = document.getElementById('workFeedback');
+  const currentGuessDisplay = document.getElementById('currentGuessDisplay');
+  const currentInstruction = document.getElementById('currentInstruction');
+  
+  if (STATE.isComplete) {
+    // Division is complete
+    if (currentStepContainer) currentStepContainer.classList.add('hidden');
+    if (workFeedback) workFeedback.classList.add('hidden');
     return;
   }
   
-  debugLog(STATE.currentStepIndex, 'ADVANCE', `Advancing from ${STATE.currentPhase} phase`);
+  if (STATE.isWaitingForUserInput) {
+    // Show UI for user input
+    if (currentStepContainer) currentStepContainer.classList.remove('hidden');
+    if (workFeedback) workFeedback.classList.remove('hidden');
+    if (currentGuessDisplay) currentGuessDisplay.textContent = '0';
+    
+    if (currentStep && currentInstruction) {
+      if (STATE.currentStepIndex === 0) {
+        currentInstruction.textContent = `How many times does ${STATE.divisor} go into ${currentStep.bringDownValue}?`;
+      } else {
+        const previousStep = STATE.steps[STATE.currentStepIndex - 1];
+        currentInstruction.textContent = `Bring down: ${previousStep.correctSubtract}${currentStep.digit} ÷ ${STATE.divisor} = ?`;
+      }
+    }
+    
+    console.log(`=== STEP ${STATE.currentStepIndex + 1}/3 ===`);
+    console.log(`Question: ${currentStep.bringDownValue} ÷ ${STATE.divisor} = ?`);
+    console.log(`Correct answer digit: ${currentStep.correctAnswer}`);
+  } else {
+    // Hide UI during automatic phases
+    if (currentStepContainer) currentStepContainer.classList.add('hidden');
+    if (workFeedback) workFeedback.classList.add('hidden');
+  }
+}
 
+function renderCurrentPhase() {
+  if (STATE.isComplete) return;
+  
+  const currentStep = STATE.steps[STATE.currentStepIndex];
+  if (!currentStep) return;
+  
+  console.log(`Rendering ${STATE.currentPhase} for step ${STATE.currentStepIndex}`);
+  
+  switch (STATE.currentPhase) {
+    case 'DIVIDE':
+      // Show user's guess in quotient cell
+      if (currentStep.userGuess !== null) {
+        setCell(currentStep.dom.quotientCell, currentStep.userGuess);
+      }
+      break;
+      
+    case 'MULTIPLY':
+      // Show multiplication result
+      const multiplyValue = currentStep.userGuess * STATE.divisor;
+      const multiplyDigits = multiplyValue.toString().padStart(3, '0').split('');
+      
+      currentStep.dom.multiplyRow.forEach((id, i) => {
+        setCell(id, multiplyDigits[i]);
+      });
+      
+      // Show lines
+      currentStep.dom.lineRow.forEach(id => {
+        const el = $(id);
+        if (el) el.classList.remove('transparent');
+      });
+      break;
+      
+    case 'SUBTRACT':
+      // Show subtraction result
+      const subtractResult = currentStep.bringDownValue - (currentStep.userGuess * STATE.divisor);
+      const subtractDigits = subtractResult.toString().padStart(3, ' ').split('');
+      
+      currentStep.dom.subtractRow.forEach((id, i) => {
+        setCell(id, subtractDigits[i]);
+      });
+      break;
+      
+    case 'BRING_DOWN':
+      // Nothing to render
+      break;
+  }
+}
+
+function advancePhase() {
+  if (STATE.isComplete) return;
+  
+  const currentStep = STATE.steps[STATE.currentStepIndex];
+  if (!currentStep) return;
+  
+  console.log(`Advancing from ${STATE.currentPhase} phase`);
+  
   if (STATE.currentPhase === 'DIVIDE') {
+    // Get user's guess
     const currentGuessDisplay = document.getElementById('currentGuessDisplay');
     const userGuess = currentGuessDisplay ? parseInt(currentGuessDisplay.textContent) : 0;
     
-    debugLog(STATE.currentStepIndex, 'DIVIDE', `User guess: ${userGuess}, Correct: ${currentStep.divide.correct}`);
+    currentStep.userGuess = userGuess;
     
-    currentStep.divide.userGuess = userGuess;
-    currentStep.divide.isCorrect = (userGuess === currentStep.divide.correct);
+    console.log(`User guessed: ${userGuess}`);
+    console.log(`Correct answer: ${currentStep.correctAnswer}`);
     
-    if (!currentStep.divide.isCorrect) {
-      debugLog(STATE.currentStepIndex, 'DIVIDE', `INCORRECT! User guessed ${userGuess} but correct is ${currentStep.divide.correct}`);
+    // Check if correct
+    if (userGuess === currentStep.correctAnswer) {
+      console.log("✓ Correct!");
+    } else {
+      console.log("✗ Incorrect!");
     }
     
-    currentStep.completedPhases.DIVIDE = true;
+    // Move to MULTIPLY phase
     STATE.currentPhase = 'MULTIPLY';
     STATE.isWaitingForUserInput = false;
     
   } else if (STATE.currentPhase === 'MULTIPLY') {
-    const multiplyValue = currentStep.divide.userGuess * STATE.divisor;
-    currentStep.multiply.value = multiplyValue;
-    
-    debugLog(STATE.currentStepIndex, 'MULTIPLY', 
-      `${currentStep.divide.userGuess} × ${STATE.divisor} = ${multiplyValue}`);
-    
-    currentStep.completedPhases.MULTIPLY = true;
+    // Move to SUBTRACT phase
     STATE.currentPhase = 'SUBTRACT';
     
   } else if (STATE.currentPhase === 'SUBTRACT') {
-    const subtractResult = currentStep.bringDownValue - currentStep.multiply.value;
-    currentStep.subtract.result = subtractResult;
-    
-    debugLog(STATE.currentStepIndex, 'SUBTRACT', 
-      `${currentStep.bringDownValue} - ${currentStep.multiply.value} = ${subtractResult}`);
-    
-    currentStep.completedPhases.SUBTRACT = true;
-    currentStep.carry = subtractResult;
-    
+    // Check if this is the last step
     if (STATE.currentStepIndex < STATE.steps.length - 1) {
+      // Move to BRING_DOWN phase
       STATE.currentPhase = 'BRING_DOWN';
-      debugLog(STATE.currentStepIndex, 'SUBTRACT', `Moving to BRING_DOWN phase`);
     } else {
-      debugLog(STATE.currentStepIndex, 'SUBTRACT', `Last step complete, finishing division`);
+      // This is the last step - complete the division
       completeDivision();
       return;
     }
     
   } else if (STATE.currentPhase === 'BRING_DOWN') {
-    debugLog(STATE.currentStepIndex, 'BRING_DOWN', 
-      `Bringing down remainder ${currentStep.carry} to next digit`);
-    
-    currentStep.completedPhases.BRING_DOWN = true;
+    // Move to next step
     STATE.currentStepIndex++;
-    
-    if (STATE.currentStepIndex < STATE.steps.length) {
-      STATE.currentPhase = 'DIVIDE';
-      STATE.isWaitingForUserInput = true;
-      debugLog(STATE.currentStepIndex, 'BRING_DOWN', 
-        `Moving to step ${STATE.currentStepIndex} (digit: ${STATE.steps[STATE.currentStepIndex].digit})`);
-    } else {
-      completeDivision();
-      return;
-    }
+    STATE.currentPhase = 'DIVIDE';
+    STATE.isWaitingForUserInput = true;
   }
   
+  // Render the current phase and update UI
   renderCurrentPhase();
   updateCurrentStepDisplay();
 }
 
 function completeDivision() {
-  debugLog('FINAL', 'COMPLETE', 'Division complete!');
+  console.log("=== DIVISION COMPLETE ===");
   
-  const answer = STATE.steps.map(step => step.divide.userGuess).join('');
-  const remainder = STATE.steps[STATE.steps.length - 1].carry;
+  STATE.isComplete = true;
   
-  debugLog('FINAL', 'COMPLETE', `Calculated answer: ${answer} R${remainder}`);
-  debugLog('FINAL', 'COMPLETE', `Steps detail:`, STATE.steps.map((s, i) => ({
-    step: i,
-    digit: s.digit,
-    bringDown: s.bringDownValue,
-    guess: s.divide.userGuess,
-    multiply: s.multiply.value,
-    subtract: s.subtract.result,
-    carry: s.carry
-  })));
-  
-  // Hide controls
-  const currentStepContainer = document.querySelector('.current-step-container');
-  const workFeedback = document.getElementById('workFeedback');
-  
-  if (currentStepContainer) currentStepContainer.classList.add('hidden');
-  if (workFeedback) workFeedback.classList.add('hidden');
-  
-  updateFinalAnswer(answer, remainder);
-}
-
-function updateFinalAnswer(answer, remainder) {
-  debugLog('FINAL', 'ANSWER', `Setting final answer: ${answer} R${remainder}`);
-  
+  // Show final answer in main equation
   const answerElements = document.querySelectorAll('.mainEquation.answer');
-  const answerDigits = answer.split('');
+  const answerDigits = SOLUTION.finalAnswer.split('');
   
-  answerElements.forEach((el, index) => {
-    if (index < answerDigits.length) {
-      el.textContent = answerDigits[index];
-      el.classList.add('answered');
+  answerElements.forEach((el, i) => {
+    if (i < answerDigits.length) {
+      el.textContent = answerDigits[i];
     }
   });
   
-  if (remainder > 0) {
-    const remainderDigits = remainder.toString().padStart(2, '0').split('');
+  // Show remainder if needed
+  if (SOLUTION.remainder > 0) {
+    const remainderDigits = SOLUTION.remainder.toString().padStart(2, '0').split('');
     
     document.querySelector('.mainEquation.remainder.R')?.classList.remove('hidden');
     
@@ -294,201 +342,33 @@ function updateFinalAnswer(answer, remainder) {
       remainderOnes.classList.remove('hidden');
     }
   }
-}
-
-function renderCurrentPhase() {
-  const currentStep = STATE.steps[STATE.currentStepIndex];
-  if (!currentStep) {
-    debugLog('ERROR', 'RENDER', 'No current step to render!');
-    return;
-  }
   
-  debugLog(STATE.currentStepIndex, 'RENDER', `Rendering ${STATE.currentPhase} phase`);
-  
-  switch (STATE.currentPhase) {
-    case 'DIVIDE':
-      renderDivide(currentStep);
-      break;
-    case 'MULTIPLY':
-      renderMultiply(currentStep);
-      break;
-    case 'SUBTRACT':
-      renderSubtract(currentStep);
-      break;
-    case 'BRING_DOWN':
-      // Nothing to render
-      break;
-  }
-}
-
-function renderDivide(step) {
-  debugLog(step.stepIndex, 'RENDER_DIVIDE', 
-    `Setting quotient cell ${step.dom.quotientCell} to ${step.divide.userGuess}`);
-  
-  setCell(step.dom.quotientCell, step.divide.userGuess, true);
-}
-
-function renderMultiply(step) {
-  const multiplyValue = step.divide.userGuess * STATE.divisor;
-  const digits = multiplyValue.toString().padStart(3, '0').split('');
-  
-  debugLog(step.stepIndex, 'RENDER_MULTIPLY', 
-    `Setting multiply cells ${step.dom.multiplyRow} to ${digits} (value: ${multiplyValue})`);
-  
-  step.dom.multiplyRow.forEach((id, i) => {
-    setCell(id, digits[i], true);
-  });
-  
-  step.dom.lineRow.forEach(id => {
-    const el = $(id);
-    if (el) {
-      el.classList.remove('transparent');
-      el.style.outline = '2px solid blue';
-      setTimeout(() => el.style.outline = '', 1000);
-    }
-  });
-}
-
-function renderSubtract(step) {
-  const subtractResult = step.bringDownValue - (step.divide.userGuess * STATE.divisor);
-  const digits = subtractResult.toString().padStart(3, ' ').split('');
-  
-  debugLog(step.stepIndex, 'RENDER_SUBTRACT', 
-    `Setting subtract cells ${step.dom.subtractRow} to ${digits} (value: ${subtractResult})`);
-  
-  step.dom.subtractRow.forEach((id, i) => {
-    setCell(id, digits[i], true);
-  });
-}
-
-function clearStepCells(step) {
-  // Clear all cells for this step
-  setCell(step.dom.quotientCell, '');
-  step.dom.multiplyRow.forEach(id => setCell(id, ''));
-  step.dom.lineRow.forEach(id => {
-    const el = $(id);
-    if (el) el.classList.add('transparent');
-  });
-  step.dom.subtractRow.forEach(id => setCell(id, ''));
-}
-
-function updateCurrentStepDisplay() {
-  const currentStepContainer = document.querySelector('.current-step-container');
-  const workFeedback = document.getElementById('workFeedback');
-  const currentGuessDisplay = document.getElementById('currentGuessDisplay');
-  const currentInstruction = document.getElementById('currentInstruction');
-  
-  if (STATE.isWaitingForUserInput) {
-    if (currentStepContainer) currentStepContainer.classList.remove('hidden');
-    if (workFeedback) workFeedback.classList.remove('hidden');
-    if (currentGuessDisplay) currentGuessDisplay.textContent = '0';
-    
-    const currentStep = STATE.steps[STATE.currentStepIndex];
-    if (currentStep && currentInstruction) {
-      if (STATE.currentStepIndex === 0) {
-        currentInstruction.textContent = `How many times does ${STATE.divisor} go into ${currentStep.bringDownValue}?`;
-      } else {
-        const previousStep = STATE.steps[STATE.currentStepIndex - 1];
-        currentInstruction.textContent = `Bring down: ${previousStep.carry}${currentStep.digit} ÷ ${STATE.divisor} = ?`;
-      }
-    }
-    
-    debugLog(STATE.currentStepIndex, 'UI_UPDATE', 
-      `Showing UI for step ${STATE.currentStepIndex}, bringDownValue: ${currentStep.bringDownValue}`);
-  } else {
-    if (currentStepContainer) currentStepContainer.classList.add('hidden');
-    if (workFeedback) workFeedback.classList.add('hidden');
-  }
-}
-
-function initializeMainEquation() {
-  debugLog('INIT', 'MAIN_EQ', 'Initializing main equation display');
-  
-  const dividendHundreds = document.querySelector('.mainEquation.dividend.hundreds');
-  const dividendTens = document.querySelector('.mainEquation.dividend.tens');
-  const dividendOnes = document.querySelector('.mainEquation.dividend.ones');
-  
-  if (dividendHundreds) {
-    dividendHundreds.textContent = PROBLEM.dividendDigits[0];
-    debugLog('INIT', 'MAIN_EQ', `Set hundreds digit to ${PROBLEM.dividendDigits[0]}`);
-  }
-  if (dividendTens) {
-    dividendTens.textContent = PROBLEM.dividendDigits[1];
-    debugLog('INIT', 'MAIN_EQ', `Set tens digit to ${PROBLEM.dividendDigits[1]}`);
-  }
-  if (dividendOnes) {
-    dividendOnes.textContent = PROBLEM.dividendDigits[2];
-    debugLog('INIT', 'MAIN_EQ', `Set ones digit to ${PROBLEM.dividendDigits[2]}`);
-  }
-  
-  const divisorOnes = document.querySelector('.mainEquation.divisor.ones');
-  if (divisorOnes) {
-    divisorOnes.textContent = PROBLEM.divisor;
-    debugLog('INIT', 'MAIN_EQ', `Set divisor to ${PROBLEM.divisor}`);
-  }
-  
-  // Initialize division table
-  const tableDividendHundreds = document.querySelector('.division-table.dividend.hundreds');
-  const tableDividendTens = document.querySelector('.division-table.dividend.tens');
-  const tableDividendOnes = document.querySelector('.division-table.dividend.ones');
-  const tableDivisorOnes = document.querySelector('.division-table.divisor.ones');
-  
-  if (tableDividendHundreds) {
-    tableDividendHundreds.textContent = PROBLEM.dividendDigits[0];
-    tableDividendHundreds.classList.remove('transparent');
-    debugLog('INIT', 'TABLE', `Set table hundreds to ${PROBLEM.dividendDigits[0]}`);
-  }
-  if (tableDividendTens) {
-    tableDividendTens.textContent = PROBLEM.dividendDigits[1];
-    tableDividendTens.classList.remove('transparent');
-    debugLog('INIT', 'TABLE', `Set table tens to ${PROBLEM.dividendDigits[1]}`);
-  }
-  if (tableDividendOnes) {
-    tableDividendOnes.textContent = PROBLEM.dividendDigits[2];
-    tableDividendOnes.classList.remove('transparent');
-    debugLog('INIT', 'TABLE', `Set table ones to ${PROBLEM.dividendDigits[2]}`);
-  }
-  if (tableDivisorOnes) {
-    tableDivisorOnes.textContent = PROBLEM.divisor;
-    tableDivisorOnes.classList.remove('transparent');
-    debugLog('INIT', 'TABLE', `Set table divisor to ${PROBLEM.divisor}`);
-  }
-}
-
-function initDivision() {
-  debugLog('INIT', 'APP', 'Initializing division app');
-  debugLog('INIT', 'PROBLEM', `Problem: ${PROBLEM.dividendDigits.join('')} ÷ ${PROBLEM.divisor}`);
-  
-  STATE.steps = generateSteps();
-  STATE.currentStepIndex = 0;
-  STATE.currentPhase = 'DIVIDE';
-  STATE.isWaitingForUserInput = true;
-  
-  debugLog('INIT', 'STATE', `Initial state: step ${STATE.currentStepIndex}, phase ${STATE.currentPhase}`);
-  
-  initializeMainEquation();
+  // Hide controls
   updateCurrentStepDisplay();
   
-  // Clear all work cells initially
-  STATE.steps.forEach(step => {
-    clearStepCells(step);
-  });
+  console.log(`Final answer: ${SOLUTION.finalAnswer} R${SOLUTION.remainder}`);
+  console.log("All steps completed!");
 }
 
-// Event Listeners
+// Initialize everything
 document.addEventListener('DOMContentLoaded', function() {
-  debugLog('INIT', 'DOM', 'DOM fully loaded, starting division app');
+  console.log("=== DIVISION PRACTICE INITIALIZING ===");
   
-  initDivision();
+  // Initialize the grid
+  initializeGrid();
   
+  // Set up initial UI
+  updateCurrentStepDisplay();
+  
+  // Set up commit button
   const commitBtn = document.getElementById('commitGuessBtn');
   if (commitBtn) {
     commitBtn.addEventListener('click', function() {
-      debugLog('EVENT', 'BUTTON', 'Commit button clicked');
       advancePhase();
     });
   }
   
+  // Set up control buttons
   const controlButtons = document.querySelectorAll('.grid-btn');
   controlButtons.forEach(btn => {
     btn.addEventListener('click', function() {
@@ -496,7 +376,6 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!currentGuessDisplay) return;
       
       let current = parseInt(currentGuessDisplay.textContent) || 0;
-      const oldValue = current;
       
       if (this.classList.contains('clear')) {
         current = 0;
@@ -508,7 +387,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (this.classList.contains('five')) current = Math.max(0, current - 5);
       }
       
-      debugLog('EVENT', 'CONTROL', `Guess changed: ${oldValue} → ${current}`);
       currentGuessDisplay.textContent = current;
     });
   });
@@ -519,7 +397,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!currentGuessDisplay) return;
     
     let current = parseInt(currentGuessDisplay.textContent) || 0;
-    const oldValue = current;
     
     if (e.key === 'ArrowUp') {
       current += 1;
@@ -528,45 +405,19 @@ document.addEventListener('DOMContentLoaded', function() {
       current = Math.max(0, current - 1);
       e.preventDefault();
     } else if (e.key === 'Enter' && commitBtn) {
-      debugLog('EVENT', 'KEYBOARD', 'Enter key pressed');
       commitBtn.click();
-      e.preventDefault();
-    } else if (e.key === ' ') {
-      // Space bar to toggle debug
-      const debugDiv = document.getElementById('debug-info');
-      if (debugDiv) {
-        debugDiv.style.display = debugDiv.style.display === 'none' ? 'block' : 'none';
-      }
       e.preventDefault();
     }
     
-    if (current !== oldValue) {
-      debugLog('EVENT', 'KEYBOARD', `Guess changed via keyboard: ${oldValue} → ${current}`);
-      currentGuessDisplay.textContent = current;
-    }
+    currentGuessDisplay.textContent = current;
   });
   
-  // Add a debug toggle button
-  const debugToggle = document.createElement('button');
-  debugToggle.textContent = 'Debug';
-  debugToggle.style.cssText = `
-    position: fixed;
-    bottom: 10px;
-    right: 10px;
-    padding: 5px 10px;
-    background: #ffcc00;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-    z-index: 10000;
-  `;
-  debugToggle.onclick = function() {
-    const debugDiv = document.getElementById('debug-info');
-    if (debugDiv) {
-      debugDiv.style.display = debugDiv.style.display === 'none' ? 'block' : 'none';
-    }
-  };
-  document.body.appendChild(debugToggle);
-  
-  debugLog('INIT', 'APP', 'Division app fully initialized');
+  console.log("=== READY FOR USER INPUT ===");
+  console.log("Problem: 123 ÷ 5");
+  console.log("Full solution calculated and ready");
+  console.log("Expected steps:");
+  console.log("1. 1 ÷ 5 = 0 (0 × 5 = 0, 1 - 0 = 1, carry down 2)");
+  console.log("2. 12 ÷ 5 = 2 (2 × 5 = 10, 12 - 10 = 2, carry down 3)");
+  console.log("3. 23 ÷ 5 = 4 (4 × 5 = 20, 23 - 20 = 3)");
+  console.log("Final answer: 24 R3");
 });
