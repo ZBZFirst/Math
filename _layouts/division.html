@@ -13,6 +13,7 @@
     {% include header.html %}
     
     <main class="page-content">
+        <!-- Division Worksheet -->
         <div class="division-container"">
             <!-- Title Container -->
             <div class="container title-container">
@@ -22,7 +23,7 @@
 
             <!-- Main Workspace -->
             <div class="dual-container">
-                <!-- LEFT: Problem Display -->
+                <!-- LEFT CONTAINER -->
                 <div class="main-problem-container">
                     <h3>Division Problem</h3>
                     <div class="main-problem" id="problemdisplay" >
@@ -31,19 +32,13 @@
                                 123 ÷ 5
                             </div>
                         </div>
-                        
-                        <!-- Current Step Area -->
                         <div class="current-step-container">
                             <div class="current-step-title">Current Step</div>
-                            <div class="current-step-equation" id="currentStepEquation">
-                                1 ÷ 5 = ?
-                            </div>
-                            <div class="current-instruction" id="currentInstruction">
-                                How many times does 5 go into 1?
-                            </div>
+                            <div class="current-step-equation" id="currentStepEquation">1 ÷ 5 = ?</div>
+                            <div class="current-instruction" id="currentInstruction">How many times does 5 go into 1?</div>
+                            <div class="number-display">Current guess: <span id="currentGuessDisplay">0</span></div>
                         </div>
                     </div>
-                    <!-- Control Buttons -->
                     <div class="work-feedback" id="workFeedback">
                         <div class="control-grid">
                             <button class="grid-btn decrement five">-5</button>
@@ -52,18 +47,15 @@
                             <button class="grid-btn increment one">+1</button>
                             <button class="grid-btn increment five">+5</button>
                         </div>
-                        <div class="number-display">
-                            Current guess: <span id="currentGuessDisplay">0</span>
-                        </div>
                         <button id="commitGuessBtn" class="commit-btn">✓ Confirm This Digit</button>
                     </div>
                 </div>
                 
-                <!-- RIGHT: Work Area -->
+                <!-- RIGHT CONTAINER -->
                 <div class="work-container">
                     <h3>Work Area</h3>
                     
-                    <!-- Step Tracker (Hidden but accessible) -->
+                    <!-- Step Tracker (Hidden) -->
                     <div class="step-tracker" 
                          data-current-step="0"
                          data-total-steps="3"
