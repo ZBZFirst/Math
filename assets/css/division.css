@@ -564,10 +564,29 @@
     height: calc(100vh - 300px);
 }
 
-/* Smooth transitions for showing/hiding */
+/* Base styles with transitions */
 .current-step-container,
 .work-feedback {
-    transition: opacity 3s ease, transform 3s ease;
+    transition: all 3s ease;
+    overflow: hidden;
+}
+
+/* VISIBLE STATE (when NOT hidden) */
+.current-step-container:not(.hidden),
+.work-feedback:not(.hidden) {
+    opacity: 1;
+    visibility: visible;
+    max-height: 500px; /* Adjust based on your content */
+    transform: translateY(0);
+}
+
+/* HIDDEN STATE (when hidden class is applied) */
+.current-step-container.hidden,
+.work-feedback.hidden {
+    opacity: 0;
+    visibility: hidden;
+    max-height: 0;
+    transform: translateY(-20px);
 }
 
 @keyframes slideIn {
