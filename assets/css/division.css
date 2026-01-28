@@ -563,15 +563,15 @@
 /* Smooth transitions for showing/hiding */
 .current-step-container,
 .work-feedback {
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    transition: opacity 0.3s ease, transform 0.1s ease;
 }
 
 .current-step-container:not(.hidden) {
-    animation: slideIn 0.4s ease;
+    animation: slideIn 0.1s ease;
 }
 
 .work-feedback:not(.hidden) {
-    animation: fadeIn 0.4s ease;
+    animation: fadeIn 0.1s ease;
 }
 
 @keyframes slideIn {
@@ -713,8 +713,19 @@
     /* Explicitly empty for unused cells */
 }
 
-.hidden {
-    display: none !important;
+.hidden {    
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    border: none !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+    transform: translateY(-10px);
+    transition: all 0.4s ease, opacity 0.4s ease, height 0.4s ease, padding 0.4s ease, margin 0.4s ease;
 }
 
 .visible {
