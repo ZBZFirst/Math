@@ -537,6 +537,56 @@
 }
 
 /* ============================================
+   LAYOUT ADJUSTMENTS FOR HIDDEN CONTAINERS
+   ============================================ */
+
+/* When current-step-container is hidden, expand the equation display */
+.main-problem:has(.current-step-container.hidden) .equation-display {
+    height: 100%;
+    min-height: 350px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* When work-feedback is hidden, adjust main-problem-container spacing */
+.main-problem-container:has(.work-feedback.hidden) {
+    padding-bottom: var(--space-lg);
+}
+
+/* When both are hidden, center the equation */
+.main-problem:has(.current-step-container.hidden):has(.work-feedback.hidden) .equation-display {
+    min-height: 450px;
+    height: calc(100vh - 300px);
+}
+
+/* Smooth transitions for showing/hiding */
+.current-step-container,
+.work-feedback {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.current-step-container:not(.hidden) {
+    animation: slideIn 0.4s ease;
+}
+
+.work-feedback:not(.hidden) {
+    animation: fadeIn 0.4s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* ============================================
    SCORE DISPLAY
    ============================================ */
 .enhanced-score-container {
