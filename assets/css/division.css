@@ -713,19 +713,8 @@
     /* Explicitly empty for unused cells */
 }
 
-.hidden {    
-    opacity: 0 !important;
-    height: 0 !important;
-    overflow: hidden !important;
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
-    border: none !important;
-    pointer-events: none !important;
-    visibility: hidden !important;
-    transform: translateY(-10px);
-    transition: all 0.4s ease, opacity 0.4s ease, height 0.4s ease, padding 0.4s ease, margin 0.4s ease;
+.hidden {
+    display: none !important;
 }
 
 .visible {
