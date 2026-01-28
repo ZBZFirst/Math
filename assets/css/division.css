@@ -113,7 +113,7 @@
 
 .large-equation {
     font-family: var(--font-math);
-    font-size: 3.5em;
+    font-size: 2em;
     color: #1a237e;
     padding: var(--space-lg);
     background: var(--white);
