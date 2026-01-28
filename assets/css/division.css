@@ -570,14 +570,6 @@
     transition: opacity 3s ease, transform 3s ease;
 }
 
-.current-step-container:not(.hidden) {
-    animation: slideIn 3s ease;
-}
-
-.work-feedback:not(.hidden) {
-    animation: fadeIn 3s ease;
-}
-
 @keyframes slideIn {
     from {
         opacity: 0;
