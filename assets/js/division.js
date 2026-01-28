@@ -1,4 +1,4 @@
-// division.js - FIXED VERSION WITH PROPER UI HANDLING
+// division.js - FIXED RENDER SEQUENCE
 
 const PHASES = ['DIVIDE', 'MULTIPLY', 'SUBTRACT', 'BRING_DOWN'];
 
@@ -400,16 +400,44 @@ function advancePhase() {
     console.log(`Correct answer: ${currentStep.correctAnswer}`);
     console.log(userGuess === currentStep.correctAnswer ? "✓ Correct!" : "✗ Incorrect");
     
+    // FIRST: Render the DIVIDE phase result (show guess in quotient cell)
+    console.log("Rendering DIVIDE phase result...");
+    renderCurrentPhase(); // This will render the DIVIDE phase with the user's guess
+    
+    // THEN: Advance to MULTIPLY phase
     STATE.currentPhase = 'MULTIPLY';
     STATE.isWaitingForUserInput = false;
     
+    // Wait a moment, then render the MULTIPLY phase
+    setTimeout(() => {
+      console.log("Now rendering MULTIPLY phase...");
+      renderCurrentPhase();
+      updateCurrentStepDisplay();
+    }, 300);
+    
   } else if (STATE.currentPhase === 'MULTIPLY') {
     STATE.currentPhase = 'SUBTRACT';
+    
+    // Render the SUBTRACT phase
+    setTimeout(() => {
+      renderCurrentPhase();
+      updateCurrentStepDisplay();
+    }, 300);
     
   } else if (STATE.currentPhase === 'SUBTRACT') {
     if (STATE.currentStepIndex < STATE.steps.length - 1) {
       STATE.currentPhase = 'BRING_DOWN';
       console.log(`Moving to BRING_DOWN, next step will be ${STATE.currentStepIndex + 1}`);
+      
+      // After a delay, move to next step
+      setTimeout(() => {
+        STATE.currentStepIndex++;
+        STATE.currentPhase = 'DIVIDE';
+        STATE.isWaitingForUserInput = true;
+        console.log(`Moved to step ${STATE.currentStepIndex + 1}`);
+        updateCurrentStepDisplay();
+      }, 500);
+      
     } else {
       console.log("Last step complete - finishing division");
       completeDivision();
@@ -417,19 +445,13 @@ function advancePhase() {
     }
     
   } else if (STATE.currentPhase === 'BRING_DOWN') {
+    // This shouldn't happen since we handle BRING_DOWN in the SUBTRACT case
     STATE.currentStepIndex++;
     STATE.currentPhase = 'DIVIDE';
     STATE.isWaitingForUserInput = true;
     console.log(`Moved to step ${STATE.currentStepIndex + 1}`);
-  }
-  
-  // Render the current phase
-  renderCurrentPhase();
-  
-  // Update UI after a small delay to let rendering complete
-  setTimeout(() => {
     updateCurrentStepDisplay();
-  }, 100);
+  }
 }
 
 function completeDivision() {
