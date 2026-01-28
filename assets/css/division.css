@@ -90,7 +90,7 @@
 /* ============================================
    PROBLEM DISPLAY (LEFT SIDE)
    ============================================ */
-.main-problem-container {
+.left-container {
     background: var(--white);
     border-radius: 10px;
     padding: var(--space-lg);
@@ -173,7 +173,7 @@
 /* ============================================
    WORK AREA (RIGHT SIDE)
    ============================================ */
-.work-container {
+.right-container {
     background: var(--white);
     border-radius: 10px;
     padding: var(--space-lg);
@@ -181,7 +181,7 @@
     border: 1px solid #dee2e6;
 }
 
-.Work-Container {
+.right-container {
     min-height: 400px;
     padding: var(--space-md);
     background: var(--light);
@@ -570,8 +570,8 @@
     justify-content: center;
 }
 
-/* When work-feedback is hidden, adjust main-problem-container spacing */
-.main-problem-container:has(.work-feedback.hidden) {
+/* When work-feedback is hidden, adjust left-container spacing */
+.left-container:has(.work-feedback.hidden) {
     padding-bottom: var(--space-lg);
 }
 
@@ -705,7 +705,7 @@
         font-size: 1.4em;
     }
     
-    .Work-Container {
+    .right-container {
         min-height: 350px;
     }
 }
@@ -723,7 +723,7 @@
         font-size: 1.2em;
     }
     
-    .Work-Container {
+    .right-container {
         min-height: 300px;
     }
     
