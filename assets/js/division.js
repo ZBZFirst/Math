@@ -1,10 +1,10 @@
 // ============================================
-// Enhanced Hide/Show Controller with Auto-Animation
+// Enhanced Hide/Show Controller with Group Animation
 // ============================================
 
 // Wait for DOM to be ready
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Division app - Enhanced Hide/Show controller with auto-animation loaded');
+    console.log('Division app - Enhanced Hide/Show controller with group animation loaded');
     
     // Get DOM elements
     const commitBtn = document.getElementById('commitGuessBtn');
@@ -90,15 +90,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             
-            /* Shake animation for elements */
-            @keyframes shakeElement {
+            /* Shake animation for groups */
+            @keyframes shakeGroup {
                 0%, 100% { transform: translateX(0); }
-                10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-                20%, 40%, 60%, 80% { transform: translateX(5px); }
+                10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
+                20%, 40%, 60%, 80% { transform: translateX(8px); }
             }
             
-            /* Fly animation for moving numbers to table */
-            @keyframes flyToTable {
+            /* Fly animation for moving groups to table */
+            @keyframes flyGroupToTable {
                 0% { 
                     opacity: 1;
                     transform: scale(1) translate(0, 0);
@@ -113,10 +113,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             
-            /* Fade in animation for table cells */
-            @keyframes fadeInTable {
-                0% { opacity: 0; transform: scale(0.5); }
-                100% { opacity: 1; transform: scale(1); }
+            /* Fade in animation for table groups */
+            @keyframes fadeInGroup {
+                0% { opacity: 0; transform: translateY(-10px); }
+                100% { opacity: 1; transform: translateY(0); }
             }
             
             /* Apply highlight to main equation */
@@ -125,152 +125,276 @@ document.addEventListener('DOMContentLoaded', function() {
                 font-size: 1.5em !important; /* Increase font size by 0.5em from base */
             }
             
-            /* Apply shake to elements */
-            .divisor.shaking,
-            .dividend.shaking {
-                animation: shakeElement 0.5s ease-in-out;
+            /* Apply shake to groups */
+            .divisor-group.shaking,
+            .dividend-group.shaking {
+                animation: shakeGroup 0.6s ease-in-out;
                 display: inline-block;
-                color: #2196f3 !important;
+                position: relative;
             }
             
-            /* Apply fly animation */
-            .flying-number {
+            /* Apply fly animation to groups */
+            .flying-group {
                 position: fixed;
                 z-index: 1000;
                 font-size: 1.5em;
                 font-weight: bold;
                 color: #2196f3;
                 pointer-events: none;
-                animation: flyToTable 1s ease-in-out forwards;
+                animation: flyGroupToTable 1s ease-in-out forwards;
+                background: rgba(255, 255, 255, 0.9);
+                padding: 5px 10px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+                white-space: nowrap;
             }
             
-            /* Style for table cells after animation */
-            .division-table.animated-in {
-                animation: fadeInTable 0.5s ease-out forwards;
+            /* Style for table groups after animation */
+            .division-table-group.animated-in {
+                animation: fadeInGroup 0.5s ease-out forwards;
+            }
+            
+            /* Group wrapper styles */
+            .group-wrapper {
+                display: inline-block;
+                position: relative;
+            }
+            
+            /* Add colored backgrounds for visual grouping */
+            .divisor-group .divisor {
+                background-color: rgba(33, 150, 243, 0.1);
+                padding: 2px 4px;
+                border-radius: 4px;
+                margin: 0 1px;
+            }
+            
+            .dividend-group .dividend {
+                background-color: rgba(255, 152, 0, 0.1);
+                padding: 2px 4px;
+                border-radius: 4px;
+                margin: 0 1px;
+            }
+            
+            /* Highlight table cells when group arrives */
+            .division-table.highlight-arrival {
+                background-color: rgba(76, 175, 80, 0.2) !important;
+                transition: background-color 0.5s ease;
             }
         `;
         document.head.appendChild(style);
     }
     
-    // Function to create flying number animation
-    function createFlyingNumber(element, target, index) {
-        const rect = element.getBoundingClientRect();
-        const targetRect = target.getBoundingClientRect();
+    // Function to get group wrapper element
+    function createGroupWrapper(elements, className) {
+        const wrapper = document.createElement('div');
+        wrapper.className = `group-wrapper ${className}`;
         
-        // Create flying number element
-        const flyingNumber = document.createElement('div');
-        flyingNumber.className = 'flying-number';
-        flyingNumber.textContent = element.textContent;
-        flyingNumber.style.left = `${rect.left + rect.width / 2}px`;
-        flyingNumber.style.top = `${rect.top + rect.height / 2}px`;
+        // Create a deep clone of each element to preserve styling
+        elements.forEach(el => {
+            if (el) {
+                const clone = el.cloneNode(true);
+                // Remove specific positioning classes if they exist
+                clone.className = clone.className.replace(/\b(hundreds|tens|ones)\b/g, '').trim();
+                wrapper.appendChild(clone);
+            }
+        });
         
-        // Calculate movement direction
-        const tx = targetRect.left - rect.left;
-        const ty = targetRect.top - rect.top;
+        return wrapper;
+    }
+    
+    // Function to create flying group animation
+    function createFlyingGroup(sourceElements, targetElements, groupName) {
+        // Create a container for the source elements' positions
+        const sourceRect = {
+            left: Math.min(...sourceElements.map(el => el.getBoundingClientRect().left)),
+            top: Math.min(...sourceElements.map(el => el.getBoundingClientRect().top)),
+            right: Math.max(...sourceElements.map(el => el.getBoundingClientRect().right)),
+            bottom: Math.max(...sourceElements.map(el => el.getBoundingClientRect().bottom)),
+        };
+        
+        const targetRect = {
+            left: Math.min(...targetElements.map(el => el.getBoundingClientRect().left)),
+            top: Math.min(...targetElements.map(el => el.getBoundingClientRect().top)),
+            right: Math.max(...targetElements.map(el => el.getBoundingClientRect().right)),
+            bottom: Math.max(...targetElements.map(el => el.getBoundingClientRect().bottom)),
+        };
+        
+        // Create flying group element
+        const flyingGroup = document.createElement('div');
+        flyingGroup.className = 'flying-group';
+        
+        // Add the combined text content
+        const groupText = sourceElements.map(el => el.textContent).join('');
+        flyingGroup.textContent = groupText;
+        
+        // Calculate center positions
+        const sourceCenterX = sourceRect.left + (sourceRect.right - sourceRect.left) / 2;
+        const sourceCenterY = sourceRect.top + (sourceRect.bottom - sourceRect.top) / 2;
+        
+        const targetCenterX = targetRect.left + (targetRect.right - targetRect.left) / 2;
+        const targetCenterY = targetRect.top + (targetRect.bottom - targetRect.top) / 2;
+        
+        // Calculate movement
+        const tx = targetCenterX - sourceCenterX;
+        const ty = targetCenterY - sourceCenterY;
+        
+        // Position the flying group at the source center
+        flyingGroup.style.left = `${sourceCenterX}px`;
+        flyingGroup.style.top = `${sourceCenterY}px`;
+        flyingGroup.style.transform = 'translate(-50%, -50%)';
         
         // Set CSS custom properties for animation
-        flyingNumber.style.setProperty('--tx', `${tx}px`);
-        flyingNumber.style.setProperty('--ty', `${ty}px`);
+        flyingGroup.style.setProperty('--tx', `${tx}px`);
+        flyingGroup.style.setProperty('--ty', `${ty}px`);
         
-        document.body.appendChild(flyingNumber);
+        document.body.appendChild(flyingGroup);
         
         // Remove flying element after animation
         setTimeout(() => {
-            if (flyingNumber.parentNode) {
-                flyingNumber.parentNode.removeChild(flyingNumber);
+            if (flyingGroup.parentNode) {
+                flyingGroup.parentNode.removeChild(flyingGroup);
             }
         }, 1000);
         
         return new Promise(resolve => setTimeout(resolve, 1000));
     }
     
-    // Function to animate divisor moving to table
+    // Function to animate divisor group moving to table
     async function animateDivisorToTable() {
-        console.log('Animating divisor to table...');
+        console.log('Animating divisor group to table...');
         
-        // Get divisor elements
-        const divisorTens = document.querySelector('.large-equation .divisor.tens');
-        const divisorOnes = document.querySelector('.large-equation .divisor.ones');
+        // Get divisor elements from main equation
+        const divisorElements = [
+            document.querySelector('.large-equation .divisor.tens'),
+            document.querySelector('.large-equation .divisor.ones')
+        ].filter(el => el && el.textContent.trim());
         
-        const tableDivisorTens = document.querySelector('.division-table.divisor.tens');
-        const tableDivisorOnes = document.querySelector('.division-table.divisor.ones');
+        if (divisorElements.length === 0) {
+            console.log('No divisor elements found');
+            return;
+        }
         
-        // Add shake animation to divisor
-        if (divisorTens) divisorTens.classList.add('shaking');
-        if (divisorOnes) divisorOnes.classList.add('shaking');
+        // Get divisor table cells
+        const tableDivisorElements = [
+            document.querySelector('.division-table.divisor.tens'),
+            document.querySelector('.division-table.divisor.ones')
+        ].filter(el => el);
+        
+        if (tableDivisorElements.length === 0) {
+            console.log('No divisor table cells found');
+            return;
+        }
+        
+        // Wrap the divisor elements in the main equation for shaking
+        const divisorWrapper = createGroupWrapper(divisorElements, 'divisor-group');
+        const divisorContainer = divisorElements[0].parentNode;
+        
+        // Replace individual elements with wrapper
+        divisorElements.forEach((el, index) => {
+            if (index === 0) {
+                el.parentNode.insertBefore(divisorWrapper, el);
+            }
+            divisorWrapper.appendChild(el);
+        });
+        
+        // Add shake animation to the whole group
+        divisorWrapper.classList.add('shaking');
         
         // Wait for shake to complete
         await new Promise(resolve => setTimeout(resolve, 600));
         
-        // Remove shake classes
-        if (divisorTens) divisorTens.classList.remove('shaking');
-        if (divisorOnes) divisorOnes.classList.remove('shaking');
+        // Remove shake class
+        divisorWrapper.classList.remove('shaking');
         
-        // Animate tens digit if it exists and has content
-        if (divisorTens && divisorTens.textContent.trim() && tableDivisorTens) {
-            await createFlyingNumber(divisorTens, tableDivisorTens, 1);
-            tableDivisorTens.textContent = divisorTens.textContent;
-            tableDivisorTens.classList.add('animated-in');
-        }
+        // Animate the group flying to the table
+        await createFlyingGroup(divisorElements, tableDivisorElements, 'divisor');
         
-        // Animate ones digit
-        if (divisorOnes && tableDivisorOnes) {
-            await createFlyingNumber(divisorOnes, tableDivisorOnes, 2);
-            tableDivisorOnes.textContent = divisorOnes.textContent;
-            tableDivisorOnes.classList.add('animated-in');
-        }
+        // Update table cells with values
+        divisorElements.forEach((el, index) => {
+            if (tableDivisorElements[index]) {
+                tableDivisorElements[index].textContent = el.textContent;
+                tableDivisorElements[index].classList.add('highlight-arrival');
+            }
+        });
         
-        console.log('Divisor animation complete');
+        // Remove highlight after a moment
+        setTimeout(() => {
+            tableDivisorElements.forEach(cell => {
+                if (cell) cell.classList.remove('highlight-arrival');
+            });
+        }, 1000);
+        
+        console.log('Divisor group animation complete');
     }
     
-    // Function to animate dividend moving to table
+    // Function to animate dividend group moving to table
     async function animateDividendToTable() {
-        console.log('Animating dividend to table...');
+        console.log('Animating dividend group to table...');
         
-        // Get dividend elements
-        const dividendHundreds = document.querySelector('.large-equation .dividend.hundreds');
-        const dividendTens = document.querySelector('.large-equation .dividend.tens');
-        const dividendOnes = document.querySelector('.large-equation .dividend.ones');
+        // Get dividend elements from main equation
+        const dividendElements = [
+            document.querySelector('.large-equation .dividend.hundreds'),
+            document.querySelector('.large-equation .dividend.tens'),
+            document.querySelector('.large-equation .dividend.ones')
+        ].filter(el => el && el.textContent.trim());
         
-        const tableDividendHundreds = document.querySelector('.division-table.dividend.hundreds');
-        const tableDividendTens = document.querySelector('.division-table.dividend.tens');
-        const tableDividendOnes = document.querySelector('.division-table.dividend.ones');
+        if (dividendElements.length === 0) {
+            console.log('No dividend elements found');
+            return;
+        }
         
-        // Add shake animation to dividend
-        if (dividendHundreds) dividendHundreds.classList.add('shaking');
-        if (dividendTens) dividendTens.classList.add('shaking');
-        if (dividendOnes) dividendOnes.classList.add('shaking');
+        // Get dividend table cells
+        const tableDividendElements = [
+            document.querySelector('.division-table.dividend.hundreds'),
+            document.querySelector('.division-table.dividend.tens'),
+            document.querySelector('.division-table.dividend.ones')
+        ].filter(el => el);
+        
+        if (tableDividendElements.length === 0) {
+            console.log('No dividend table cells found');
+            return;
+        }
+        
+        // Wrap the dividend elements in the main equation for shaking
+        const dividendWrapper = createGroupWrapper(dividendElements, 'dividend-group');
+        const dividendContainer = dividendElements[0].parentNode;
+        
+        // Replace individual elements with wrapper
+        dividendElements.forEach((el, index) => {
+            if (index === 0) {
+                el.parentNode.insertBefore(dividendWrapper, el);
+            }
+            dividendWrapper.appendChild(el);
+        });
+        
+        // Add shake animation to the whole group
+        dividendWrapper.classList.add('shaking');
         
         // Wait for shake to complete
         await new Promise(resolve => setTimeout(resolve, 600));
         
-        // Remove shake classes
-        if (dividendHundreds) dividendHundreds.classList.remove('shaking');
-        if (dividendTens) dividendTens.classList.remove('shaking');
-        if (dividendOnes) dividendOnes.classList.remove('shaking');
+        // Remove shake class
+        dividendWrapper.classList.remove('shaking');
         
-        // Animate hundreds digit if it exists and has content
-        if (dividendHundreds && dividendHundreds.textContent.trim() && tableDividendHundreds) {
-            await createFlyingNumber(dividendHundreds, tableDividendHundreds, 1);
-            tableDividendHundreds.textContent = dividendHundreds.textContent;
-            tableDividendHundreds.classList.add('animated-in');
-        }
+        // Animate the group flying to the table
+        await createFlyingGroup(dividendElements, tableDividendElements, 'dividend');
         
-        // Animate tens digit if it exists and has content
-        if (dividendTens && dividendTens.textContent.trim() && tableDividendTens) {
-            await createFlyingNumber(dividendTens, tableDividendTens, 2);
-            tableDividendTens.textContent = dividendTens.textContent;
-            tableDividendTens.classList.add('animated-in');
-        }
+        // Update table cells with values
+        dividendElements.forEach((el, index) => {
+            if (tableDividendElements[index]) {
+                tableDividendElements[index].textContent = el.textContent;
+                tableDividendElements[index].classList.add('highlight-arrival');
+            }
+        });
         
-        // Animate ones digit
-        if (dividendOnes && tableDividendOnes) {
-            await createFlyingNumber(dividendOnes, tableDividendOnes, 3);
-            tableDividendOnes.textContent = dividendOnes.textContent;
-            tableDividendOnes.classList.add('animated-in');
-        }
+        // Remove highlight after a moment
+        setTimeout(() => {
+            tableDividendElements.forEach(cell => {
+                if (cell) cell.classList.remove('highlight-arrival');
+            });
+        }, 1000);
         
-        console.log('Dividend animation complete');
+        console.log('Dividend group animation complete');
     }
     
     // Main animation sequence
@@ -292,10 +416,10 @@ document.addEventListener('DOMContentLoaded', function() {
             mainEquation.style.fontSize = '1.5em';
         }
         
-        // Step 2: Animate divisor moving to table
+        // Step 2: Animate divisor group moving to table
         await animateDivisorToTable();
         
-        // Step 3: Animate dividend moving to table
+        // Step 3: Animate dividend group moving to table
         await animateDividendToTable();
         
         // Step 4: Show the work feedback controls
