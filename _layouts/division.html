@@ -24,7 +24,7 @@
             <!-- Main Workspace -->
             <div class="dual-container">
                 <!-- LEFT CONTAINER -->
-                <div class="main-problem-container">
+                <div class="left-container">
                     <h3>Division Problem</h3>
                     <div class="main-problem" id="problemdisplay" >
                         <div class="equation-display">
@@ -60,22 +60,22 @@
                             <div class="current-step-equation" id="currentStepEquation">1 ÷ 5 = ?</div>
                             <div class="current-instruction" id="currentInstruction">How many times does 5 go into 1?</div>
                             <div class="number-display">Current guess: <span id="currentGuessDisplay">0</span></div>
+                            <div class="work-feedback hidden" id="workFeedback">
+                                    <div class="control-grid">
+                                    <button class="grid-btn decrement five">-5</button>
+                                    <button class="grid-btn decrement one">-1</button>
+                                    <button class="grid-btn clear">C</button>
+                                    <button class="grid-btn increment one">+1</button>
+                                    <button class="grid-btn increment five">+5</button>
+                                    </div>
+                                <button id="commitGuessBtn" class="commit-btn">Confirm Current Guess</button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="work-feedback hidden" id="workFeedback">
-                        <div class="control-grid">
-                            <button class="grid-btn decrement five">-5</button>
-                            <button class="grid-btn decrement one">-1</button>
-                            <button class="grid-btn clear">C</button>
-                            <button class="grid-btn increment one">+1</button>
-                            <button class="grid-btn increment five">+5</button>
-                        </div>
-                        <button id="commitGuessBtn" class="commit-btn">Confirm Current Guess</button>
                     </div>
                 </div>
                 
                 <!-- RIGHT CONTAINER -->
-                <div class="work-container">
+                <div class="right-container">
                     <h3>Work Area</h3>
                     
                     <!-- Step Tracker (Hidden) -->
