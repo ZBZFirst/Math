@@ -518,46 +518,67 @@ class DivisionApp {
                 }
                 break;
                 
+            // In the updateGridForStep method, update the Step 3 case:
             case 3:
-                // Step 3: Columns 5-6 (2-digit area, right-aligned)
+                // Step 3: Columns 4-6 (3-digit area for larger products)
                 
                 // Note: The digit was already "brought down" by prepareNextStep()
-                // The partial dividend "23" is now visible in r9c5,r9c6
+                // The partial dividend "507" is now visible in r9c4,r9c5,r9c6
                 
-                // Show the product "20" → "20" in r10c5,r10c6
-                const productStr3 = String(product).padStart(2, '0'); // "20"
-                // Clear r10c4 first
-                const productCell3a = document.getElementById('r10c4');
-                if (productCell3a) {
-                    productCell3a.textContent = '';
-                    productCell3a.classList.remove('filled');
+                // For larger products (like 435), we need 3 columns
+                const productStr3 = String(product);
+                const remainderStr3 = String(remainder).padStart(3, '0'); // For 3-digit remainder
+                
+                console.log(`Step 3: product=${product}, productStr=${productStr3}, length=${productStr3.length}`);
+                
+                // Clear all product cells first
+                ['r10c4', 'r10c5', 'r10c6'].forEach(cellId => {
+                    const cell = document.getElementById(cellId);
+                    if (cell) {
+                        cell.textContent = '';
+                        cell.classList.remove('filled');
+                    }
+                });
+                
+                // Place product digits RIGHT-ALIGNED in columns 4-6
+                // For 435: "4" in r10c4, "3" in r10c5, "5" in r10c6
+                for (let i = 0; i < productStr3.length; i++) {
+                    const digit = productStr3[productStr3.length - 1 - i]; // Start from rightmost digit
+                    const col = 6 - i; // Place right-to-left in columns 4-6
+                    
+                    if (col >= 4) {
+                        const cellId = `r10c${col}`;
+                        const cell = document.getElementById(cellId);
+                        if (cell) {
+                            cell.textContent = digit;
+                            cell.classList.add('filled');
+                        }
+                    }
                 }
                 
-                const productCell3b = document.getElementById('r10c5');
-                const productCell3c = document.getElementById('r10c6');
-                if (productCell3b && productCell3c) {
-                    productCell3b.textContent = productStr3[0]; // "2"
-                    productCell3b.classList.add('filled');
-                    productCell3c.textContent = productStr3[1]; // "0"
-                    productCell3c.classList.add('filled');
-                }
+                // Clear all remainder cells first
+                ['r12c4', 'r12c5', 'r12c6'].forEach(cellId => {
+                    const cell = document.getElementById(cellId);
+                    if (cell) {
+                        cell.textContent = '';
+                        cell.classList.remove('filled');
+                    }
+                });
                 
-                // Remainder "3" → "03" in r12c5,r12c6
-                const remainderStr3 = String(remainder).padStart(2, '0'); // "03"
-                // Clear r12c4 first
-                const remainderCell3a = document.getElementById('r12c4');
-                if (remainderCell3a) {
-                    remainderCell3a.textContent = '';
-                    remainderCell3a.classList.remove('filled');
-                }
-                
-                const remainderCell3b = document.getElementById('r12c5');
-                const remainderCell3c = document.getElementById('r12c6');
-                if (remainderCell3b && remainderCell3c) {
-                    remainderCell3b.textContent = remainderStr3[0]; // "0"
-                    remainderCell3b.classList.add('filled');
-                    remainderCell3c.textContent = remainderStr3[1]; // "3"
-                    remainderCell3c.classList.add('filled');
+                // Place remainder digits RIGHT-ALIGNED in columns 4-6
+                // For 72: "0" in r12c4, "7" in r12c5, "2" in r12c6
+                for (let i = 0; i < remainderStr3.length; i++) {
+                    const digit = remainderStr3[remainderStr3.length - 1 - i];
+                    const col = 6 - i;
+                    
+                    if (col >= 4) {
+                        const cellId = `r12c${col}`;
+                        const cell = document.getElementById(cellId);
+                        if (cell) {
+                            cell.textContent = digit;
+                            cell.classList.add('filled');
+                        }
+                    }
                 }
                 
                 // Final remainder in answer area
@@ -565,16 +586,16 @@ class DivisionApp {
                 console.log(`Final remainder: ${finalRemainder}`);
                 
                 if (finalRemainder > 0) {
-                    const finalRemainderStr = String(finalRemainder).padStart(2, '0'); // "03"
+                    const finalRemainderStr = String(finalRemainder).padStart(2, '0'); // "72"
                     
                     // Update the remainder cells in the answer area
                     const r1c8 = document.getElementById('r1c8');
                     const r1c9 = document.getElementById('r1c9');
                     
                     if (r1c8 && r1c9) {
-                        r1c8.textContent = finalRemainderStr[0]; // "0"
+                        r1c8.textContent = finalRemainderStr[0]; // "7"
                         r1c8.classList.add('filled');
-                        r1c9.textContent = finalRemainderStr[1]; // "3"
+                        r1c9.textContent = finalRemainderStr[1]; // "2"
                         r1c9.classList.add('filled');
                     }
                     
@@ -695,14 +716,10 @@ class DivisionApp {
             // Don't clear the original problem cells (they will be set by initializeGridDigits)
             if (!['r3c1', 'r3c2', 'r3c4', 'r3c5', 'r3c6'].includes(id)) {
                 cell.textContent = '';
-                cell.classList.remove('filled', 'highlighted', 'brought-down', 'yellow', 'brown', 'green');
+                cell.classList.remove('filled', 'highlighted', 'brought-down');
                 
-                // Restore original classes based on cell position
-                if (id.includes('yellow')) cell.classList.add('yellow');
-                if (id.includes('brown')) cell.classList.add('brown');
-                if (id.includes('green')) cell.classList.add('green');
-                if (id.includes('orange')) cell.classList.add('orange');
-                if (id.includes('blue')) cell.classList.add('blue');
+                // DO NOT remove the color classes - they should stay!
+                // These classes come from HTML: yellow, brown, green, orange, blue
             }
         });
         
