@@ -365,26 +365,72 @@ class DivisionApp {
         }
     }
     
-    // NEW METHOD: Prepare next step (bring down digit)
     prepareNextStep(nextStep) {
         switch(nextStep) {
             case 2:
-                // Bring down the digit from r3c5 to r6c5
+                // Bring down the digit from r3c5 (tens) to r6c5
                 const broughtDownDigit2 = document.getElementById('r3c5').textContent;
                 const bringDownCell2 = document.getElementById('r6c5');
-                if (bringDownCell2 && broughtDownDigit2) {
-                    bringDownCell2.textContent = broughtDownDigit2; // Bring down the "2"
-                    bringDownCell2.classList.add('filled');
+                if (bringDownCell2 && broughtDownDigit2 && broughtDownDigit2 !== '') {
+                    // Get the remainder from step 1
+                    const step1Remainder = document.getElementById('r6c4').textContent;
+                    
+                    // Combine remainder from step 1 with brought down digit
+                    // This should form the partial dividend for step 2
+                    if (step1Remainder !== '' && step1Remainder !== '0') {
+                        // Show the partial dividend in r6c4 and r6c5
+                        const r6c4 = document.getElementById('r6c4');
+                        if (r6c4) {
+                            // Keep the remainder from step 1
+                            bringDownCell2.textContent = broughtDownDigit2;
+                            bringDownCell2.classList.add('filled');
+                            
+                            // Ensure r6c4 still shows the remainder
+                            if (!r6c4.textContent || r6c4.textContent === '') {
+                                r6c4.textContent = step1Remainder;
+                                r6c4.classList.add('filled');
+                            }
+                        }
+                    } else {
+                        // If remainder was 0, just show the brought down digit
+                        bringDownCell2.textContent = broughtDownDigit2;
+                        bringDownCell2.classList.add('filled');
+                    }
                 }
                 break;
                 
             case 3:
-                // Bring down the digit from r3c6 to r9c6
+                // Bring down the digit from r3c6 (ones) to r9c6
                 const broughtDownDigit3 = document.getElementById('r3c6').textContent;
                 const bringDownCell3 = document.getElementById('r9c6');
-                if (bringDownCell3 && broughtDownDigit3) {
-                    bringDownCell3.textContent = broughtDownDigit3; // Bring down the "3"
-                    bringDownCell3.classList.add('filled');
+                if (bringDownCell3 && broughtDownDigit3 && broughtDownDigit3 !== '') {
+                    // Get the remainder from step 2
+                    const step2RemainderTens = document.getElementById('r9c4').textContent;
+                    const step2RemainderOnes = document.getElementById('r9c5').textContent;
+                    
+                    // Show the partial dividend for step 3
+                    if (step2RemainderTens !== '' || step2RemainderOnes !== '') {
+                        // Bring down the digit to complete the partial dividend
+                        bringDownCell3.textContent = broughtDownDigit3;
+                        bringDownCell3.classList.add('filled');
+                        
+                        // Ensure remainder from step 2 is still visible
+                        const r9c4 = document.getElementById('r9c4');
+                        const r9c5 = document.getElementById('r9c5');
+                        
+                        if (r9c4 && (!r9c4.textContent || r9c4.textContent === '')) {
+                            r9c4.textContent = step2RemainderTens || '0';
+                            r9c4.classList.add('filled');
+                        }
+                        if (r9c5 && (!r9c5.textContent || r9c5.textContent === '')) {
+                            r9c5.textContent = step2RemainderOnes || '0';
+                            r9c5.classList.add('filled');
+                        }
+                    } else {
+                        // Just bring down the digit
+                        bringDownCell3.textContent = broughtDownDigit3;
+                        bringDownCell3.classList.add('filled');
+                    }
                 }
                 break;
         }
