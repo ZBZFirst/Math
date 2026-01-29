@@ -365,12 +365,28 @@ class DivisionApp {
                         cell.classList.remove('filled');
                     }
                 });
+                
+                // BRING DOWN: Show arrow or bring down next digit for step 2
+                // The next digit from dividend (r3c5) will be combined with remainder for step 2
                 break;
                 
             case 2:
                 // Step 2: Columns 4-5 (2-digit area, right-aligned)
                 
-                // Product "10" → "10" in r7c4,r7c5
+                // First, "bring down" the next digit from dividend (r3c5) to combine with previous remainder
+                // The new partial dividend for step 2 should be shown as "12" in r6c4,r6c5
+                // But actually, it's already there: remainder "1" from step1 + "2" from r3c5
+                
+                // Show the brought down digit visually - copy from r3c5 to r6c5
+                const broughtDownDigit2 = document.getElementById('r3c5').textContent;
+                const bringDownCell2 = document.getElementById('r6c5');
+                if (bringDownCell2 && broughtDownDigit2) {
+                    bringDownCell2.textContent = broughtDownDigit2; // Bring down the "2"
+                    bringDownCell2.classList.add('filled');
+                    bringDownCell2.classList.add('brought-down'); // Optional: add styling
+                }
+                
+                // Now show the product "10" → "10" in r7c4,r7c5
                 const productStr2 = String(product).padStart(2, '0'); // "10"
                 const productCell2a = document.getElementById('r7c4');
                 const productCell2b = document.getElementById('r7c5');
@@ -408,7 +424,20 @@ class DivisionApp {
             case 3:
                 // Step 3: Columns 5-6 (2-digit area, right-aligned)
                 
-                // Product "20" → "20" in r10c5,r10c6
+                // First, "bring down" the next digit from dividend (r3c6) to combine with previous remainder
+                // The new partial dividend for step 3 should be shown as "23" in r9c5,r9c6
+                // But actually, it's: remainder "2" from step2 + "3" from r3c6
+                
+                // Show the brought down digit visually - copy from r3c6 to r9c6
+                const broughtDownDigit3 = document.getElementById('r3c6').textContent;
+                const bringDownCell3 = document.getElementById('r9c6');
+                if (bringDownCell3 && broughtDownDigit3) {
+                    bringDownCell3.textContent = broughtDownDigit3; // Bring down the "3"
+                    bringDownCell3.classList.add('filled');
+                    bringDownCell3.classList.add('brought-down'); // Optional: add styling
+                }
+                
+                // Now show the product "20" → "20" in r10c5,r10c6
                 const productStr3 = String(product).padStart(2, '0'); // "20"
                 // Clear r10c4 first
                 const productCell3a = document.getElementById('r10c4');
