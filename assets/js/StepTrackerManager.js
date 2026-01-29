@@ -399,7 +399,9 @@ export class StepTrackerManager {
         const currentStep = this.getCurrentStep();
         const currentPhase = this.getCurrentPhase();
         const stepAnswers = this.get('step-answers');
-    
+
+        console.log(`[checkGuess] Step ${currentStep}, Phase ${currentPhase}, Guess: ${guessToCheck}`);
+
         if (!stepAnswers || !stepAnswers[`step${currentStep}`]) {
             console.warn(`No step answers found for step ${currentStep}`);
             return false;
