@@ -68,6 +68,15 @@ class DivisionApp {
         document.addEventListener('step-tracker-updated', (e) => this.handleTrackerUpdate(e));
         document.addEventListener('new-problem-set', (e) => this.handleNewProblem(e));
         document.addEventListener('step-changed', (e) => this.handleStepChange(e));
+        document.addEventListener('phase-changed', (e) => this.handlePhaseChange(e));
+
+    }
+
+    // Add the handlePhaseChange method:
+    handlePhaseChange(event) {
+        const { step, phase } = event.detail;
+        console.log(`Phase changed to ${phase} for step ${step}`);
+        this.showCurrentStep();
     }
     
     // ========== PROBLEM MANAGEMENT ==========
@@ -249,36 +258,54 @@ class DivisionApp {
     
     showCurrentStep() {
         const currentStep = this.stepTracker.getCurrentStep();
+        const currentPhase = this.stepTracker.getCurrentPhase();
         const totalSteps = this.stepTracker.get('total-steps') || 3;
         const stepAnswers = this.stepTracker.get('step-answers');
         const stepData = stepAnswers[`step${currentStep}`];
+        const divisor = this.stepTracker.get('divisor');
         
         if (!stepData) {
             console.warn(`No data for step ${currentStep}`);
             return;
         }
         
-        console.log(`Showing step ${currentStep} of ${totalSteps}: ${stepData.partialDividend} ÷ ${this.stepTracker.get('divisor')}`);
+        console.log(`Showing step ${currentStep}, phase ${currentPhase}: ${stepData.partialDividend} ÷ ${divisor}`);
         
         // Show the step container
         this.currentStepContainer.classList.remove('hidden');
         
         // Update step info
         document.querySelector('.current-step-title').textContent = `Current Step - Step ${currentStep}`;
-        this.currentStepEquation.textContent = `${stepData.partialDividend} ÷ ${this.stepTracker.get('divisor')} = ?`;
-        this.currentInstruction.textContent = `How many times does ${this.stepTracker.get('divisor')} go into ${stepData.partialDividend}?`;
+        
+        // Set instruction based on current phase
+        switch(currentPhase) {
+            case 1:
+                this.currentStepEquation.textContent = `${stepData.partialDividend} ÷ ${divisor} = ?`;
+                this.currentInstruction.textContent = `How many times does ${divisor} go into ${stepData.partialDividend}?`;
+                break;
+            case 2:
+                const guess = stepData.userGuess || 0;
+                this.currentStepEquation.textContent = `${guess} × ${divisor} = ?`;
+                this.currentInstruction.textContent = `What is the product of ${guess} × ${divisor}?`;
+                break;
+            case 3:
+                this.currentStepEquation.textContent = `${stepData.partialDividend} - ${stepData.userProduct} = ?`;
+                this.currentInstruction.textContent = `What is the remainder?`;
+                break;
+        }
         
         // ALWAYS show work feedback with controls
         this.workFeedback.classList.remove('hidden');
         
-        // Highlight relevant grid cells
-        this.highlightGridForStep(currentStep);
+        // Highlight relevant grid cells for current phase
+        this.highlightGridForPhase(currentPhase);
         
-        // If this is step 2 or 3, ensure the brought down digit is shown
-        if (currentStep === 2 || currentStep === 3) {
+        // If this is step 2 or 3 and phase 1, ensure the brought down digit is shown
+        if (currentStep >= 2 && currentPhase === 1) {
             this.ensureBroughtDownDigit(currentStep);
         }
     }
+
     
     // Helper method to ensure brought down digit is visible
     ensureBroughtDownDigit(step) {
@@ -323,54 +350,229 @@ class DivisionApp {
     }
     
     commitCurrentGuess() {
+        // Just pass to handleCorrectGuess - it will check if it's correct
+        this.handleCorrectGuess();
+    }
+    
+    // Replace the handleCorrectGuess method with this:
+    handleCorrectGuess() {
         const currentStep = this.stepTracker.getCurrentStep();
-        const isCorrect = this.stepTracker.checkGuess(this.currentGuess);
+        const currentPhase = this.stepTracker.getCurrentPhase();
+        const stepAnswers = this.stepTracker.get('step-answers');
+        const stepData = stepAnswers[`step${currentStep}`];
+        const divisor = this.stepTracker.get('divisor');
+        
+        console.log(`Step ${currentStep}, Phase ${currentPhase}: guess=${this.currentGuess}`);
+        
+        // Get the expected value for the current phase
+        let expectedValue;
+        let phaseInstruction;
+        
+        switch(currentPhase) {
+            case 1: // Guess phase
+                expectedValue = stepData.expectedGuess;
+                phaseInstruction = "How many times does it go in?";
+                break;
+            case 2: // Product phase
+                expectedValue = stepData.expectedProduct;
+                phaseInstruction = "What is the product?";
+                break;
+            case 3: // Remainder phase
+                expectedValue = stepData.expectedRemainder;
+                phaseInstruction = "What is the remainder?";
+                break;
+        }
+        
+        const isCorrect = this.currentGuess === expectedValue;
         
         if (isCorrect) {
-            this.handleCorrectGuess(currentStep);
+            // Handle each phase differently
+            switch(currentPhase) {
+                case 1: // User guessed the quotient digit correctly
+                    // Store the guess for product calculation
+                    this.stepTracker.checkGuess(this.currentGuess);
+                    
+                    // Update instruction for next phase
+                    this.currentInstruction.textContent = `${this.currentGuess} × ${divisor} = ?`;
+                    
+                    // Highlight product area in grid
+                    this.highlightGridForPhase(2);
+                    
+                    // Reset guess for product
+                    this.currentGuess = 0;
+                    this.updateGuessDisplay();
+                    break;
+                    
+                case 2: // User calculated the product correctly
+                    // Store the product
+                    this.stepTracker.checkGuess(this.currentGuess);
+                    
+                    // Update grid with the product
+                    this.updateGridForPhase(currentStep, 2, this.currentGuess);
+                    
+                    // Update instruction for remainder phase
+                    const partialDividend = stepData.partialDividend;
+                    this.currentInstruction.textContent = `${partialDividend} - ${this.currentGuess} = ?`;
+                    
+                    // Highlight remainder area
+                    this.highlightGridForPhase(3);
+                    
+                    // Reset guess for remainder
+                    this.currentGuess = 0;
+                    this.updateGuessDisplay();
+                    break;
+                    
+                case 3: // User calculated the remainder correctly
+                    // Store the remainder
+                    this.stepTracker.checkGuess(this.currentGuess);
+                    
+                    // Update grid with the remainder
+                    this.updateGridForPhase(currentStep, 3, this.currentGuess);
+                    
+                    // Complete the step
+                    const stepResult = {
+                        guess: stepData.userGuess,
+                        product: stepData.userProduct,
+                        remainder: stepData.userRemainder,
+                        isCorrect: true
+                    };
+                    
+                    this.stepTracker.completeStep(stepResult);
+                    
+                    // Update score
+                    this.updateScore(true);
+                    
+                    // Reset guess for next step
+                    this.currentGuess = 0;
+                    this.updateGuessDisplay();
+                    
+                    // If we're moving to next step, prepare it
+                    const nextStep = currentStep + 1;
+                    if (nextStep <= 3 && !this.stepTracker.get('problem-completed')) {
+                        this.prepareNextStep(nextStep);
+                        
+                        // Show next step
+                        setTimeout(() => {
+                            this.showCurrentStep();
+                        }, 1000);
+                    } else if (this.stepTracker.get('problem-completed')) {
+                        this.showCompletionMessage();
+                    }
+                    break;
+            }
         } else {
             this.handleIncorrectGuess();
         }
     }
     
-    handleCorrectGuess(step) {
-        // Get step data
-        const stepAnswers = this.stepTracker.get('step-answers');
-        const stepData = stepAnswers[`step${step}`];
-        const divisor = this.stepTracker.get('divisor');
-        
-        // Calculate product and remainder
-        const product = this.currentGuess * divisor;
-        const remainder = stepData.partialDividend - product;
-        
-        // Update grid with current step's calculations (product and remainder)
-        this.updateGridForStep(step, this.currentGuess, product, remainder);
-        
-        // Update step tracker
-        this.stepTracker.completeStep({
-            guess: this.currentGuess,
-            product: product,
-            remainder: remainder,
-            timeSpent: 0,
-            isCorrect: true
+    // Add these new helper methods:
+    highlightGridForPhase(phase) {
+        // Clear previous highlights
+        document.querySelectorAll('.division-table.highlighted').forEach(cell => {
+            cell.classList.remove('highlighted');
         });
         
-        // If we're moving to next step, prepare it (bring down digit)
-        const nextStep = step + 1;
-        if (nextStep <= 3 && !this.stepTracker.get('problem-completed')) {
-            this.prepareNextStep(nextStep);
+        const currentStep = this.stepTracker.getCurrentStep();
+        const gridMappings = this.stepTracker.get('grid-mappings');
+        const stepMapping = gridMappings[`step${currentStep}`];
+        
+        if (!stepMapping) return;
+        
+        // Highlight cells based on phase
+        switch(phase) {
+            case 1: // Guess phase - highlight input cells
+                stepMapping.input.forEach(cellId => {
+                    const cell = document.getElementById(cellId);
+                    if (cell) cell.classList.add('highlighted');
+                });
+                break;
+                
+            case 2: // Product phase - highlight product cells
+                if (stepMapping.output && stepMapping.output.product) {
+                    stepMapping.output.product.forEach(cellId => {
+                        const cell = document.getElementById(cellId);
+                        if (cell) cell.classList.add('highlighted');
+                    });
+                }
+                break;
+                
+            case 3: // Remainder phase - highlight remainder cells
+                if (stepMapping.output && stepMapping.output.remainder) {
+                    stepMapping.output.remainder.forEach(cellId => {
+                        const cell = document.getElementById(cellId);
+                        if (cell) cell.classList.add('highlighted');
+                    });
+                }
+                break;
         }
+    }
+    
+    updateGridForPhase(step, phase, value) {
+        const gridMappings = this.stepTracker.get('grid-mappings');
+        const stepMapping = gridMappings[`step${step}`];
         
-        // Update score
-        this.updateScore(true);
+        if (!stepMapping || !stepMapping.output) return;
         
-        // Reset guess for next step
-        this.currentGuess = 0;
-        this.updateGuessDisplay();
+        const valueStr = String(value);
         
-        // Check if problem is complete
-        if (this.stepTracker.get('problem-completed')) {
-            this.showCompletionMessage();
+        switch(phase) {
+            case 2: // Product
+                const productCells = stepMapping.output.product;
+                if (productCells) {
+                    // Clear cells first
+                    productCells.forEach(cellId => {
+                        const cell = document.getElementById(cellId);
+                        if (cell) {
+                            cell.textContent = '';
+                            cell.classList.remove('filled');
+                        }
+                    });
+                    
+                    // Fill right-aligned
+                    const numCols = productCells.length;
+                    for (let i = 0; i < valueStr.length; i++) {
+                        const digit = valueStr[valueStr.length - 1 - i];
+                        const cellIndex = numCols - 1 - i;
+                        if (cellIndex >= 0) {
+                            const cellId = productCells[cellIndex];
+                            const cell = document.getElementById(cellId);
+                            if (cell) {
+                                cell.textContent = digit;
+                                cell.classList.add('filled');
+                            }
+                        }
+                    }
+                }
+                break;
+                
+            case 3: // Remainder
+                const remainderCells = stepMapping.output.remainder;
+                if (remainderCells) {
+                    // Clear cells first
+                    remainderCells.forEach(cellId => {
+                        const cell = document.getElementById(cellId);
+                        if (cell) {
+                            cell.textContent = '';
+                            cell.classList.remove('filled');
+                        }
+                    });
+                    
+                    // Fill right-aligned
+                    const numCols = remainderCells.length;
+                    for (let i = 0; i < valueStr.length; i++) {
+                        const digit = valueStr[valueStr.length - 1 - i];
+                        const cellIndex = numCols - 1 - i;
+                        if (cellIndex >= 0) {
+                            const cellId = remainderCells[cellIndex];
+                            const cell = document.getElementById(cellId);
+                            if (cell) {
+                                cell.textContent = digit;
+                                cell.classList.add('filled');
+                            }
+                        }
+                    }
+                }
+                break;
         }
     }
     
@@ -928,6 +1130,7 @@ class DivisionApp {
         
         switch(attribute) {
             case 'current-step':
+            case 'current-phase':
                 this.showCurrentStep();
                 break;
             case 'current-guess':
