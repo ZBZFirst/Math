@@ -73,9 +73,9 @@ class DivisionApp {
     // ========== PROBLEM MANAGEMENT ==========
     
     generateNewProblem() {
-        // Generate random 3-digit dividend and 1-2 digit divisor
-        const dividend = Math.floor(Math.random() * 900) + 80;
-        const divisor = Math.floor(Math.random() * 10) + 10;
+        // Generate random 3-digit dividend and 2-digit divisor
+        const dividend = Math.floor(Math.random() * 900) + 100; // 100-999 (ALWAYS 3 digits)
+        const divisor = Math.floor(Math.random() * 10) + 10;    // 10-29 (ALWAYS 2 digits)
         
         console.log(`Generating new problem: ${dividend} ÷ ${divisor}`);
         
