@@ -258,7 +258,7 @@ export class StepTrackerManager {
                 bringdownTarget: "r9c6",   // Where to bring it down to
                 input: ["r9c4", "r9c5", "r9c6"], // Actually "2" + "3" = "23" (should be 2 cells, not 3)
                 output: {
-                    product: ["r10c4", "r10c5"], // 4 × 5 = 20 (2 digits) - NOT 3 cells
+                    product: ["r10c4", "r10c5", "r10c6"],
                     remainder: ["r12c4", "r12c5", "r12c6"], // 23 - 20 = 3 (1 digit, but needs 3 cells?)
                     quotient: "r1c6",      // Quotient digit "4"
                     finalRemainder: ["r1c8", "r1c9"] // Final remainder "3" (1 digit)
@@ -513,7 +513,11 @@ export class StepTrackerManager {
         const step = stepAnswers[`step${currentStep}`];
     
         // Pull correctness explicitly
-        const isStepCorrect = userData.isCorrect === true;
+            const isStepCorrect = (
+                step.userGuess === step.expectedGuess &&
+                step.userProduct === step.expectedProduct &&
+                step.userRemainder === step.expectedRemainder
+            );
     
         // Update step with user's actual values
         step.userGuess = userData.guess ?? step.userGuess;
