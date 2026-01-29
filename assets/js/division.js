@@ -77,17 +77,27 @@ class DivisionApp {
         const dividend = Math.floor(Math.random() * 900) + 100; // 100-999
         const divisor = Math.floor(Math.random() * 90) + 10;    // 10-99
         
+        console.log(`Generating new problem: ${dividend} ÷ ${divisor}`);
+        
         // Set problem in tracker
         this.stepTracker.setProblem(dividend, divisor);
         
         // Update visual display
         this.updateMainEquation();
-        this.showCurrentStep();
+        
+        // Initialize grid with new problem digits
+        this.initializeGridDigits(dividend, divisor);
         
         // Reset UI state
         this.currentGuess = 0;
         this.updateGuessDisplay();
-        this.workFeedback.classList.add('hidden');
+        
+        // Show the current step (this will also show the work feedback)
+        this.showCurrentStep();
+        
+        // Ensure work feedback is visible
+        this.workFeedback.classList.remove('hidden');
+        this.currentStepContainer.classList.remove('hidden');
     }
 
     initializeGridMappings() {
@@ -146,9 +156,10 @@ class DivisionApp {
         return mappings;
     }
     
-// In division.js - add this new method
     initializeGridDigits(dividend, divisor) {
-        // Clear any existing values first
+        console.log(`Initializing grid digits: ${dividend} ÷ ${divisor}`);
+        
+        // Clear all non-transparent cells
         this.clearGrid();
         
         // Set dividend in grid (r3c4, r3c5, r3c6)
@@ -157,26 +168,47 @@ class DivisionApp {
         const r3c5 = document.getElementById('r3c5');
         const r3c6 = document.getElementById('r3c6');
         
-        if (r3c4) r3c4.textContent = dividendStr[0];
-        if (r3c5) r3c5.textContent = dividendStr[1];
-        if (r3c6) r3c6.textContent = dividendStr[2];
+        if (r3c4) {
+            r3c4.textContent = dividendStr[0];
+            r3c4.classList.add('orange');
+        }
+        if (r3c5) {
+            r3c5.textContent = dividendStr[1];
+            r3c5.classList.add('orange');
+        }
+        if (r3c6) {
+            r3c6.textContent = dividendStr[2];
+            r3c6.classList.add('orange');
+        }
         
         // Set divisor in grid (r3c1, r3c2)
         const divisorStr = String(divisor).padStart(2, '0');
         const r3c1 = document.getElementById('r3c1');
         const r3c2 = document.getElementById('r3c2');
         
-        if (r3c1) r3c1.textContent = divisorStr[0] === '0' ? '' : divisorStr[0];
-        if (r3c2) r3c2.textContent = divisorStr[1];
-        
-        // Clear all other non-transparent cells
-        document.querySelectorAll('.division-table:not(.transparent)').forEach(cell => {
-            const id = cell.id;
-            // Skip cells we just set
-            if (!['r3c1', 'r3c2', 'r3c4', 'r3c5', 'r3c6'].includes(id)) {
-                cell.textContent = '';
-                cell.classList.remove('filled', 'highlighted');
+        if (r3c1) {
+            r3c1.textContent = divisorStr[0] === '0' ? '' : divisorStr[0];
+            if (divisorStr[0] !== '0') {
+                r3c1.classList.add('blue');
             }
+        }
+        if (r3c2) {
+            r3c2.textContent = divisorStr[1];
+            r3c2.classList.add('blue');
+        }
+        
+        // Clear quotient cells in row 1
+        ['r1c4', 'r1c5', 'r1c6', 'r1c8', 'r1c9'].forEach(cellId => {
+            const cell = document.getElementById(cellId);
+            if (cell) {
+                cell.textContent = '';
+                cell.classList.remove('filled', 'green');
+            }
+        });
+        
+        // Hide remainder in main equation
+        document.querySelectorAll('.mainEquation.remainder').forEach(el => {
+            el.classList.add('hidden');
         });
     }
     
@@ -185,19 +217,35 @@ class DivisionApp {
         const defaultDividend = parseInt(this.stepTracker.get('dividend')) || 123;
         const defaultDivisor = parseInt(this.stepTracker.get('divisor')) || 5;
         
+        console.log(`Initializing problem: ${defaultDividend} ÷ ${defaultDivisor}`);
+        
         this.stepTracker.setProblem(defaultDividend, defaultDivisor);
         this.updateMainEquation();
+        this.initializeGridDigits(defaultDividend, defaultDivisor);
         this.showCurrentStep();
         
-        // Ensure grid is properly initialized
-        this.initializeGridDigits(defaultDividend, defaultDivisor);
+        // Ensure work feedback is visible
+        this.workFeedback.classList.remove('hidden');
     }
 
     resetCurrentProblem() {
+        console.log('Resetting current problem');
+        
+        const dividend = this.stepTracker.get('dividend');
+        const divisor = this.stepTracker.get('divisor');
+        
+        // Reset the step tracker
         this.stepTracker.resetProblem();
+        
+        // Reset UI state
         this.currentGuess = 0;
         this.updateGuessDisplay();
+        
+        // Clear and reinitialize the grid
         this.clearGrid();
+        this.initializeGridDigits(dividend, divisor);
+        
+        // Show the current step (which will show controls)
         this.showCurrentStep();
     }
     
@@ -210,6 +258,8 @@ class DivisionApp {
         
         if (!stepData) return;
         
+        console.log(`Showing step ${currentStep}`);
+        
         // Show the step container
         this.currentStepContainer.classList.remove('hidden');
         
@@ -218,7 +268,7 @@ class DivisionApp {
         this.currentStepEquation.textContent = `${stepData.partialDividend} ÷ ${this.stepTracker.get('divisor')} = ?`;
         this.currentInstruction.textContent = `How many times does ${this.stepTracker.get('divisor')} go into ${stepData.partialDividend}?`;
         
-        // Show work feedback area
+        // ALWAYS show work feedback with controls
         this.workFeedback.classList.remove('hidden');
         
         // Highlight relevant grid cells
@@ -636,10 +686,30 @@ class DivisionApp {
     }
     
     clearGrid() {
-        // Clear all non-transparent cells
+        console.log('Clearing grid');
+        
+        // Clear all non-transparent cells except the dividend/divisor cells
         document.querySelectorAll('.division-table:not(.transparent)').forEach(cell => {
-            cell.textContent = '';
-            cell.classList.remove('filled', 'highlighted');
+            const id = cell.id;
+            
+            // Don't clear the original problem cells (they will be set by initializeGridDigits)
+            if (!['r3c1', 'r3c2', 'r3c4', 'r3c5', 'r3c6'].includes(id)) {
+                cell.textContent = '';
+                cell.classList.remove('filled', 'highlighted', 'brought-down', 'yellow', 'brown', 'green');
+                
+                // Restore original classes based on cell position
+                if (id.includes('yellow')) cell.classList.add('yellow');
+                if (id.includes('brown')) cell.classList.add('brown');
+                if (id.includes('green')) cell.classList.add('green');
+                if (id.includes('orange')) cell.classList.add('orange');
+                if (id.includes('blue')) cell.classList.add('blue');
+            }
+        });
+        
+        // Clear highlight from dividend cells
+        ['r3c4', 'r3c5', 'r3c6'].forEach(cellId => {
+            const cell = document.getElementById(cellId);
+            if (cell) cell.classList.remove('highlighted');
         });
         
         // Hide remainder in main equation
