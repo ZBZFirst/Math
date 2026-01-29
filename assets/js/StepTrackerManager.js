@@ -144,53 +144,88 @@ export class StepTrackerManager {
     initializeStepAnswers(dividend, divisor, quotient, remainder) {
         const dividendStr = String(dividend);
         const divisorNum = divisor;
-        const totalSteps = dividendStr.length; // Should be 2 for 81
+        const quotientStr = String(quotient).padStart(3, '0');
         
-        // Steps object
+        // Calculate step-by-step answers for 3-digit long division
         const steps = {};
         
-        // Step 1: First digit(s) that form a number >= divisor
-        let currentPartial = 0;
-        let stepNumber = 1;
+        // Step 1: First digit only (hundreds place)
+        const step1Partial = parseInt(dividendStr[0]); // Just the first digit
+        const step1Guess = Math.floor(step1Partial / divisorNum);
+        const step1Product = step1Guess * divisorNum;
+        const step1Remainder = step1Partial - step1Product;
         
-        for (let i = 0; i < dividendStr.length; i++) {
-            // Bring down next digit
-            currentPartial = currentPartial * 10 + parseInt(dividendStr[i]);
-            
-            // If current partial is less than divisor, continue to next digit
-            if (currentPartial < divisor && i < dividendStr.length - 1) {
-                continue;
-            }
-            
-            // Calculate this step
-            const stepGuess = Math.floor(currentPartial / divisorNum);
-            const stepProduct = stepGuess * divisorNum;
-            const stepRemainder = currentPartial - stepProduct;
-            
-            steps[`step${stepNumber}`] = {
-                partialDividend: currentPartial,
-                expectedGuess: stepGuess,
-                expectedProduct: stepProduct,
-                expectedRemainder: stepRemainder,
-                answerDigit: stepGuess,
-                userGuess: 0,
-                userProduct: 0,
-                userRemainder: 0,
-                description: `Divide ${currentPartial} by ${divisorNum}`,
-                isCorrect: false,
-                completed: false
-            };
-            
-            // Reset for next step
-            currentPartial = stepRemainder;
-            stepNumber++;
+        steps.step1 = {
+            partialDividend: step1Partial,
+            expectedGuess: step1Guess,
+            expectedProduct: step1Product,
+            expectedRemainder: step1Remainder,
+            answerDigit: parseInt(quotientStr[0]) || 0,
+            userGuess: 0,
+            userProduct: 0,
+            userRemainder: 0,
+            description: `Divide ${step1Partial} by ${divisorNum}`,
+            isCorrect: false,
+            completed: false
+        };
+        
+        // Step 2: Bring down tens digit
+        let step2Partial;
+        if (dividendStr.length >= 2) {
+            step2Partial = parseInt(step1Remainder.toString() + dividendStr[1]);
+        } else {
+            step2Partial = step1Remainder;
         }
         
-        // If we have leftover remainder, that's the final remainder
-        // (Already handled)
+        const step2Guess = Math.floor(step2Partial / divisorNum);
+        const step2Product = step2Guess * divisorNum;
+        const step2Remainder = step2Partial - step2Product;
         
-        // Set total steps based on actual steps needed
-        this.set('total-steps', stepNumber - 1);
+        steps.step2 = {
+            partialDividend: step2Partial,
+            expectedGuess: step2Guess,
+            expectedProduct: step2Product,
+            expectedRemainder: step2Remainder,
+            answerDigit: parseInt(quotientStr[1]) || 0,
+            userGuess: 0,
+            userProduct: 0,
+            userRemainder: 0,
+            description: `Bring down next digit: ${step2Partial} ÷ ${divisorNum}`,
+            isCorrect: false,
+            completed: false
+        };
+        
+        // Step 3: Bring down ones digit
+        let step3Partial;
+        if (dividendStr.length >= 3) {
+            step3Partial = parseInt(step2Remainder.toString() + dividendStr[2]);
+        } else {
+            step3Partial = step2Remainder;
+        }
+        
+        const step3Guess = Math.floor(step3Partial / divisorNum);
+        const step3Product = step3Guess * divisorNum;
+        const step3Remainder = step3Partial - step3Product;
+        
+        steps.step3 = {
+            partialDividend: step3Partial,
+            expectedGuess: step3Guess,
+            expectedProduct: step3Product,
+            expectedRemainder: remainder, // Final remainder
+            answerDigit: parseInt(quotientStr[2]) || 0,
+            userGuess: 0,
+            userProduct: 0,
+            userRemainder: 0,
+            description: `Final step: ${step3Partial} ÷ ${divisorNum}`,
+            isCorrect: false,
+            completed: false,
+            isFinalStep: true
+        };
+        
+        // Verify calculations match overall result
+        if (step3Remainder !== remainder) {
+            console.warn('Step calculations dont match final remainder:', { step3Remainder, remainder });
+        }
         
         this.set('step-answers', steps);
         return steps;
