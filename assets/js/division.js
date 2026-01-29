@@ -718,8 +718,13 @@ class DivisionApp {
                 cell.textContent = '';
                 cell.classList.remove('filled', 'highlighted', 'brought-down');
                 
-                // DO NOT remove the color classes - they should stay!
-                // These classes come from HTML: yellow, brown, green, orange, blue
+                // IMPORTANT: Keep the original color classes!
+                // These classes come from HTML and should NOT be removed:
+                // - yellow, brown, green, orange, blue
+                // - answer, remainder, dividend, divisor
+                // - hundreds, tens, ones
+                
+                // Only remove the classes we added dynamically, not the structural ones
             }
         });
         
@@ -727,6 +732,19 @@ class DivisionApp {
         ['r3c4', 'r3c5', 'r3c6'].forEach(cellId => {
             const cell = document.getElementById(cellId);
             if (cell) cell.classList.remove('highlighted');
+        });
+        
+        // Clear filled class from quotient cells but keep green class
+        ['r1c4', 'r1c5', 'r1c6', 'r1c8', 'r1c9'].forEach(cellId => {
+            const cell = document.getElementById(cellId);
+            if (cell) {
+                cell.textContent = '';
+                cell.classList.remove('filled', 'highlighted');
+                // Ensure green class is present
+                if (cellId.includes('r1c') && (cellId.includes('answer') || cell.classList.contains('green'))) {
+                    cell.classList.add('green');
+                }
+            }
         });
         
         // Hide remainder in main equation
