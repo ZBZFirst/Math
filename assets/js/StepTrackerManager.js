@@ -383,7 +383,7 @@ export class StepTrackerManager {
         }
         
         return this;
-    }}
+    }
     
     getCurrentGuess() {
         return parseInt(this.get('current-guess')) || 0;
