@@ -351,7 +351,8 @@ class DivisionApp {
             guess: this.currentGuess,
             product: product,
             remainder: remainder,
-            timeSpent: 0
+            timeSpent: 0,
+            isCorrect: true
         });
         
         // If we're moving to next step, prepare it (bring down digit)
