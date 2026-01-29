@@ -223,6 +223,30 @@ class DivisionApp {
         
         // Highlight relevant grid cells
         this.highlightGridForStep(currentStep);
+        
+        // If this is step 2 or 3, ensure the brought down digit is shown
+        if (currentStep === 2 || currentStep === 3) {
+            this.ensureBroughtDownDigit(currentStep);
+        }
+    }
+    
+    // Helper method to ensure brought down digit is visible
+    ensureBroughtDownDigit(step) {
+        if (step === 2) {
+            const broughtDownDigit2 = document.getElementById('r3c5').textContent;
+            const bringDownCell2 = document.getElementById('r6c5');
+            if (bringDownCell2 && broughtDownDigit2 && !bringDownCell2.textContent) {
+                bringDownCell2.textContent = broughtDownDigit2;
+                bringDownCell2.classList.add('filled');
+            }
+        } else if (step === 3) {
+            const broughtDownDigit3 = document.getElementById('r3c6').textContent;
+            const bringDownCell3 = document.getElementById('r9c6');
+            if (bringDownCell3 && broughtDownDigit3 && !bringDownCell3.textContent) {
+                bringDownCell3.textContent = broughtDownDigit3;
+                bringDownCell3.classList.add('filled');
+            }
+        }
     }
     
     // ========== GUESS MANAGEMENT ==========
@@ -263,7 +287,7 @@ class DivisionApp {
         const product = this.currentGuess * divisor;
         const remainder = stepData.partialDividend - product;
         
-        // Update grid with calculations
+        // Update grid with current step's calculations (product and remainder)
         this.updateGridForStep(step, this.currentGuess, product, remainder);
         
         // Update step tracker
@@ -271,8 +295,14 @@ class DivisionApp {
             guess: this.currentGuess,
             product: product,
             remainder: remainder,
-            timeSpent: 0 // Could track actual time
+            timeSpent: 0
         });
+        
+        // If we're moving to next step, prepare it (bring down digit)
+        const nextStep = step + 1;
+        if (nextStep <= 3 && !this.stepTracker.get('problem-completed')) {
+            this.prepareNextStep(nextStep);
+        }
         
         // Update score
         this.updateScore(true);
@@ -285,6 +315,36 @@ class DivisionApp {
         if (this.stepTracker.get('problem-completed')) {
             this.showCompletionMessage();
         }
+    }
+    
+    // NEW METHOD: Prepare next step (bring down digit)
+    prepareNextStep(nextStep) {
+        switch(nextStep) {
+            case 2:
+                // Bring down the digit from r3c5 to r6c5
+                const broughtDownDigit2 = document.getElementById('r3c5').textContent;
+                const bringDownCell2 = document.getElementById('r6c5');
+                if (bringDownCell2 && broughtDownDigit2) {
+                    bringDownCell2.textContent = broughtDownDigit2; // Bring down the "2"
+                    bringDownCell2.classList.add('filled');
+                }
+                break;
+                
+            case 3:
+                // Bring down the digit from r3c6 to r9c6
+                const broughtDownDigit3 = document.getElementById('r3c6').textContent;
+                const bringDownCell3 = document.getElementById('r9c6');
+                if (bringDownCell3 && broughtDownDigit3) {
+                    bringDownCell3.textContent = broughtDownDigit3; // Bring down the "3"
+                    bringDownCell3.classList.add('filled');
+                }
+                break;
+        }
+        
+        // Update the highlighted cells for the next step
+        setTimeout(() => {
+            this.highlightGridForStep(nextStep);
+        }, 100);
     }
     
     handleIncorrectGuess() {
@@ -365,28 +425,15 @@ class DivisionApp {
                         cell.classList.remove('filled');
                     }
                 });
-                
-                // BRING DOWN: Show arrow or bring down next digit for step 2
-                // The next digit from dividend (r3c5) will be combined with remainder for step 2
                 break;
                 
             case 2:
                 // Step 2: Columns 4-5 (2-digit area, right-aligned)
                 
-                // First, "bring down" the next digit from dividend (r3c5) to combine with previous remainder
-                // The new partial dividend for step 2 should be shown as "12" in r6c4,r6c5
-                // But actually, it's already there: remainder "1" from step1 + "2" from r3c5
+                // Note: The digit was already "brought down" by prepareNextStep()
+                // The partial dividend "12" is now visible in r6c4,r6c5
                 
-                // Show the brought down digit visually - copy from r3c5 to r6c5
-                const broughtDownDigit2 = document.getElementById('r3c5').textContent;
-                const bringDownCell2 = document.getElementById('r6c5');
-                if (bringDownCell2 && broughtDownDigit2) {
-                    bringDownCell2.textContent = broughtDownDigit2; // Bring down the "2"
-                    bringDownCell2.classList.add('filled');
-                    bringDownCell2.classList.add('brought-down'); // Optional: add styling
-                }
-                
-                // Now show the product "10" → "10" in r7c4,r7c5
+                // Show the product "10" → "10" in r7c4,r7c5
                 const productStr2 = String(product).padStart(2, '0'); // "10"
                 const productCell2a = document.getElementById('r7c4');
                 const productCell2b = document.getElementById('r7c5');
@@ -424,20 +471,10 @@ class DivisionApp {
             case 3:
                 // Step 3: Columns 5-6 (2-digit area, right-aligned)
                 
-                // First, "bring down" the next digit from dividend (r3c6) to combine with previous remainder
-                // The new partial dividend for step 3 should be shown as "23" in r9c5,r9c6
-                // But actually, it's: remainder "2" from step2 + "3" from r3c6
+                // Note: The digit was already "brought down" by prepareNextStep()
+                // The partial dividend "23" is now visible in r9c5,r9c6
                 
-                // Show the brought down digit visually - copy from r3c6 to r9c6
-                const broughtDownDigit3 = document.getElementById('r3c6').textContent;
-                const bringDownCell3 = document.getElementById('r9c6');
-                if (bringDownCell3 && broughtDownDigit3) {
-                    bringDownCell3.textContent = broughtDownDigit3; // Bring down the "3"
-                    bringDownCell3.classList.add('filled');
-                    bringDownCell3.classList.add('brought-down'); // Optional: add styling
-                }
-                
-                // Now show the product "20" → "20" in r10c5,r10c6
+                // Show the product "20" → "20" in r10c5,r10c6
                 const productStr3 = String(product).padStart(2, '0'); // "20"
                 // Clear r10c4 first
                 const productCell3a = document.getElementById('r10c4');
