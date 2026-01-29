@@ -321,38 +321,153 @@ class DivisionApp {
     }
     
     updateGridForStep(step, guess, product, remainder) {
-        const gridMappings = this.stepTracker.get('grid-mappings');
-        const stepMapping = gridMappings[`step${step}`];
-        
-        if (!stepMapping) return;
+        console.log(`Updating grid for step ${step}: guess=${guess}, product=${product}, remainder=${remainder}`);
         
         // Update quotient cell
-        const quotientCell = document.getElementById(stepMapping.output.quotient);
+        const quotientCellId = `r1c${step + 3}`; // r1c4, r1c5, or r1c6
+        const quotientCell = document.getElementById(quotientCellId);
         if (quotientCell) {
             quotientCell.textContent = guess;
             quotientCell.classList.add('filled');
         }
         
-        // Update product cells WITH STEP NUMBER
-        if (stepMapping.output.product) {
-            this.updateNumberInCells(stepMapping.output.product, product, step);
-        }
-        
-        // Update remainder cells WITH STEP NUMBER  
-        if (stepMapping.output.remainder) {
-            this.updateNumberInCells(stepMapping.output.remainder, remainder, step);
-        }
-        
-        // Update final remainder in answer area if step 3
-        if (step === 3 && stepMapping.output.finalRemainder) {
-            const finalRemainder = this.stepTracker.get('remainder');
-            // For final remainder (03), show in r1c8,r1c9
-            this.updateNumberInCells(stepMapping.output.finalRemainder, finalRemainder, step);
-            
-            // Show remainder in main equation
-            document.querySelectorAll('.mainEquation.remainder').forEach(el => {
-                el.classList.remove('hidden');
-            });
+        // Handle each step differently based on column requirements
+        switch(step) {
+            case 1:
+                // Step 1: Only column 4
+                
+                // Product "0" → ONLY r4c4 (not "00")
+                const productCell1 = document.getElementById('r4c4');
+                if (productCell1) {
+                    productCell1.textContent = String(product);
+                    productCell1.classList.add('filled');
+                }
+                // Clear r4c5, r4c6
+                ['r4c5', 'r4c6'].forEach(cellId => {
+                    const cell = document.getElementById(cellId);
+                    if (cell) {
+                        cell.textContent = '';
+                        cell.classList.remove('filled');
+                    }
+                });
+                
+                // Remainder "1" → ONLY r6c4
+                const remainderCell1 = document.getElementById('r6c4');
+                if (remainderCell1) {
+                    remainderCell1.textContent = String(remainder);
+                    remainderCell1.classList.add('filled');
+                }
+                // Clear r6c5, r6c6
+                ['r6c5', 'r6c6'].forEach(cellId => {
+                    const cell = document.getElementById(cellId);
+                    if (cell) {
+                        cell.textContent = '';
+                        cell.classList.remove('filled');
+                    }
+                });
+                break;
+                
+            case 2:
+                // Step 2: Columns 4-5 (2-digit area, right-aligned)
+                
+                // Product "10" → "10" in r7c4,r7c5
+                const productStr2 = String(product).padStart(2, '0'); // "10"
+                const productCell2a = document.getElementById('r7c4');
+                const productCell2b = document.getElementById('r7c5');
+                if (productCell2a && productCell2b) {
+                    productCell2a.textContent = productStr2[0]; // "1"
+                    productCell2a.classList.add('filled');
+                    productCell2b.textContent = productStr2[1]; // "0"
+                    productCell2b.classList.add('filled');
+                }
+                // Clear r7c6
+                const productCell2c = document.getElementById('r7c6');
+                if (productCell2c) {
+                    productCell2c.textContent = '';
+                    productCell2c.classList.remove('filled');
+                }
+                
+                // Remainder "2" → "02" in r9c4,r9c5
+                const remainderStr2 = String(remainder).padStart(2, '0'); // "02"
+                const remainderCell2a = document.getElementById('r9c4');
+                const remainderCell2b = document.getElementById('r9c5');
+                if (remainderCell2a && remainderCell2b) {
+                    remainderCell2a.textContent = remainderStr2[0]; // "0"
+                    remainderCell2a.classList.add('filled');
+                    remainderCell2b.textContent = remainderStr2[1]; // "2"
+                    remainderCell2b.classList.add('filled');
+                }
+                // Clear r9c6
+                const remainderCell2c = document.getElementById('r9c6');
+                if (remainderCell2c) {
+                    remainderCell2c.textContent = '';
+                    remainderCell2c.classList.remove('filled');
+                }
+                break;
+                
+            case 3:
+                // Step 3: Columns 5-6 (2-digit area, right-aligned)
+                
+                // Product "20" → "20" in r10c5,r10c6
+                const productStr3 = String(product).padStart(2, '0'); // "20"
+                // Clear r10c4 first
+                const productCell3a = document.getElementById('r10c4');
+                if (productCell3a) {
+                    productCell3a.textContent = '';
+                    productCell3a.classList.remove('filled');
+                }
+                
+                const productCell3b = document.getElementById('r10c5');
+                const productCell3c = document.getElementById('r10c6');
+                if (productCell3b && productCell3c) {
+                    productCell3b.textContent = productStr3[0]; // "2"
+                    productCell3b.classList.add('filled');
+                    productCell3c.textContent = productStr3[1]; // "0"
+                    productCell3c.classList.add('filled');
+                }
+                
+                // Remainder "3" → "03" in r12c5,r12c6
+                const remainderStr3 = String(remainder).padStart(2, '0'); // "03"
+                // Clear r12c4 first
+                const remainderCell3a = document.getElementById('r12c4');
+                if (remainderCell3a) {
+                    remainderCell3a.textContent = '';
+                    remainderCell3a.classList.remove('filled');
+                }
+                
+                const remainderCell3b = document.getElementById('r12c5');
+                const remainderCell3c = document.getElementById('r12c6');
+                if (remainderCell3b && remainderCell3c) {
+                    remainderCell3b.textContent = remainderStr3[0]; // "0"
+                    remainderCell3b.classList.add('filled');
+                    remainderCell3c.textContent = remainderStr3[1]; // "3"
+                    remainderCell3c.classList.add('filled');
+                }
+                
+                // Final remainder in answer area
+                const finalRemainder = this.stepTracker.get('remainder');
+                console.log(`Final remainder: ${finalRemainder}`);
+                
+                if (finalRemainder > 0) {
+                    const finalRemainderStr = String(finalRemainder).padStart(2, '0'); // "03"
+                    
+                    // Update the remainder cells in the answer area
+                    const r1c8 = document.getElementById('r1c8');
+                    const r1c9 = document.getElementById('r1c9');
+                    
+                    if (r1c8 && r1c9) {
+                        r1c8.textContent = finalRemainderStr[0]; // "0"
+                        r1c8.classList.add('filled');
+                        r1c9.textContent = finalRemainderStr[1]; // "3"
+                        r1c9.classList.add('filled');
+                    }
+                    
+                    // Show remainder in main equation
+                    document.querySelectorAll('.mainEquation.remainder').forEach(el => {
+                        el.classList.remove('hidden');
+                    });
+                }
+                break;
         }
     }
     
@@ -665,10 +780,12 @@ class DivisionApp {
     }
     
     showCompletionMessage() {
+        const dividend = this.stepTracker.get('dividend');
+        const divisor = this.stepTracker.get('divisor');
         const quotient = this.stepTracker.get('quotient');
         const remainder = this.stepTracker.get('remainder');
         
-        let message = `Correct! ${this.stepTracker.get('dividend')} ÷ ${this.stepTracker.get('divisor')} = ${quotient}`;
+        let message = `Correct! ${dividend} ÷ ${divisor} = ${quotient}`;
         if (remainder > 0) {
             message += ` R${remainder}`;
         }
@@ -678,6 +795,40 @@ class DivisionApp {
         // Hide step container
         this.currentStepContainer.classList.add('hidden');
         this.workFeedback.classList.add('hidden');
+        
+        // Update main equation with final answer
+        this.updateFinalAnswerInEquation();
+    }
+    
+    // Add this new method
+    updateFinalAnswerInEquation() {
+        const quotient = this.stepTracker.get('quotient');
+        const remainder = this.stepTracker.get('remainder');
+        const quotientStr = String(quotient).padStart(3, '0');
+        const remainderStr = String(remainder).padStart(2, '0');
+        
+        // Update quotient in main equation
+        const hundreds = document.querySelector('.mainEquation.answer.hundreds');
+        const tens = document.querySelector('.mainEquation.answer.tens');
+        const ones = document.querySelector('.mainEquation.answer.ones');
+        
+        if (hundreds) hundreds.textContent = quotientStr[0] === '0' ? '' : quotientStr[0];
+        if (tens) tens.textContent = quotientStr[1] === '0' ? '' : quotientStr[1];
+        if (ones) ones.textContent = quotientStr[2];
+        
+        // Update remainder in main equation if needed
+        if (remainder > 0) {
+            const remainderTens = document.querySelector('.mainEquation.remainder.tens');
+            const remainderOnes = document.querySelector('.mainEquation.remainder.ones');
+            
+            if (remainderTens && remainderOnes) {
+                remainderTens.textContent = remainderStr[0] === '0' ? '' : remainderStr[0];
+                remainderOnes.textContent = remainderStr[1];
+                document.querySelectorAll('.mainEquation.remainder').forEach(el => {
+                    el.classList.remove('hidden');
+                });
+            }
+        }
     }
     
     // ========== INITIALIZATION ==========
