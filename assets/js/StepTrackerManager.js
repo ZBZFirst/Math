@@ -7,8 +7,10 @@ export class StepTrackerManager {
             return;
         }
         this.cache = {};
+        this.isSetting = false; // ADD THIS FLAG
         this.initializeDefaultData();
     }
+    
     
     // ========== CORE GETTER/SETTER ==========
     
@@ -29,21 +31,35 @@ export class StepTrackerManager {
         return this.cache[attr];
     }
     
-    set(attr, value) {
-        let stringValue;
-        if (typeof value === 'object' || Array.isArray(value)) {
-            stringValue = JSON.stringify(value);
-        } else {
-            stringValue = String(value);
+    set(attr, value, silent = false) { // ADD 'silent' PARAMETER
+        // Prevent infinite recursion
+        if (this.isSetting) {
+            console.warn(`Prevented recursive set for ${attr}`);
+            return this;
         }
         
-        this.element.setAttribute(`data-${attr}`, stringValue);
-        this.cache[attr] = value;
+        this.isSetting = true;
         
-        // Dispatch update event
-        document.dispatchEvent(new CustomEvent('step-tracker-updated', {
-            detail: { attribute: attr, value: value }
-        }));
+        try {
+            let stringValue;
+            if (typeof value === 'object' || Array.isArray(value)) {
+                stringValue = JSON.stringify(value);
+            } else {
+                stringValue = String(value);
+            }
+            
+            this.element.setAttribute(`data-${attr}`, stringValue);
+            this.cache[attr] = value;
+            
+            // Only dispatch event if not silent
+            if (!silent) {
+                document.dispatchEvent(new CustomEvent('step-tracker-updated', {
+                    detail: { attribute: attr, value: value }
+                }));
+            }
+        } finally {
+            this.isSetting = false;
+        }
         
         return this;
     }
@@ -349,23 +365,25 @@ export class StepTrackerManager {
     
     // ========== GUESS MANAGEMENT ==========
     
-    setCurrentGuess(guess) {
+    setCurrentGuess(guess, silent = false) { // ADD silent PARAMETER
         const numericGuess = parseInt(guess) || 0;
-        this.set('current-guess', numericGuess);
         
-        // Update progress attempts
+        // Use silent mode to prevent event dispatch
+        this.set('current-guess', numericGuess, silent);
+        
+        // Update progress attempts (but don't trigger events)
         const currentStep = this.getCurrentStep();
         if (currentStep > 0) {
             const progress = this.get('user-progress');
             if (progress && progress[`step${currentStep}`]) {
                 progress[`step${currentStep}`].attempts++;
                 progress.lastAction = `guess_made_step${currentStep}`;
-                this.set('user-progress', progress);
+                this.set('user-progress', progress, true); // SILENT!
             }
         }
         
         return this;
-    }
+    }}
     
     getCurrentGuess() {
         return parseInt(this.get('current-guess')) || 0;
