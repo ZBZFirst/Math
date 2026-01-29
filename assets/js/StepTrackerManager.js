@@ -7,8 +7,7 @@ export class StepTrackerManager {
             return;
         }
         this.cache = {};
-        this.isSetting = false; // ADD THIS FLAG
-        this.initializeDefaultData();
+        this.isSetting = false;
     }
     
     
