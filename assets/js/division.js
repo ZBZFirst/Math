@@ -146,7 +146,7 @@ class DivisionApp {
     
     updateGuessDisplay() {
         this.currentGuessDisplay.textContent = this.currentGuess;
-        this.stepTracker.setCurrentGuess(this.currentGuess);
+        this.stepTracker.setCurrentGuess(this.currentGuess, true); // SILENT!
     }
     
     commitCurrentGuess() {
@@ -385,13 +385,19 @@ class DivisionApp {
     handleTrackerUpdate(event) {
         const { attribute, value } = event.detail;
         
+        console.log(`Tracker updated: ${attribute} = ${value}`);
+        
         switch(attribute) {
             case 'current-step':
                 this.showCurrentStep();
                 break;
             case 'current-guess':
-                this.currentGuess = parseInt(value) || 0;
-                this.updateGuessDisplay();
+                // Only update if it's different from our current value
+                const newGuess = parseInt(value) || 0;
+                if (newGuess !== this.currentGuess) {
+                    this.currentGuess = newGuess;
+                    this.currentGuessDisplay.textContent = this.currentGuess;
+                }
                 break;
         }
     }
