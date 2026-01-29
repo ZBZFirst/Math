@@ -366,21 +366,24 @@ export class StepTrackerManager {
     }
     
     // ========== GUESS MANAGEMENT ==========
-    
-    setCurrentGuess(guess, silent = false) { // ADD silent PARAMETER
+
+// In StepTrackerManager.js, modify setCurrentGuess:
+    setCurrentGuess(guess, silent = false) {
         const numericGuess = parseInt(guess) || 0;
         
         // Use silent mode to prevent event dispatch
         this.set('current-guess', numericGuess, silent);
         
-        // Update progress attempts (but don't trigger events)
-        const currentStep = this.getCurrentStep();
-        if (currentStep > 0) {
-            const progress = this.get('user-progress');
-            if (progress && progress[`step${currentStep}`]) {
-                progress[`step${currentStep}`].attempts++;
-                progress.lastAction = `guess_made_step${currentStep}`;
-                this.set('user-progress', progress, true); // SILENT!
+        // Update progress attempts - ONLY if not silent
+        if (!silent) {
+            const currentStep = this.getCurrentStep();
+            if (currentStep > 0) {
+                const progress = this.get('user-progress');
+                if (progress && progress[`step${currentStep}`]) {
+                    progress[`step${currentStep}`].attempts++;
+                    progress.lastAction = `guess_made_step${currentStep}`;
+                    this.set('user-progress', progress, true); // SILENT!
+                }
             }
         }
         
