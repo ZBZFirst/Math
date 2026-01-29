@@ -231,34 +231,37 @@ export class StepTrackerManager {
     }
     
     initializeGridMappings() {
-        // Use the mappings from your HTML
         const mappings = {
             step1: {
                 columnFocus: "c4",
-                input: ["r3c4"],
+                input: ["r3c4"],           // Just the "1" from dividend
                 output: {
-                    product: ["r4c4", "r4c5"],
-                    remainder: ["r6c4", "r6c5"],
-                    quotient: "r1c4"
+                    product: ["r4c4"],     // 0 × 5 = 0 (1 digit)
+                    remainder: ["r6c4"],   // 1 - 0 = 1 (1 digit)
+                    quotient: "r1c4"       // Quotient digit "0"
                 }
             },
             step2: {
                 columnFocus: "c5",
-                input: ["r6c4", "r3c5"],
+                bringdown: "r3c5",         // "2" from original dividend
+                bringdownTarget: "r6c5",   // Where to bring it down to
+                input: ["r6c4", "r6c5"],   // Remainder "1" + brought down "2" = "12"
                 output: {
-                    product: ["r7c4", "r7c5", "r7c6"],
-                    remainder: ["r9c4", "r9c5", "r9c6"],
-                    quotient: "r1c5"
+                    product: ["r7c4", "r7c5"],  // 2 × 5 = 10 (2 digits)
+                    remainder: ["r9c4", "r9c5"], // 12 - 10 = 2 (1 digit, but needs 2 cells for alignment?)
+                    quotient: "r1c5"       // Quotient digit "2"
                 }
             },
             step3: {
                 columnFocus: "c6",
-                input: ["r9c5", "r3c6"],
+                bringdown: "r3c6",         // "3" from original dividend
+                bringdownTarget: "r9c6",   // Where to bring it down to
+                input: ["r9c4", "r9c5", "r9c6"], // Actually "2" + "3" = "23" (should be 2 cells, not 3)
                 output: {
-                    product: ["r10c4", "r10c5", "r10c6"],
-                    remainder: ["r12c4", "r12c5", "r12c6"],
-                    quotient: "r1c6",
-                    finalRemainder: ["r1c8", "r1c9"]
+                    product: ["r10c4", "r10c5"], // 4 × 5 = 20 (2 digits) - NOT 3 cells
+                    remainder: ["r12c4", "r12c5", "r12c6"], // 23 - 20 = 3 (1 digit, but needs 3 cells?)
+                    quotient: "r1c6",      // Quotient digit "4"
+                    finalRemainder: ["r1c8", "r1c9"] // Final remainder "3" (1 digit)
                 }
             }
         };
