@@ -159,7 +159,7 @@ class DivisionApp {
     initializeGridDigits(dividend, divisor) {
         console.log(`Initializing grid digits: ${dividend} ÷ ${divisor}`);
         
-        // Clear all non-transparent cells
+        // First clear the grid (without removing color classes)
         this.clearGrid();
         
         // Set dividend in grid (r3c4, r3c5, r3c6)
@@ -168,47 +168,22 @@ class DivisionApp {
         const r3c5 = document.getElementById('r3c5');
         const r3c6 = document.getElementById('r3c6');
         
-        if (r3c4) {
-            r3c4.textContent = dividendStr[0];
-            r3c4.classList.add('orange');
-        }
-        if (r3c5) {
-            r3c5.textContent = dividendStr[1];
-            r3c5.classList.add('orange');
-        }
-        if (r3c6) {
-            r3c6.textContent = dividendStr[2];
-            r3c6.classList.add('orange');
-        }
+        // JUST set text - color classes are already in HTML
+        if (r3c4) r3c4.textContent = dividendStr[0];
+        if (r3c5) r3c5.textContent = dividendStr[1];
+        if (r3c6) r3c6.textContent = dividendStr[2];
         
         // Set divisor in grid (r3c1, r3c2)
         const divisorStr = String(divisor).padStart(2, '0');
         const r3c1 = document.getElementById('r3c1');
         const r3c2 = document.getElementById('r3c2');
         
-        if (r3c1) {
-            r3c1.textContent = divisorStr[0] === '0' ? '' : divisorStr[0];
-            if (divisorStr[0] !== '0') {
-                r3c1.classList.add('blue');
-            }
-        }
-        if (r3c2) {
-            r3c2.textContent = divisorStr[1];
-            r3c2.classList.add('blue');
-        }
+        if (r3c1) r3c1.textContent = divisorStr[0] === '0' ? '' : divisorStr[0];
+        if (r3c2) r3c2.textContent = divisorStr[1];
         
-        // Clear quotient cells in row 1
-        ['r1c4', 'r1c5', 'r1c6', 'r1c8', 'r1c9'].forEach(cellId => {
-            const cell = document.getElementById(cellId);
-            if (cell) {
-                cell.textContent = '';
-                cell.classList.remove('filled', 'green');
-            }
-        });
-        
-        // Hide remainder in main equation
-        document.querySelectorAll('.mainEquation.remainder').forEach(el => {
-            el.classList.add('hidden');
+        console.log('Grid initialized with:', {
+            dividend: dividendStr,
+            divisor: divisorStr
         });
     }
     
@@ -709,42 +684,20 @@ class DivisionApp {
     clearGrid() {
         console.log('Clearing grid');
         
-        // Clear all non-transparent cells except the dividend/divisor cells
-        document.querySelectorAll('.division-table:not(.transparent)').forEach(cell => {
+        // Get all non-transparent cells
+        const allCells = document.querySelectorAll('.division-table:not(.transparent)');
+        
+        allCells.forEach(cell => {
             const id = cell.id;
             
-            // Don't clear the original problem cells (they will be set by initializeGridDigits)
-            if (!['r3c1', 'r3c2', 'r3c4', 'r3c5', 'r3c6'].includes(id)) {
-                cell.textContent = '';
-                cell.classList.remove('filled', 'highlighted', 'brought-down');
-                
-                // IMPORTANT: Keep the original color classes!
-                // These classes come from HTML and should NOT be removed:
-                // - yellow, brown, green, orange, blue
-                // - answer, remainder, dividend, divisor
-                // - hundreds, tens, ones
-                
-                // Only remove the classes we added dynamically, not the structural ones
-            }
-        });
-        
-        // Clear highlight from dividend cells
-        ['r3c4', 'r3c5', 'r3c6'].forEach(cellId => {
-            const cell = document.getElementById(cellId);
-            if (cell) cell.classList.remove('highlighted');
-        });
-        
-        // Clear filled class from quotient cells but keep green class
-        ['r1c4', 'r1c5', 'r1c6', 'r1c8', 'r1c9'].forEach(cellId => {
-            const cell = document.getElementById(cellId);
-            if (cell) {
-                cell.textContent = '';
-                cell.classList.remove('filled', 'highlighted');
-                // Ensure green class is present
-                if (cellId.includes('r1c') && (cellId.includes('answer') || cell.classList.contains('green'))) {
-                    cell.classList.add('green');
-                }
-            }
+            // Clear content from ALL cells (we'll refill problem cells immediately after)
+            cell.textContent = '';
+            
+            // ONLY remove dynamic classes - never remove color classes!
+            cell.classList.remove('filled', 'highlighted', 'brought-down');
+            
+            // DO NOT remove: green, yellow, brown, orange, blue, answer, remainder, etc.
+            // These are static and should stay!
         });
         
         // Hide remainder in main equation
