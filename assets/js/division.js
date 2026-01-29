@@ -89,6 +89,96 @@ class DivisionApp {
         this.updateGuessDisplay();
         this.workFeedback.classList.add('hidden');
     }
+
+    initializeGridMappings() {
+        // Use the mappings from your HTML
+        const mappings = {
+            // Add these mappings for the initial display
+            dividend: {
+                hundreds: "r3c4",
+                tens: "r3c5",
+                ones: "r3c6"
+            },
+            divisor: {
+                tens: "r3c1",
+                ones: "r3c2"
+            },
+            quotient: {
+                hundreds: "r1c4",
+                tens: "r1c5",
+                ones: "r1c6"
+            },
+            remainder: {
+                tens: "r1c8",
+                ones: "r1c9"
+            },
+            step1: {
+                columnFocus: "c4",
+                input: ["r3c4"],
+                output: {
+                    product: ["r4c4", "r4c5"],
+                    remainder: ["r6c4", "r6c5"],
+                    quotient: "r1c4"
+                }
+            },
+            step2: {
+                columnFocus: "c5",
+                input: ["r6c4", "r3c5"],
+                output: {
+                    product: ["r7c4", "r7c5", "r7c6"],
+                    remainder: ["r9c4", "r9c5", "r9c6"],
+                    quotient: "r1c5"
+                }
+            },
+            step3: {
+                columnFocus: "c6",
+                input: ["r9c5", "r3c6"],
+                output: {
+                    product: ["r10c4", "r10c5", "r10c6"],
+                    remainder: ["r12c4", "r12c5", "r12c6"],
+                    quotient: "r1c6",
+                    finalRemainder: ["r1c8", "r1c9"]
+                }
+            }
+        };
+        
+        this.set('grid-mappings', mappings, true); // Silent
+        return mappings;
+    }
+    
+// In division.js - add this new method
+    initializeGridDigits(dividend, divisor) {
+        // Clear any existing values first
+        this.clearGrid();
+        
+        // Set dividend in grid (r3c4, r3c5, r3c6)
+        const dividendStr = String(dividend).padStart(3, '0');
+        const r3c4 = document.getElementById('r3c4');
+        const r3c5 = document.getElementById('r3c5');
+        const r3c6 = document.getElementById('r3c6');
+        
+        if (r3c4) r3c4.textContent = dividendStr[0];
+        if (r3c5) r3c5.textContent = dividendStr[1];
+        if (r3c6) r3c6.textContent = dividendStr[2];
+        
+        // Set divisor in grid (r3c1, r3c2)
+        const divisorStr = String(divisor).padStart(2, '0');
+        const r3c1 = document.getElementById('r3c1');
+        const r3c2 = document.getElementById('r3c2');
+        
+        if (r3c1) r3c1.textContent = divisorStr[0] === '0' ? '' : divisorStr[0];
+        if (r3c2) r3c2.textContent = divisorStr[1];
+        
+        // Clear all other non-transparent cells
+        document.querySelectorAll('.division-table:not(.transparent)').forEach(cell => {
+            const id = cell.id;
+            // Skip cells we just set
+            if (!['r3c1', 'r3c2', 'r3c4', 'r3c5', 'r3c6'].includes(id)) {
+                cell.textContent = '';
+                cell.classList.remove('filled', 'highlighted');
+            }
+        });
+    }
     
     initializeNewProblem() {
         // Use the default problem from HTML (123 ÷ 5)
@@ -98,8 +188,11 @@ class DivisionApp {
         this.stepTracker.setProblem(defaultDividend, defaultDivisor);
         this.updateMainEquation();
         this.showCurrentStep();
+        
+        // Ensure grid is properly initialized
+        this.initializeGridDigits(defaultDividend, defaultDivisor);
     }
-    
+
     resetCurrentProblem() {
         this.stepTracker.resetProblem();
         this.currentGuess = 0;
@@ -265,14 +358,35 @@ class DivisionApp {
     updateNumberInCells(cellIds, number) {
         const numStr = String(number).padStart(cellIds.length, '0');
         
-        cellIds.forEach((cellId, index) => {
-            const cell = document.getElementById(cellId);
-            if (cell) {
-                const digit = numStr.length > index ? numStr[numStr.length - cellIds.length + index] : '0';
-                cell.textContent = digit;
-                cell.classList.add('filled');
-            }
-        });
+        // Special handling for single-digit numbers in multi-cell ranges
+        // For example: "0" should only fill the rightmost cell if we have multiple cells
+        if (number < 10 && cellIds.length > 1) {
+            // For step 1 product (0), only fill the rightmost cell (r4c5)
+            cellIds.forEach((cellId, index) => {
+                const cell = document.getElementById(cellId);
+                if (cell) {
+                    if (index === cellIds.length - 1) {
+                        // Rightmost cell gets the digit
+                        cell.textContent = String(number);
+                        cell.classList.add('filled');
+                    } else {
+                        // Other cells get empty
+                        cell.textContent = '';
+                        cell.classList.remove('filled');
+                    }
+                }
+            });
+        } else {
+            // Original logic for multi-digit numbers
+            cellIds.forEach((cellId, index) => {
+                const cell = document.getElementById(cellId);
+                if (cell) {
+                    const digit = numStr.length > index ? numStr[numStr.length - cellIds.length + index] : '0';
+                    cell.textContent = digit;
+                    cell.classList.add('filled');
+                }
+            });
+        }
     }
     
     clearGrid() {
@@ -296,26 +410,63 @@ class DivisionApp {
         const quotient = this.stepTracker.get('quotient');
         const remainder = this.stepTracker.get('remainder');
         
-        // Update dividend digits
+        // Update dividend digits in BOTH main equation AND grid
         const dividendStr = String(dividend).padStart(3, '0');
+        
+        // Main equation
         document.querySelector('.mainEquation.dividend.hundreds').textContent = dividendStr[0];
         document.querySelector('.mainEquation.dividend.tens').textContent = dividendStr[1];
         document.querySelector('.mainEquation.dividend.ones').textContent = dividendStr[2];
         
+        // Grid cells (r3c4, r3c5, r3c6)
+        const gridMappings = this.stepTracker.get('grid-mappings');
+        if (gridMappings && gridMappings.dividend) {
+            // If we have dividend mapping in grid-mappings, use it
+            const cells = ['r3c4', 'r3c5', 'r3c6'];
+            cells.forEach((cellId, index) => {
+                const cell = document.getElementById(cellId);
+                if (cell) {
+                    cell.textContent = dividendStr[index];
+                }
+            });
+        } else {
+            // Fallback: direct cell assignment
+            const r3c4 = document.getElementById('r3c4');
+            const r3c5 = document.getElementById('r3c5');
+            const r3c6 = document.getElementById('r3c6');
+            if (r3c4) r3c4.textContent = dividendStr[0];
+            if (r3c5) r3c5.textContent = dividendStr[1];
+            if (r3c6) r3c6.textContent = dividendStr[2];
+        }
+        
         // Update divisor digits
         const divisorStr = String(divisor).padStart(2, '0');
-        document.querySelector('.mainEquation.divisor.tens').textContent = divisorStr[0] === '0' ? '' : divisorStr[0];
-        document.querySelector('.mainEquation.divisor.ones').textContent = divisorStr[1];
         
-        // Clear quotient and remainder
+        // Main equation
+        const tensCell = document.querySelector('.mainEquation.divisor.tens');
+        const onesCell = document.querySelector('.mainEquation.divisor.ones');
+        
+        tensCell.textContent = divisorStr[0] === '0' ? '' : divisorStr[0];
+        onesCell.textContent = divisorStr[1];
+        
+        // Grid cells (r3c1, r3c2)
+        const r3c1 = document.getElementById('r3c1');
+        const r3c2 = document.getElementById('r3c2');
+        if (r3c1) r3c1.textContent = divisorStr[0] === '0' ? '' : divisorStr[0];
+        if (r3c2) r3c2.textContent = divisorStr[1];
+        
+        // Clear quotient and remainder in main equation
         document.querySelectorAll('.mainEquation.answer').forEach(el => {
             el.textContent = '?';
         });
         
-        // Hide remainder
+        // Hide remainder in main equation
         document.querySelectorAll('.mainEquation.remainder').forEach(el => {
             el.classList.add('hidden');
         });
+        
+        // Clear grid cells for quotient and remainder
+        this.clearGrid();
         
         // Show equals sign
         document.querySelector('.mainEquation.equals-symbol').style.visibility = 'visible';
