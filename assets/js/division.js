@@ -355,35 +355,90 @@ class DivisionApp {
         }
     }
     
-    updateNumberInCells(cellIds, number) {
-        const numStr = String(number).padStart(cellIds.length, '0');
+    updateNumberInCells(cellIds, number, stepNumber = 1) {
+        // Get the step mapping to know which column to focus on
+        const gridMappings = this.stepTracker.get('grid-mappings');
+        const stepMapping = gridMappings ? gridMappings[`step${stepNumber}`] : null;
         
-        // Special handling for single-digit numbers in multi-cell ranges
-        // For example: "0" should only fill the rightmost cell if we have multiple cells
-        if (number < 10 && cellIds.length > 1) {
-            // For step 1 product (0), only fill the rightmost cell (r4c5)
-            cellIds.forEach((cellId, index) => {
-                const cell = document.getElementById(cellId);
-                if (cell) {
-                    if (index === cellIds.length - 1) {
-                        // Rightmost cell gets the digit
-                        cell.textContent = String(number);
-                        cell.classList.add('filled');
-                    } else {
-                        // Other cells get empty
-                        cell.textContent = '';
-                        cell.classList.remove('filled');
-                    }
-                }
-            });
-        } else {
-            // Original logic for multi-digit numbers
+        if (!stepMapping) {
+            // Fallback: use original logic
+            const numStr = String(number).padStart(cellIds.length, '0');
             cellIds.forEach((cellId, index) => {
                 const cell = document.getElementById(cellId);
                 if (cell) {
                     const digit = numStr.length > index ? numStr[numStr.length - cellIds.length + index] : '0';
                     cell.textContent = digit;
-                    cell.classList.add('filled');
+                    if (digit !== '') cell.classList.add('filled');
+                }
+            });
+            return;
+        }
+        
+        // Special handling based on step number and column focus
+        const columnFocus = stepMapping.columnFocus;
+        
+        if (stepNumber === 1 && columnFocus === "c4") {
+            // STEP 1: Only fill the FIRST cell (r4c4 for product, r6c4 for remainder)
+            // Product "0" should only go in r4c4
+            // Remainder "1" should only go in r6c4
+            cellIds.forEach((cellId, index) => {
+                const cell = document.getElementById(cellId);
+                if (cell) {
+                    if (index === 0) {
+                        // First cell gets the number
+                        cell.textContent = String(number);
+                        cell.classList.add('filled');
+                    } else {
+                        // Other cells remain empty
+                        cell.textContent = '';
+                        cell.classList.remove('filled');
+                    }
+                }
+            });
+        } else if (stepNumber === 2 && columnFocus === "c5") {
+            // STEP 2: Center on C5 (product "10" should fill r7c4,r7c5)
+            const numStr = String(number).padStart(cellIds.length, '0');
+            cellIds.forEach((cellId, index) => {
+                const cell = document.getElementById(cellId);
+                if (cell) {
+                    const digit = numStr.length > index ? numStr[numStr.length - cellIds.length + index] : '0';
+                    cell.textContent = digit;
+                    if (digit !== '' && digit !== '0') {
+                        cell.classList.add('filled');
+                    } else if (digit === '0' && cellId.includes('c4') && stepNumber === 2) {
+                        // For step 2, leading zero in c4 should be shown
+                        cell.textContent = '0';
+                        cell.classList.add('filled');
+                    }
+                }
+            });
+        } else if (stepNumber === 3 && columnFocus === "c6") {
+            // STEP 3: Center on C6 (product "20" should fill r10c5,r10c6)
+            const numStr = String(number).padStart(cellIds.length, '0');
+            cellIds.forEach((cellId, index) => {
+                const cell = document.getElementById(cellId);
+                if (cell) {
+                    const digit = numStr.length > index ? numStr[numStr.length - cellIds.length + index] : '0';
+                    // For step 3, "20" should appear in columns 5-6 (c5-c6)
+                    if (cellId.includes('c4') && number < 100) {
+                        // Leave c4 empty for two-digit products
+                        cell.textContent = '';
+                        cell.classList.remove('filled');
+                    } else {
+                        cell.textContent = digit;
+                        if (digit !== '') cell.classList.add('filled');
+                    }
+                }
+            });
+        } else {
+            // Default: pad and fill all cells
+            const numStr = String(number).padStart(cellIds.length, '0');
+            cellIds.forEach((cellId, index) => {
+                const cell = document.getElementById(cellId);
+                if (cell) {
+                    const digit = numStr.length > index ? numStr[numStr.length - cellIds.length + index] : '0';
+                    cell.textContent = digit;
+                    if (digit !== '') cell.classList.add('filled');
                 }
             });
         }
