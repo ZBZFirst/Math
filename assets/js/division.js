@@ -376,44 +376,34 @@ class DivisionApp {
         
         console.log(`Handling guess for step ${currentStep}, phase ${currentPhase}: guess=${this.currentGuess}`);
         
-        // Check if the guess is correct for this phase
+        // FIRST: Update the step data with our guess
+        switch(currentPhase) {
+            case 1:
+                stepData.userGuess = this.currentGuess;
+                break;
+            case 2:
+                stepData.userProduct = this.currentGuess;
+                break;
+            case 3:
+                stepData.userRemainder = this.currentGuess;
+                break;
+        }
+        
+        // Save the updated step data
+        this.stepTracker.set('step-answers', stepAnswers);
+        
+        // SECOND: Update the grid visually
+        this.updateGridForPhase(currentStep, currentPhase, this.currentGuess);
+        
+        // THIRD: Check if the guess is correct
         const isCorrect = this.stepTracker.checkGuess(this.currentGuess);
         
         if (isCorrect) {
-            // Store the value for the current phase
-            switch(currentPhase) {
-                case 1:
-                    stepData.userGuess = this.currentGuess;
-                    this.showTemporaryFeedback('Correct guess! Now calculate the product.', 'success');
-                    break;
-                case 2:
-                    stepData.userProduct = this.currentGuess;
-                    this.showTemporaryFeedback('Correct product! Now find the remainder.', 'success');
-                    break;
-                case 3:
-                    stepData.userRemainder = this.currentGuess;
-                    this.showTemporaryFeedback('Correct remainder! Step complete.', 'success');
-                    break;
-            }
+            this.showTemporaryFeedback('Correct!', 'success');
             
-            // Update step data
-            this.stepTracker.set('step-answers', stepAnswers);
-            
-            // Update grid for this phase
-            this.updateGridForPhase(currentStep, currentPhase, this.currentGuess);
-            
-            // If this was phase 3, complete the step
+            // If this was phase 3, the step will be completed by checkGuess()
+            // So we need to handle what happens after step completion
             if (currentPhase === 3) {
-                // Complete the step
-                const stepResult = {
-                    guess: stepData.userGuess,
-                    product: stepData.userProduct,
-                    remainder: stepData.userRemainder,
-                    isCorrect: true
-                };
-                
-                this.stepTracker.completeStep(stepResult);
-                
                 // Update score
                 this.updateScore(true);
                 
@@ -421,20 +411,15 @@ class DivisionApp {
                 if (this.stepTracker.get('problem-completed')) {
                     this.showCompletionMessage();
                 } else {
-                    // Prepare for next step
+                    // Prepare for next step after a delay
                     const nextStep = currentStep + 1;
-                    this.prepareNextStep(nextStep);
-                    
-                    // Show next step after delay
                     setTimeout(() => {
+                        this.prepareNextStep(nextStep);
                         this.showCurrentStep();
                     }, 1500);
                 }
             } else {
-                // Move to next phase
-                this.stepTracker.nextPhase();
-                
-                // Update display for next phase
+                // Move to next phase after a delay
                 setTimeout(() => {
                     this.showCurrentStep();
                 }, 1000);
@@ -496,6 +481,8 @@ class DivisionApp {
             return;
         }
         
+        console.log(`Updating grid for step ${step}, phase ${phase} with value: ${value}`);
+        
         const valueStr = String(value);
         
         switch(phase) {
@@ -504,17 +491,20 @@ class DivisionApp {
                 if (quotientCell) {
                     quotientCell.textContent = valueStr;
                     quotientCell.classList.add('filled');
+                    console.log(`Updated quotient cell ${stepMapping.output.quotient} to ${valueStr}`);
                 }
                 break;
                 
             case 2: // Update product
                 const productCells = stepMapping.output.product || [];
                 this.updateNumberInCells(productCells, value);
+                console.log(`Updated product cells: ${productCells.join(', ')} to ${valueStr}`);
                 break;
                 
             case 3: // Update remainder
                 const remainderCells = stepMapping.output.remainder || [];
                 this.updateNumberInCells(remainderCells, value);
+                console.log(`Updated remainder cells: ${remainderCells.join(', ')} to ${valueStr}`);
                 break;
         }
     }
