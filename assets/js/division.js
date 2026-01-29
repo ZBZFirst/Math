@@ -1,9 +1,6 @@
 // Initialize the StepTrackerManager (we'll create this as a separate module)
 import { StepTrackerManager } from './StepTrackerManager.js';
 
-// Or if not using modules:
-// const stepTracker = new StepTrackerManager();
-
 class DivisionApp {
     constructor() {
         this.stepTracker = new StepTrackerManager();
