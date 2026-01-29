@@ -322,7 +322,7 @@ export class StepTrackerManager {
         
         // Set new step
         this.set('current-step', step);
-        
+        this.resetPhase(); // ← ADD THIS
         // Start timing for new step
         if (step > 0 && step <= totalSteps) {
             this.startStepTiming(step);
@@ -392,44 +392,105 @@ export class StepTrackerManager {
     checkGuess(guess = null) {
         const guessToCheck = guess !== null ? parseInt(guess) : this.getCurrentGuess();
         const currentStep = this.getCurrentStep();
+        const currentPhase = this.getCurrentPhase();
         const stepAnswers = this.get('step-answers');
-        
+    
         if (!stepAnswers || !stepAnswers[`step${currentStep}`]) {
             console.warn(`No step answers found for step ${currentStep}`);
             return false;
         }
-        
+    
         const stepData = stepAnswers[`step${currentStep}`];
-        const isCorrect = guessToCheck === stepData.expectedGuess;
-        
-        // Update step data with user's guess
-        stepData.userGuess = guessToCheck;
-        stepData.isCorrect = isCorrect;
-        
+        let isCorrect = false;
+    
+        // 🔀 PHASE-AWARE VALIDATION
+        if (currentPhase === 1) {
+            isCorrect = guessToCheck === stepData.expectedGuess;
+            if (isCorrect) stepData.userGuess = guessToCheck;
+        }
+    
+        if (currentPhase === 2) {
+            isCorrect = guessToCheck === stepData.expectedProduct;
+            if (isCorrect) stepData.userProduct = guessToCheck;
+        }
+    
+        if (currentPhase === 3) {
+            isCorrect = guessToCheck === stepData.expectedRemainder;
+            if (isCorrect) stepData.userRemainder = guessToCheck;
+        }
+    
         // Update progress
         const progress = this.get('user-progress');
         if (progress && progress[`step${currentStep}`]) {
-            if (!isCorrect) {
-                progress.mistakes++;
-            }
-            progress.lastAction = `guess_checked_step${currentStep}`;
+            if (!isCorrect) progress.mistakes++;
+            progress.lastAction = `guess_checked_step${currentStep}_phase${currentPhase}`;
             this.set('user-progress', progress);
         }
-        
+    
         this.set('step-answers', stepAnswers);
-        
-        // Dispatch result event
+    
         document.dispatchEvent(new CustomEvent('guess-checked', {
             detail: {
                 step: currentStep,
+                phase: currentPhase,
                 guess: guessToCheck,
-                isCorrect: isCorrect,
-                expected: stepData.expectedGuess
+                isCorrect,
+                expected:
+                    currentPhase === 1 ? stepData.expectedGuess :
+                    currentPhase === 2 ? stepData.expectedProduct :
+                    stepData.expectedRemainder
             }
         }));
-        
+    
+        // ⏭ ADVANCE PHASE OR COMPLETE STEP
+        if (isCorrect) {
+            if (currentPhase < 3) {
+                this.nextPhase();
+            } else {
+                this.completeStep({
+                    guess: stepData.userGuess,
+                    product: stepData.userProduct,
+                    remainder: stepData.userRemainder
+                });
+            }
+        }
+    
         return isCorrect;
     }
+
+
+    getCurrentPhase() {
+        return parseInt(this.get('current-phase')) || 1;
+    }
+    
+    setCurrentPhase(phase, silent = false) {
+        const total = parseInt(this.get('total-phases')) || 3;
+    
+        if (phase < 1 || phase > total) {
+            console.warn(`Invalid phase ${phase}`);
+            return this;
+        }
+    
+        this.set('current-phase', phase, silent);
+    
+        document.dispatchEvent(new CustomEvent('phase-changed', {
+            detail: {
+                step: this.getCurrentStep(),
+                phase
+            }
+        }));
+    
+        return this;
+    }
+    
+    resetPhase() {
+        return this.setCurrentPhase(1);
+    }
+    
+    nextPhase() {
+        return this.setCurrentPhase(this.getCurrentPhase() + 1);
+    }
+
     
     // ========== STEP COMPLETION ==========
     
@@ -454,13 +515,8 @@ export class StepTrackerManager {
             step.timeSpent = userData.timeSpent;
         }
         
-        // Verify correctness
-        const isStepCorrect = (
-            step.userGuess === step.expectedGuess &&
-            step.userProduct === step.expectedProduct &&
-            step.userRemainder === step.expectedRemainder
-        );
-        step.isCorrect = isStepCorrect;
+        step.isCorrect = true;
+
         
         // Update step answers
         stepAnswers[`step${currentStep}`] = step;
@@ -574,7 +630,7 @@ export class StepTrackerManager {
         
         // Reset current guess
         this.setCurrentGuess(0);
-        
+        this.resetPhase();
         return this;
     }
     
@@ -606,6 +662,7 @@ export class StepTrackerManager {
             detail: this.getAllData()
         }));
         
+        this.resetPhase();
         return this;
     }
     
