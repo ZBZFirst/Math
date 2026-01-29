@@ -73,25 +73,25 @@
                         </div>
                     </div>
                 </div>
+
+
+                <!-- Step Tracker (Always Hidden) -->
+                <div class="step-tracker" 
+                    data-current-step="0"
+                    data-total-steps="3"
+                    style="display: none;">
+                </div>
                 
                 <!-- RIGHT CONTAINER -->
                 <div class="right-container">
                     <h3>Work Area</h3>
-                    
-                    <!-- Step Tracker (Hidden) -->
-                    <div class="step-tracker" 
-                         data-current-step="0"
-                         data-total-steps="3"
-                         style="display: none;"></div>
-                    
-                    <div class="work-container" id="workStageContainer">
                         <div class="division-work-layout">
                             
                             <!-- 12x9 Grid Structure -->
-                            <div class="work-grid large-grid" id="divisionGrid">
+                            <div class="work-grid large-grid">
                                 
                                 <!-- ROW 1 -->
-                                <div class="work-row">
+                                <div class="work-row" id="r1">
                                     <div id="r1c1" class="division-table unused transparent"></div>
                                     <div id="r1c2" class="division-table unused transparent"></div>
                                     <div id="r1c3" class="division-table unused transparent"></div>
@@ -104,7 +104,7 @@
                                 </div>
                                 
                                 <!-- ROW 2 -->
-                                <div class="work-row">
+                                <div class="work-row" id="r2">
                                     <div id="r2c1" class="division-table unused transparent"></div>
                                     <div id="r2c2" class="division-table unused transparent"></div>
                                     <div id="r2c3" class="division-table corner-line transparent"></div>
@@ -117,7 +117,7 @@
                                 </div>
                                 
                                 <!-- ROW 3 -->
-                                <div class="work-row">
+                                <div class="work-row" id="r3">
                                     <div id="r3c1" class="division-table divisor tens blue"></div>
                                     <div id="r3c2" class="division-table divisor ones blue"></div>
                                     <div id="r3c3" class="division-table vertical-line transparent"></div>
@@ -130,7 +130,7 @@
                                 </div>
                                 
                                 <!-- ROW 4 -->
-                                <div class="work-row">
+                                <div class="work-row" id="r4">
                                     <div id="r4c1" class="division-table unused transparent"></div>
                                     <div id="r4c2" class="division-table unused transparent"></div>
                                     <div id="r4c3" class="division-table minus sign step1 transparent"></div>
@@ -143,7 +143,7 @@
                                 </div>
                                 
                                 <!-- ROW 5 -->
-                                <div class="work-row">
+                                <div class="work-row" id="r5">
                                     <div id="r5c1" class="division-table unused transparent"></div>
                                     <div id="r5c2" class="division-table unused transparent"></div>
                                     <div id="r5c3" class="division-table unused transparent"></div>
@@ -156,7 +156,7 @@
                                 </div>
                                 
                                 <!-- ROW 6 -->
-                                <div class="work-row">
+                                <div class="work-row" id="r6">
                                     <div id="r6c1" class="division-table unused transparent"></div>
                                     <div id="r6c2" class="division-table unused transparent"></div>
                                     <div id="r6c3" class="division-table unused transparent"></div>
@@ -169,7 +169,7 @@
                                 </div>
                                 
                                 <!-- ROW 7 -->
-                                <div class="work-row">
+                                <div class="work-row" id="r7">
                                     <div id="r7c1" class="division-table unused transparent"></div>
                                     <div id="r7c2" class="division-table unused transparent"></div>
                                     <div id="r7c3" class="division-table minus step2 transparent"></div>
@@ -182,7 +182,7 @@
                                 </div>
                                 
                                 <!-- ROW 8 -->
-                                <div class="work-row">
+                                <div class="work-row" id="r8">
                                     <div id="r8c1" class="division-table unused transparent"></div>
                                     <div id="r8c2" class="division-table unused transparent"></div>
                                     <div id="r8c3" class="division-table unused transparent"></div>
@@ -195,7 +195,7 @@
                                 </div>
                                 
                                 <!-- ROW 9 -->
-                                <div class="work-row">
+                                <div class="work-row" id="r9">
                                     <div id="r9c1" class="division-table unused transparent"></div>
                                     <div id="r9c2" class="division-table unused transparent"></div>
                                     <div id="r9c3" class="division-table unused transparent"></div>
@@ -208,7 +208,7 @@
                                 </div>
                                 
                                 <!-- ROW 10 -->
-                                <div class="work-row">
+                                <div class="work-row" id="r10">
                                     <div id="r10c1" class="division-table unused transparent"></div>
                                     <div id="r10c2" class="division-table unused transparent"></div>
                                     <div id="r10c3" class="division-table minus step3 transparent"></div>
@@ -221,7 +221,7 @@
                                 </div>
                                 
                                 <!-- ROW 11 -->
-                                <div class="work-row">
+                                <div class="work-row" id="r11">
                                     <div id="r11c1" class="division-table unused transparent"></div>
                                     <div id="r11c2" class="division-table unused transparent"></div>
                                     <div id="r11c3" class="division-table unused transparent"></div>
@@ -234,7 +234,7 @@
                                 </div>
                                 
                                 <!-- ROW 12 -->
-                                <div class="work-row">
+                                <div class="work-row" id="r12">
                                     <div id="r12c1" class="division-table unused transparent"></div>
                                     <div id="r12c2" class="division-table unused transparent"></div>
                                     <div id="r12c3" class="division-table unused transparent"></div>
@@ -247,7 +247,6 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
                 </div>
             </div>
             
