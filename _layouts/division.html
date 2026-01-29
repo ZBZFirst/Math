@@ -75,11 +75,111 @@
                 </div>
 
 
-                <!-- Step Tracker (Always Hidden) -->
+                <!-- Step Tracker (Always Hidden - Single Source of Truth) -->
                 <div class="step-tracker" 
+                    style="display: none;"
                     data-current-step="0"
                     data-total-steps="3"
-                    style="display: none;">
+                    
+                    <!-- Problem Data -->
+                    data-problem-id="123div5"
+                    data-dividend="123"
+                    data-divisor="5"
+                    data-quotient="24"
+                    data-remainder="3"
+                    
+                    <!-- Current State -->
+                    data-current-guess="0"
+                    data-is-correct="false"
+                    data-needs-remainder="true"
+                    
+                    <!-- Step-by-Step Answers (JSON format) - FIXED -->
+                    data-step-answers='{
+                        "step1": {
+                            "partialDividend": 1,
+                            "expectedGuess": 0,
+                            "expectedProduct": 0,
+                            "expectedRemainder": 1,
+                            "answerDigit": 0,
+                            "userGuess": 0,
+                            "userProduct": 0,
+                            "userRemainder": 0
+                        },
+                        "step2": {
+                            "partialDividend": 12,
+                            "expectedGuess": 2,
+                            "expectedProduct": 10,
+                            "expectedRemainder": 2,
+                            "answerDigit": 2,
+                            "userGuess": 0,
+                            "userProduct": 0,
+                            "userRemainder": 0
+                        },
+                        "step3": {
+                            "partialDividend": 23,
+                            "expectedGuess": 4,
+                            "expectedProduct": 20,
+                            "expectedRemainder": 3,
+                            "answerDigit": 4,
+                            "userGuess": 0,
+                            "userProduct": 0,
+                            "userRemainder": 0
+                        }
+                    }'
+                    
+                    <!-- Digit Positions (JSON format) -->
+                    data-digit-positions='{
+                        "dividend": {
+                            "hundreds": 1,
+                            "tens": 2,
+                            "ones": 3
+                        },
+                        "divisor": {
+                            "tens": null,
+                            "ones": 5
+                        },
+                        "quotient": {
+                            "hundreds": null,
+                            "tens": 2,
+                            "ones": 4
+                        },
+                        "remainder": {
+                            "tens": null,
+                            "ones": 3
+                        }
+                    }'
+                    
+                    <!-- Grid Cell Mappings (JSON format) - FIXED: REMOVED "guess" -->
+                    data-grid-mappings='{
+                        "step1": {
+                            "columnFocus": "c4",
+                            "input": ["r3c4"],
+                            "output": {
+                                "product": ["r4c4", "r4c5"],    /* Aligned to C4 */
+                                "remainder": ["r6c4", "r6c5"],   /* Aligned to C4 */
+                                "quotient": "r1c4"
+                            }
+                        },
+                        "step2": {
+                            "columnFocus": "c5", 
+                            "input": ["r6c4", "r3c5"],          /* Previous remainder + current digit */
+                            "output": {
+                                "product": ["r7c4", "r7c5", "r7c6"],    /* Centered on C5 */
+                                "remainder": ["r9c4", "r9c5", "r9c6"],  /* Centered on C5 */
+                                "quotient": "r1c5"
+                            }
+                        },
+                        "step3": {
+                            "columnFocus": "c6",
+                            "input": ["r9c5", "r3c6"],          /* Previous remainder + current digit */
+                            "output": {
+                                "product": ["r10c4", "r10c5", "r10c6"],    /* Centered on C6 */
+                                "remainder": ["r12c4", "r12c5", "r12c6"],  /* Centered on C6 */
+                                "quotient": "r1c6",
+                                "finalRemainder": ["r1c8", "r1c9"]
+                            }
+                        }
+                    }'>
                 </div>
                 
                 <!-- RIGHT CONTAINER -->
