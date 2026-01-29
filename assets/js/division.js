@@ -108,62 +108,6 @@ class DivisionApp {
         this.workFeedback.classList.remove('hidden');
         this.currentStepContainer.classList.remove('hidden');
     }
-
-    initializeGridMappings() {
-        // Use the mappings from your HTML
-        const mappings = {
-            // Add these mappings for the initial display
-            dividend: {
-                hundreds: "r3c4",
-                tens: "r3c5",
-                ones: "r3c6"
-            },
-            divisor: {
-                tens: "r3c1",
-                ones: "r3c2"
-            },
-            quotient: {
-                hundreds: "r1c4",
-                tens: "r1c5",
-                ones: "r1c6"
-            },
-            remainder: {
-                tens: "r1c8",
-                ones: "r1c9"
-            },
-            step1: {
-                columnFocus: "c4",
-                input: ["r3c4"],
-                output: {
-                    product: ["r4c4", "r4c5"],
-                    remainder: ["r6c4", "r6c5"],
-                    quotient: "r1c4"
-                }
-            },
-            step2: {
-                columnFocus: "c5",
-                input: ["r6c4", "r3c5"],
-                output: {
-                    product: ["r7c4", "r7c5", "r7c6"],
-                    remainder: ["r9c4", "r9c5", "r9c6"],
-                    quotient: "r1c5"
-                }
-            },
-            step3: {
-                columnFocus: "c6",
-                input: ["r9c5", "r3c6"],
-                output: {
-                    product: ["r10c4", "r10c5", "r10c6"],
-                    remainder: ["r12c4", "r12c5", "r12c6"],
-                    quotient: "r1c6",
-                    finalRemainder: ["r1c8", "r1c9"]
-                }
-            }
-        };
-        
-        this.set('grid-mappings', mappings, true); // Silent
-        return mappings;
-    }
     
     initializeGridDigits(dividend, divisor) {
         console.log(`Initializing grid digits: ${dividend} ÷ ${divisor}`);
@@ -259,7 +203,6 @@ class DivisionApp {
     showCurrentStep() {
         const currentStep = this.stepTracker.getCurrentStep();
         const currentPhase = this.stepTracker.getCurrentPhase();
-        const totalSteps = this.stepTracker.get('total-steps') || 3;
         const stepAnswers = this.stepTracker.get('step-answers');
         const stepData = stepAnswers[`step${currentStep}`];
         const divisor = this.stepTracker.get('divisor');
@@ -307,7 +250,6 @@ class DivisionApp {
                 break;
                 
             case 2: // PRODUCT PHASE
-                // Use the guess from phase 1
                 const guess = stepData.userGuess || 0;
                 this.currentStepEquation.textContent = `${guess} × ${divisor} = ?`;
                 this.currentInstruction.textContent = `Calculate the product of ${guess} × ${divisor}`;
@@ -324,14 +266,10 @@ class DivisionApp {
     
     getGuessForPhase(step, phase, stepData) {
         switch(phase) {
-            case 1:
-                return stepData.userGuess || 0;
-            case 2:
-                return stepData.userProduct || 0;
-            case 3:
-                return stepData.userRemainder || 0;
-            default:
-                return 0;
+            case 1: return stepData.userGuess || 0;
+            case 2: return stepData.userProduct || 0;
+            case 3: return stepData.userRemainder || 0;
+            default: return 0;
         }
     }
     
@@ -391,25 +329,20 @@ class DivisionApp {
     
     // Helper method to ensure brought down digit is visible
     ensureBroughtDownDigit(step) {
-        if (step === 2) {
-            const broughtDownDigit2 = document.getElementById('r3c5').textContent;
-            const bringDownCell2 = document.getElementById('r6c5');
-            if (bringDownCell2 && broughtDownDigit2 && broughtDownDigit2 !== '') {
-                // Only bring down if not already there
-                if (!bringDownCell2.textContent || bringDownCell2.textContent === '') {
-                    bringDownCell2.textContent = broughtDownDigit2;
-                    bringDownCell2.classList.add('filled');
-                }
-            }
-        } else if (step === 3) {
-            const broughtDownDigit3 = document.getElementById('r3c6').textContent;
-            const bringDownCell3 = document.getElementById('r9c6');
-            if (bringDownCell3 && broughtDownDigit3 && broughtDownDigit3 !== '') {
-                // Only bring down if not already there
-                if (!bringDownCell3.textContent || bringDownCell3.textContent === '') {
-                    bringDownCell3.textContent = broughtDownDigit3;
-                    bringDownCell3.classList.add('filled');
-                }
+        const stepMapping = this.stepTracker.getGridMappingsForStep(step);
+        
+        if (!stepMapping || !stepMapping.bringdown || !stepMapping.bringdownTarget) {
+            return;
+        }
+        
+        const broughtDownDigit = document.getElementById(stepMapping.bringdown).textContent;
+        const bringDownCell = document.getElementById(stepMapping.bringdownTarget);
+        
+        if (bringDownCell && broughtDownDigit && broughtDownDigit !== '') {
+            // Only bring down if not already there
+            if (!bringDownCell.textContent || bringDownCell.textContent === '') {
+                bringDownCell.textContent = broughtDownDigit;
+                bringDownCell.classList.add('filled', 'brought-down');
             }
         }
     }
@@ -428,15 +361,13 @@ class DivisionApp {
     
     updateGuessDisplay() {
         this.currentGuessDisplay.textContent = this.currentGuess;
-        this.stepTracker.setCurrentGuess(this.currentGuess, true); // SILENT!
+        this.stepTracker.setCurrentGuess(this.currentGuess, true);
     }
     
     commitCurrentGuess() {
-        // Just pass to handleCorrectGuess - it will check if it's correct
         this.handleCorrectGuess();
     }
     
-    // Replace the handleCorrectGuess method with this:
     handleCorrectGuess() {
         const currentStep = this.stepTracker.getCurrentStep();
         const currentPhase = this.stepTracker.getCurrentPhase();
@@ -513,7 +444,6 @@ class DivisionApp {
         }
     }
     
-    // Add these new helper methods:
     highlightGridForPhase(phase) {
         // Clear previous highlights
         document.querySelectorAll('.division-table.highlighted').forEach(cell => {
@@ -521,21 +451,24 @@ class DivisionApp {
         });
         
         const currentStep = this.stepTracker.getCurrentStep();
-        const gridMappings = this.stepTracker.get('grid-mappings');
-        const stepMapping = gridMappings[`step${currentStep}`];
+        const stepMapping = this.stepTracker.getGridMappingsForStep(currentStep);
         
-        if (!stepMapping) return;
+        if (!stepMapping) {
+            console.warn(`No grid mapping for step ${currentStep}`);
+            return;
+        }
         
-        // Highlight cells based on phase
         switch(phase) {
-            case 1: // Guess phase - highlight input cells
-                stepMapping.input.forEach(cellId => {
-                    const cell = document.getElementById(cellId);
-                    if (cell) cell.classList.add('highlighted');
-                });
+            case 1: // QUOTIENT PHASE - highlight input area
+                if (stepMapping.input && stepMapping.input.length > 0) {
+                    stepMapping.input.forEach(cellId => {
+                        const cell = document.getElementById(cellId);
+                        if (cell) cell.classList.add('highlighted');
+                    });
+                }
                 break;
                 
-            case 2: // Product phase - highlight product cells
+            case 2: // PRODUCT PHASE - highlight product cells
                 if (stepMapping.output && stepMapping.output.product) {
                     stepMapping.output.product.forEach(cellId => {
                         const cell = document.getElementById(cellId);
@@ -544,7 +477,7 @@ class DivisionApp {
                 }
                 break;
                 
-            case 3: // Remainder phase - highlight remainder cells
+            case 3: // REMAINDER PHASE - highlight remainder cells
                 if (stepMapping.output && stepMapping.output.remainder) {
                     stepMapping.output.remainder.forEach(cellId => {
                         const cell = document.getElementById(cellId);
@@ -556,8 +489,7 @@ class DivisionApp {
     }
     
     updateGridForPhase(step, phase, value) {
-        const gridMappings = this.stepTracker.get('grid-mappings');
-        const stepMapping = gridMappings[`step${step}`];
+        const stepMapping = this.stepTracker.getGridMappingsForStep(step);
         
         if (!stepMapping) {
             console.warn(`No grid mapping for step ${step}`);
@@ -577,84 +509,66 @@ class DivisionApp {
                 
             case 2: // Update product
                 const productCells = stepMapping.output.product || [];
-                this.updateNumberInCells(productCells, value, step);
+                this.updateNumberInCells(productCells, value);
                 break;
                 
             case 3: // Update remainder
                 const remainderCells = stepMapping.output.remainder || [];
-                this.updateNumberInCells(remainderCells, value, step);
+                this.updateNumberInCells(remainderCells, value);
                 break;
         }
     }
     
     prepareNextStep(nextStep) {
-        switch(nextStep) {
-            case 2:
-                // Bring down the digit from r3c5 (tens) to r6c5
-                const broughtDownDigit2 = document.getElementById('r3c5').textContent;
-                const bringDownCell2 = document.getElementById('r6c5');
-                if (bringDownCell2 && broughtDownDigit2 && broughtDownDigit2 !== '') {
-                    // Get the remainder from step 1
-                    const step1Remainder = document.getElementById('r6c4').textContent;
-                    
-                    // Combine remainder from step 1 with brought down digit
-                    // This should form the partial dividend for step 2
-                    if (step1Remainder !== '' && step1Remainder !== '0') {
-                        // Show the partial dividend in r6c4 and r6c5
-                        const r6c4 = document.getElementById('r6c4');
-                        if (r6c4) {
-                            // Keep the remainder from step 1
-                            bringDownCell2.textContent = broughtDownDigit2;
-                            bringDownCell2.classList.add('filled');
-                            
-                            // Ensure r6c4 still shows the remainder
-                            if (!r6c4.textContent || r6c4.textContent === '') {
-                                r6c4.textContent = step1Remainder;
-                                r6c4.classList.add('filled');
-                            }
-                        }
-                    } else {
-                        // If remainder was 0, just show the brought down digit
-                        bringDownCell2.textContent = broughtDownDigit2;
-                        bringDownCell2.classList.add('filled');
-                    }
+        const stepMapping = this.stepTracker.getGridMappingsForStep(nextStep);
+        
+        if (!stepMapping) {
+            console.warn(`No grid mapping for step ${nextStep}`);
+            return;
+        }
+        
+        // Handle bring down if specified
+        if (stepMapping.bringdown && stepMapping.bringdownTarget) {
+            const sourceCell = document.getElementById(stepMapping.bringdown);
+            const targetCell = document.getElementById(stepMapping.bringdownTarget);
+            
+            if (sourceCell && targetCell && sourceCell.textContent) {
+                // Only bring down if target is empty
+                if (!targetCell.textContent || targetCell.textContent.trim() === '') {
+                    targetCell.textContent = sourceCell.textContent;
+                    targetCell.classList.add('filled', 'brought-down');
                 }
-                break;
-                
-            case 3:
-                // Bring down the digit from r3c6 (ones) to r9c6
-                const broughtDownDigit3 = document.getElementById('r3c6').textContent;
-                const bringDownCell3 = document.getElementById('r9c6');
-                if (bringDownCell3 && broughtDownDigit3 && broughtDownDigit3 !== '') {
-                    // Get the remainder from step 2
-                    const step2RemainderTens = document.getElementById('r9c4').textContent;
-                    const step2RemainderOnes = document.getElementById('r9c5').textContent;
+            }
+        }
+        
+        // For step 3, also update the final remainder in the answer area
+        if (nextStep === 3) {
+            // Get the final remainder from the tracker
+            const finalRemainder = this.stepTracker.get('remainder');
+            if (finalRemainder > 0) {
+                const step3Mapping = this.stepTracker.getGridMappingsForStep(3);
+                if (step3Mapping.output && step3Mapping.output.finalRemainder) {
+                    const remainderStr = String(finalRemainder).padStart(2, '0');
+                    const finalRemainderCells = step3Mapping.output.finalRemainder;
                     
-                    // Show the partial dividend for step 3
-                    if (step2RemainderTens !== '' || step2RemainderOnes !== '') {
-                        // Bring down the digit to complete the partial dividend
-                        bringDownCell3.textContent = broughtDownDigit3;
-                        bringDownCell3.classList.add('filled');
-                        
-                        // Ensure remainder from step 2 is still visible
-                        const r9c4 = document.getElementById('r9c4');
-                        const r9c5 = document.getElementById('r9c5');
-                        
-                        if (r9c4 && (!r9c4.textContent || r9c4.textContent === '')) {
-                            r9c4.textContent = step2RemainderTens || '0';
-                            r9c4.classList.add('filled');
+                    // Clear first
+                    finalRemainderCells.forEach(cellId => {
+                        const cell = document.getElementById(cellId);
+                        if (cell) {
+                            cell.textContent = '';
+                            cell.classList.remove('filled');
                         }
-                        if (r9c5 && (!r9c5.textContent || r9c5.textContent === '')) {
-                            r9c5.textContent = step2RemainderOnes || '0';
-                            r9c5.classList.add('filled');
-                        }
-                    } else {
-                        // Just bring down the digit
-                        bringDownCell3.textContent = broughtDownDigit3;
-                        bringDownCell3.classList.add('filled');
-                    }
+                    });
+                    
+                    // Update with right-aligned digits
+                    this.updateNumberInCells(finalRemainderCells, finalRemainder);
+                    
+                    // Show remainder in main equation
+                    document.querySelectorAll('.mainEquation.remainder').forEach(el => {
+                        el.classList.remove('hidden');
+                    });
                 }
-                break;
+            }
         }
         
         // Update the highlighted cells for the next step
@@ -684,8 +598,7 @@ class DivisionApp {
         });
         
         // Get grid mappings for this step
-        const gridMappings = this.stepTracker.get('grid-mappings');
-        const stepMapping = gridMappings[`step${step}`];
+        const stepMapping = this.stepTracker.getGridMappingsForStep(step);
         
         if (!stepMapping) return;
         
@@ -696,185 +609,7 @@ class DivisionApp {
         });
     }
     
-    updateGridForStep(step, guess, product, remainder) {
-        console.log(`Updating grid for step ${step}: guess=${guess}, product=${product}, remainder=${remainder}`);
-        
-        // Update quotient cell
-        const quotientCellId = `r1c${step + 3}`; // r1c4, r1c5, or r1c6
-        const quotientCell = document.getElementById(quotientCellId);
-        if (quotientCell) {
-            quotientCell.textContent = guess;
-            quotientCell.classList.add('filled');
-        }
-        
-        // Handle each step differently based on column requirements
-        switch(step) {
-            case 1:
-                // Step 1: Only column 4
-                
-                // Product "0" → ONLY r4c4 (not "00")
-                const productCell1 = document.getElementById('r4c4');
-                if (productCell1) {
-                    productCell1.textContent = String(product);
-                    productCell1.classList.add('filled');
-                }
-                // Clear r4c5, r4c6
-                ['r4c5', 'r4c6'].forEach(cellId => {
-                    const cell = document.getElementById(cellId);
-                    if (cell) {
-                        cell.textContent = '';
-                        cell.classList.remove('filled');
-                    }
-                });
-                
-                // Remainder "1" → ONLY r6c4
-                const remainderCell1 = document.getElementById('r6c4');
-                if (remainderCell1) {
-                    remainderCell1.textContent = String(remainder);
-                    remainderCell1.classList.add('filled');
-                }
-                // Clear r6c5, r6c6
-                ['r6c5', 'r6c6'].forEach(cellId => {
-                    const cell = document.getElementById(cellId);
-                    if (cell) {
-                        cell.textContent = '';
-                        cell.classList.remove('filled');
-                    }
-                });
-                break;
-                
-            case 2:
-                // Step 2: Columns 4-5 (2-digit area, right-aligned)
-                
-                // Note: The digit was already "brought down" by prepareNextStep()
-                // The partial dividend "12" is now visible in r6c4,r6c5
-                
-                // Show the product "10" → "10" in r7c4,r7c5
-                const productStr2 = String(product).padStart(2, '0'); // "10"
-                const productCell2a = document.getElementById('r7c4');
-                const productCell2b = document.getElementById('r7c5');
-                if (productCell2a && productCell2b) {
-                    productCell2a.textContent = productStr2[0]; // "1"
-                    productCell2a.classList.add('filled');
-                    productCell2b.textContent = productStr2[1]; // "0"
-                    productCell2b.classList.add('filled');
-                }
-                // Clear r7c6
-                const productCell2c = document.getElementById('r7c6');
-                if (productCell2c) {
-                    productCell2c.textContent = '';
-                    productCell2c.classList.remove('filled');
-                }
-                
-                // Remainder "2" → "02" in r9c4,r9c5
-                const remainderStr2 = String(remainder).padStart(2, '0'); // "02"
-                const remainderCell2a = document.getElementById('r9c4');
-                const remainderCell2b = document.getElementById('r9c5');
-                if (remainderCell2a && remainderCell2b) {
-                    remainderCell2a.textContent = remainderStr2[0]; // "0"
-                    remainderCell2a.classList.add('filled');
-                    remainderCell2b.textContent = remainderStr2[1]; // "2"
-                    remainderCell2b.classList.add('filled');
-                }
-                // Clear r9c6
-                const remainderCell2c = document.getElementById('r9c6');
-                if (remainderCell2c) {
-                    remainderCell2c.textContent = '';
-                    remainderCell2c.classList.remove('filled');
-                }
-                break;
-                
-            // In the updateGridForStep method, update the Step 3 case:
-            case 3:
-                // Step 3: Columns 4-6 (3-digit area for larger products)
-                
-                // Note: The digit was already "brought down" by prepareNextStep()
-                // The partial dividend "507" is now visible in r9c4,r9c5,r9c6
-                
-                // For larger products (like 435), we need 3 columns
-                const productStr3 = String(product);
-                const remainderStr3 = String(remainder).padStart(3, '0'); // For 3-digit remainder
-                
-                console.log(`Step 3: product=${product}, productStr=${productStr3}, length=${productStr3.length}`);
-                
-                // Clear all product cells first
-                ['r10c4', 'r10c5', 'r10c6'].forEach(cellId => {
-                    const cell = document.getElementById(cellId);
-                    if (cell) {
-                        cell.textContent = '';
-                        cell.classList.remove('filled');
-                    }
-                });
-                
-                // Place product digits RIGHT-ALIGNED in columns 4-6
-                // For 435: "4" in r10c4, "3" in r10c5, "5" in r10c6
-                for (let i = 0; i < productStr3.length; i++) {
-                    const digit = productStr3[productStr3.length - 1 - i]; // Start from rightmost digit
-                    const col = 6 - i; // Place right-to-left in columns 4-6
-                    
-                    if (col >= 4) {
-                        const cellId = `r10c${col}`;
-                        const cell = document.getElementById(cellId);
-                        if (cell) {
-                            cell.textContent = digit;
-                            cell.classList.add('filled');
-                        }
-                    }
-                }
-                
-                // Clear all remainder cells first
-                ['r12c4', 'r12c5', 'r12c6'].forEach(cellId => {
-                    const cell = document.getElementById(cellId);
-                    if (cell) {
-                        cell.textContent = '';
-                        cell.classList.remove('filled');
-                    }
-                });
-                
-                // Place remainder digits RIGHT-ALIGNED in columns 4-6
-                // For 72: "0" in r12c4, "7" in r12c5, "2" in r12c6
-                for (let i = 0; i < remainderStr3.length; i++) {
-                    const digit = remainderStr3[remainderStr3.length - 1 - i];
-                    const col = 6 - i;
-                    
-                    if (col >= 4) {
-                        const cellId = `r12c${col}`;
-                        const cell = document.getElementById(cellId);
-                        if (cell) {
-                            cell.textContent = digit;
-                            cell.classList.add('filled');
-                        }
-                    }
-                }
-                
-                // Final remainder in answer area
-                const finalRemainder = this.stepTracker.get('remainder');
-                console.log(`Final remainder: ${finalRemainder}`);
-                
-                if (finalRemainder > 0) {
-                    const finalRemainderStr = String(finalRemainder).padStart(2, '0'); // "72"
-                    
-                    // Update the remainder cells in the answer area
-                    const r1c8 = document.getElementById('r1c8');
-                    const r1c9 = document.getElementById('r1c9');
-                    
-                    if (r1c8 && r1c9) {
-                        r1c8.textContent = finalRemainderStr[0]; // "7"
-                        r1c8.classList.add('filled');
-                        r1c9.textContent = finalRemainderStr[1]; // "2"
-                        r1c9.classList.add('filled');
-                    }
-                    
-                    // Show remainder in main equation
-                    document.querySelectorAll('.mainEquation.remainder').forEach(el => {
-                        el.classList.remove('hidden');
-                    });
-                }
-                break;
-        }
-    }
-    
-    updateNumberInCells(cellIds, number, stepNumber = 1) {
+    updateNumberInCells(cellIds, number) {
         const numStr = String(number);
         
         // Clear the cells first
@@ -915,19 +650,6 @@ class DivisionApp {
         }
     }
     
-    // Helper method to get the correct row for each step
-    getRowForStep(stepNumber, type = 'product') {
-        switch(stepNumber) {
-            case 1:
-                return type === 'product' ? 4 : 6;
-            case 2:
-                return type === 'product' ? 7 : 9;
-            case 3:
-                return type === 'product' ? 10 : 12;
-            default:
-                return 0;
-        }
-    }
     
     clearGrid() {
         console.log('Clearing grid');
@@ -949,9 +671,6 @@ class DivisionApp {
             
             // ONLY remove dynamic classes - never remove color classes!
             cell.classList.remove('filled', 'highlighted', 'brought-down');
-            
-            // DO NOT remove: green, yellow, brown, orange, blue, answer, remainder, etc.
-            // These are static and should stay!
         });
         
         // Hide remainder in main equation
