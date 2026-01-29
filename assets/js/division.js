@@ -285,16 +285,22 @@ class DivisionApp {
         if (step === 2) {
             const broughtDownDigit2 = document.getElementById('r3c5').textContent;
             const bringDownCell2 = document.getElementById('r6c5');
-            if (bringDownCell2 && broughtDownDigit2 && !bringDownCell2.textContent) {
-                bringDownCell2.textContent = broughtDownDigit2;
-                bringDownCell2.classList.add('filled');
+            if (bringDownCell2 && broughtDownDigit2 && broughtDownDigit2 !== '') {
+                // Only bring down if not already there
+                if (!bringDownCell2.textContent || bringDownCell2.textContent === '') {
+                    bringDownCell2.textContent = broughtDownDigit2;
+                    bringDownCell2.classList.add('filled');
+                }
             }
         } else if (step === 3) {
             const broughtDownDigit3 = document.getElementById('r3c6').textContent;
             const bringDownCell3 = document.getElementById('r9c6');
-            if (bringDownCell3 && broughtDownDigit3 && !bringDownCell3.textContent) {
-                bringDownCell3.textContent = broughtDownDigit3;
-                bringDownCell3.classList.add('filled');
+            if (bringDownCell3 && broughtDownDigit3 && broughtDownDigit3 !== '') {
+                // Only bring down if not already there
+                if (!bringDownCell3.textContent || bringDownCell3.textContent === '') {
+                    bringDownCell3.textContent = broughtDownDigit3;
+                    bringDownCell3.classList.add('filled');
+                }
             }
         }
     }
