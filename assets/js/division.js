@@ -159,32 +159,53 @@ class DivisionApp {
     initializeGridDigits(dividend, divisor) {
         console.log(`Initializing grid digits: ${dividend} ÷ ${divisor}`);
         
-        // First clear the grid (without removing color classes)
+        // First clear the grid
         this.clearGrid();
         
-        // Set dividend in grid (r3c4, r3c5, r3c6)
-        const dividendStr = String(dividend).padStart(3, '0');
-        const r3c4 = document.getElementById('r3c4');
-        const r3c5 = document.getElementById('r3c5');
-        const r3c6 = document.getElementById('r3c6');
+        // Format numbers based on their actual length
+        const dividendStr = String(dividend);
+        const divisorStr = String(divisor);
         
-        // JUST set text - color classes are already in HTML
-        if (r3c4) r3c4.textContent = dividendStr[0];
-        if (r3c5) r3c5.textContent = dividendStr[1];
-        if (r3c6) r3c6.textContent = dividendStr[2];
+        // Handle 2-digit or 3-digit dividends
+        const dividendDigits = dividendStr.split('');
         
-        // Set divisor in grid (r3c1, r3c2)
-        const divisorStr = String(divisor).padStart(2, '0');
-        const r3c1 = document.getElementById('r3c1');
-        const r3c2 = document.getElementById('r3c2');
+        // RIGHT-ALIGN the dividend in columns 4-6
+        // For 81: "", "8", "1" in columns 4,5,6
+        const dividendCells = ['r3c4', 'r3c5', 'r3c6'];
+        let digitIndex = dividendDigits.length - 1;
         
-        if (r3c1) r3c1.textContent = divisorStr[0] === '0' ? '' : divisorStr[0];
-        if (r3c2) r3c2.textContent = divisorStr[1];
+        for (let i = dividendCells.length - 1; i >= 0; i--) {
+            const cellId = dividendCells[i];
+            const cell = document.getElementById(cellId);
+            if (cell) {
+                if (digitIndex >= 0) {
+                    cell.textContent = dividendDigits[digitIndex];
+                } else {
+                    cell.textContent = ''; // Leave empty for leading positions
+                }
+                digitIndex--;
+            }
+        }
         
-        console.log('Grid initialized with:', {
-            dividend: dividendStr,
-            divisor: divisorStr
-        });
+        // Handle divisor (always right-aligned in columns 1-2)
+        const divisorDigits = divisorStr.split('');
+        const divisorCells = ['r3c1', 'r3c2'];
+        digitIndex = divisorDigits.length - 1;
+        
+        for (let i = divisorCells.length - 1; i >= 0; i--) {
+            const cellId = divisorCells[i];
+            const cell = document.getElementById(cellId);
+            if (cell) {
+                if (digitIndex >= 0) {
+                    cell.textContent = divisorDigits[digitIndex];
+                } else {
+                    cell.textContent = '';
+                }
+                digitIndex--;
+            }
+        }
+        
+        console.log('Grid initialized with right-aligned digits');
     }
     
     initializeNewProblem() {
@@ -228,12 +249,19 @@ class DivisionApp {
     
     showCurrentStep() {
         const currentStep = this.stepTracker.getCurrentStep();
+        const totalSteps = this.stepTracker.get('total-steps') || 3;
         const stepAnswers = this.stepTracker.get('step-answers');
         const stepData = stepAnswers[`step${currentStep}`];
         
-        if (!stepData) return;
+        if (!stepData || currentStep > totalSteps) {
+            // Problem might be completed or invalid step
+            if (this.stepTracker.get('problem-completed')) {
+                this.showCompletionMessage();
+            }
+            return;
+        }
         
-        console.log(`Showing step ${currentStep}`);
+        console.log(`Showing step ${currentStep} of ${totalSteps}`);
         
         // Show the step container
         this.currentStepContainer.classList.remove('hidden');
@@ -248,11 +276,6 @@ class DivisionApp {
         
         // Highlight relevant grid cells
         this.highlightGridForStep(currentStep);
-        
-        // If this is step 2 or 3, ensure the brought down digit is shown
-        if (currentStep === 2 || currentStep === 3) {
-            this.ensureBroughtDownDigit(currentStep);
-        }
     }
     
     // Helper method to ensure brought down digit is visible
