@@ -253,15 +253,12 @@ class DivisionApp {
         const stepAnswers = this.stepTracker.get('step-answers');
         const stepData = stepAnswers[`step${currentStep}`];
         
-        if (!stepData || currentStep > totalSteps) {
-            // Problem might be completed or invalid step
-            if (this.stepTracker.get('problem-completed')) {
-                this.showCompletionMessage();
-            }
+        if (!stepData) {
+            console.warn(`No data for step ${currentStep}`);
             return;
         }
         
-        console.log(`Showing step ${currentStep} of ${totalSteps}`);
+        console.log(`Showing step ${currentStep} of ${totalSteps}: ${stepData.partialDividend} ÷ ${this.stepTracker.get('divisor')}`);
         
         // Show the step container
         this.currentStepContainer.classList.remove('hidden');
@@ -276,6 +273,11 @@ class DivisionApp {
         
         // Highlight relevant grid cells
         this.highlightGridForStep(currentStep);
+        
+        // If this is step 2 or 3, ensure the brought down digit is shown
+        if (currentStep === 2 || currentStep === 3) {
+            this.ensureBroughtDownDigit(currentStep);
+        }
     }
     
     // Helper method to ensure brought down digit is visible
