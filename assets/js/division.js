@@ -333,20 +333,21 @@ class DivisionApp {
             quotientCell.classList.add('filled');
         }
         
-        // Update product cells
+        // Update product cells WITH STEP NUMBER
         if (stepMapping.output.product) {
-            this.updateNumberInCells(stepMapping.output.product, product);
+            this.updateNumberInCells(stepMapping.output.product, product, step);
         }
         
-        // Update remainder cells
+        // Update remainder cells WITH STEP NUMBER  
         if (stepMapping.output.remainder) {
-            this.updateNumberInCells(stepMapping.output.remainder, remainder);
+            this.updateNumberInCells(stepMapping.output.remainder, remainder, step);
         }
         
         // Update final remainder in answer area if step 3
         if (step === 3 && stepMapping.output.finalRemainder) {
             const finalRemainder = this.stepTracker.get('remainder');
-            this.updateNumberInCells(stepMapping.output.finalRemainder, finalRemainder);
+            // For final remainder (03), show in r1c8,r1c9
+            this.updateNumberInCells(stepMapping.output.finalRemainder, finalRemainder, step);
             
             // Show remainder in main equation
             document.querySelectorAll('.mainEquation.remainder').forEach(el => {
