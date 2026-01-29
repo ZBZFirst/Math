@@ -497,67 +497,72 @@ export class StepTrackerManager {
     completeStep(userData = {}) {
         const currentStep = this.getCurrentStep();
         const stepAnswers = this.get('step-answers');
-        
+    
         if (!stepAnswers || !stepAnswers[`step${currentStep}`]) {
             console.warn(`Cannot complete step ${currentStep}: no step data found`);
             return false;
         }
-        
-        // Update step with user's actual values
+    
         const step = stepAnswers[`step${currentStep}`];
-        step.userGuess = userData.guess !== undefined ? userData.guess : step.userGuess;
-        step.userProduct = userData.product !== undefined ? userData.product : step.userProduct;
-        step.userRemainder = userData.remainder !== undefined ? userData.remainder : step.userRemainder;
+    
+        // Pull correctness explicitly
+        const isStepCorrect = userData.isCorrect === true;
+    
+        // Update step with user's actual values
+        step.userGuess = userData.guess ?? step.userGuess;
+        step.userProduct = userData.product ?? step.userProduct;
+        step.userRemainder = userData.remainder ?? step.userRemainder;
         step.completed = true;
         step.completedAt = new Date().toISOString();
-        
+        step.isCorrect = isStepCorrect;
+    
         if (userData.timeSpent !== undefined) {
             step.timeSpent = userData.timeSpent;
         }
-        
-        step.isCorrect = true;
-
-        
-        // Update step answers
+    
+        // Save step answers
         stepAnswers[`step${currentStep}`] = step;
         this.set('step-answers', stepAnswers);
-        
+    
         // Update progress
         const progress = this.get('user-progress');
         if (progress && progress[`step${currentStep}`]) {
             progress[`step${currentStep}`].completed = true;
+            progress[`step${currentStep}`].isCorrect = isStepCorrect;
             progress.lastAction = `step_completed_${currentStep}`;
-            if (userData.timeSpent) {
+    
+            if (userData.timeSpent !== undefined) {
                 progress[`step${currentStep}`].timeSpent = userData.timeSpent;
             }
+    
             this.set('user-progress', progress);
         }
-        
-        // End timing for this step
+    
+        // End timing
         this.endStepTiming(currentStep);
-        
-        // Check if all steps are completed
+    
         const allStepsCompleted = this.areAllStepsCompleted();
-        
-        // Move to next step or complete problem
+    
+        // Advance state
         if (currentStep < 3 && !allStepsCompleted) {
             this.setCurrentStep(currentStep + 1);
         } else if (allStepsCompleted) {
             this.completeProblem();
         }
-        
-        // Dispatch completion event
+    
+        // Dispatch completion event (NOW SAFE)
         document.dispatchEvent(new CustomEvent('step-completed', {
             detail: {
                 step: currentStep,
                 stepData: step,
                 isCorrect: isStepCorrect,
-                allStepsCompleted: allStepsCompleted
+                allStepsCompleted
             }
         }));
-        
+    
         return true;
     }
+
     
     areAllStepsCompleted() {
         const stepAnswers = this.get('step-answers');
