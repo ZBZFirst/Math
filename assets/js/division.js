@@ -690,7 +690,13 @@ class DivisionApp {
         allCells.forEach(cell => {
             const id = cell.id;
             
-            // Clear content from ALL cells (we'll refill problem cells immediately after)
+            // Skip the "R" cell - it should always show "R"
+            if (id === 'r1c7') {
+                // Keep the "R" text and don't remove any classes
+                return;
+            }
+            
+            // Clear content from ALL other cells
             cell.textContent = '';
             
             // ONLY remove dynamic classes - never remove color classes!
