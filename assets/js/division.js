@@ -6,14 +6,12 @@ class DivisionApp {
         this.stepTracker = new StepTrackerManager();
         this.currentGuess = 0;
         this.isActive = false;
-        
         this.initializeElements();
         this.bindEvents();
         this.initializeNewProblem();
     }
     
     initializeElements() {
-        // Left container elements
         this.currentStepEquation = document.getElementById('currentStepEquation');
         this.currentInstruction = document.getElementById('currentInstruction');
         this.currentGuessDisplay = document.getElementById('currentGuessDisplay');
@@ -28,8 +26,6 @@ class DivisionApp {
         this.mistakeCount = document.getElementById('mistakeCount');
         this.divisionAccuracy = document.getElementById('divisionAccuracy');
         this.currentStreak = document.getElementById('currentStreak');
-        
-        // Grid control buttons
         this.gridButtons = {
             decrementFive: document.querySelector('.grid-btn.decrement.five'),
             decrementOne: document.querySelector('.grid-btn.decrement.one'),
@@ -40,22 +36,15 @@ class DivisionApp {
     }
     
     bindEvents() {
-        // Control buttons
         this.newProblemBtn.addEventListener('click', () => this.generateNewProblem());
         this.resetProblemBtn.addEventListener('click', () => this.resetCurrentProblem());
         this.resetScoresBtn.addEventListener('click', () => this.resetScores());
-        
-        // Guess commitment
         this.commitGuessBtn.addEventListener('click', () => this.commitCurrentGuess());
-        
-        // Grid control buttons
         this.gridButtons.decrementFive.addEventListener('click', () => this.adjustGuess(-5));
         this.gridButtons.decrementOne.addEventListener('click', () => this.adjustGuess(-1));
         this.gridButtons.clear.addEventListener('click', () => this.clearGuess());
         this.gridButtons.incrementOne.addEventListener('click', () => this.adjustGuess(1));
         this.gridButtons.incrementFive.addEventListener('click', () => this.adjustGuess(5));
-        
-        // Listen to step tracker events
         document.addEventListener('step-tracker-updated', (e) => this.handleTrackerUpdate(e));
         document.addEventListener('new-problem-set', (e) => this.handleNewProblem(e));
         document.addEventListener('step-changed', (e) => this.handleStepChange(e));
@@ -75,9 +64,7 @@ class DivisionApp {
         // Generate random 3-digit dividend and 2-digit divisor
         const dividend = Math.floor(Math.random() * 900) + 100; // 100-999 (ALWAYS 3 digits)
         const divisor = Math.floor(Math.random() * 10) + 7;    // 10-29 (ALWAYS 2 digits)
-        
         console.log(`Generating new problem: ${dividend} ÷ ${divisor}`);
-        
         this.stepTracker.setProblem(dividend, divisor);
         this.updateMainEquation();
         this.initializeGridDigits(dividend, divisor);
