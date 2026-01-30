@@ -1,4 +1,5 @@
-// StepTrackerManager.js - Complete Implementation
+// StepTrackerManager.js
+
 export class StepTrackerManager {
     constructor() {
         this.element = document.querySelector('.step-tracker');
@@ -9,10 +10,9 @@ export class StepTrackerManager {
         this.cache = {};
         this.isSetting = false;
     }
-    
-    
+
     // ========== CORE GETTER/SETTER ==========
-    
+
     get(attr) {
         if (this.cache[attr] === undefined) {
             const value = this.element.getAttribute(`data-${attr}`);
@@ -36,9 +36,7 @@ export class StepTrackerManager {
             console.warn(`Prevented recursive set for ${attr}`);
             return this;
         }
-        
         this.isSetting = true;
-        
         try {
             let stringValue;
             if (typeof value === 'object' || Array.isArray(value)) {
@@ -46,11 +44,8 @@ export class StepTrackerManager {
             } else {
                 stringValue = String(value);
             }
-            
             this.element.setAttribute(`data-${attr}`, stringValue);
             this.cache[attr] = value;
-            
-            // Only dispatch event if not silent
             if (!silent) {
                 document.dispatchEvent(new CustomEvent('step-tracker-updated', {
                     detail: { attribute: attr, value: value }
@@ -70,8 +65,6 @@ export class StepTrackerManager {
         const quotient = Math.floor(dividend / divisor);
         const remainder = dividend % divisor;
         const problemId = `div-${dividend}-${divisor}-${Date.now()}`;
-        
-        // Set basic problem data
         this.set('problem-id', problemId);
         this.set('dividend', dividend);
         this.set('divisor', divisor);
@@ -79,19 +72,13 @@ export class StepTrackerManager {
         this.set('remainder', remainder);
         this.set('needs-remainder', remainder > 0);
         this.set('problem-completed', false);
-        
-        // Initialize all data structures
         this.initializeDigitPositions(dividend, divisor, quotient, remainder);
         this.initializeStepAnswers(dividend, divisor, quotient, remainder);
         this.initializeGridMappings();
         this.initializeUserProgress();
-        
-        // Reset current state
         this.setCurrentStep(1);
         this.setCurrentGuess(0);
         this.set('is-correct', false);
-        
-        // Dispatch new problem event
         document.dispatchEvent(new CustomEvent('new-problem-set', {
             detail: { 
                 dividend, 
@@ -101,7 +88,6 @@ export class StepTrackerManager {
                 problemId 
             }
         }));
-        
         return this;
     }
     
@@ -110,7 +96,6 @@ export class StepTrackerManager {
         const divisorStr = String(divisor).padStart(2, '0');
         const quotientStr = String(quotient).padStart(3, '0');
         const remainderStr = String(remainder).padStart(2, '0');
-        
         const positions = {
             dividend: {
                 hundreds: dividendStr[0] === '0' ? null : parseInt(dividendStr[0]),
@@ -135,7 +120,6 @@ export class StepTrackerManager {
                 string: remainderStr
             }
         };
-        
         this.set('digit-positions', positions);
         return positions;
     }
@@ -144,16 +128,11 @@ export class StepTrackerManager {
         const dividendStr = String(dividend);
         const divisorNum = divisor;
         const quotientStr = String(quotient).padStart(3, '0');
-        
-        // Calculate step-by-step answers for 3-digit long division
         const steps = {};
-        
-        // Step 1: First digit only (hundreds place)
         const step1Partial = parseInt(dividendStr[0]); // Just the first digit
         const step1Guess = Math.floor(step1Partial / divisorNum);
         const step1Product = step1Guess * divisorNum;
         const step1Remainder = step1Partial - step1Product;
-        
         steps.step1 = {
             partialDividend: step1Partial,
             expectedGuess: step1Guess,
@@ -167,19 +146,15 @@ export class StepTrackerManager {
             isCorrect: false,
             completed: false
         };
-        
-        // Step 2: Bring down tens digit
         let step2Partial;
         if (dividendStr.length >= 2) {
             step2Partial = parseInt(step1Remainder.toString() + dividendStr[1]);
         } else {
             step2Partial = step1Remainder;
         }
-        
         const step2Guess = Math.floor(step2Partial / divisorNum);
         const step2Product = step2Guess * divisorNum;
         const step2Remainder = step2Partial - step2Product;
-        
         steps.step2 = {
             partialDividend: step2Partial,
             expectedGuess: step2Guess,
@@ -193,19 +168,15 @@ export class StepTrackerManager {
             isCorrect: false,
             completed: false
         };
-        
-        // Step 3: Bring down ones digit
         let step3Partial;
         if (dividendStr.length >= 3) {
             step3Partial = parseInt(step2Remainder.toString() + dividendStr[2]);
         } else {
             step3Partial = step2Remainder;
         }
-        
         const step3Guess = Math.floor(step3Partial / divisorNum);
         const step3Product = step3Guess * divisorNum;
         const step3Remainder = step3Partial - step3Product;
-        
         steps.step3 = {
             partialDividend: step3Partial,
             expectedGuess: step3Guess,
@@ -220,12 +191,9 @@ export class StepTrackerManager {
             completed: false,
             isFinalStep: true
         };
-        
-        // Verify calculations match overall result
         if (step3Remainder !== remainder) {
             console.warn('Step calculations dont match final remainder:', { step3Remainder, remainder });
         }
-        
         this.set('step-answers', steps);
         return steps;
     }
@@ -265,7 +233,6 @@ export class StepTrackerManager {
                 }
             }
         };
-        
         this.set('grid-mappings', mappings);
         return mappings;
     }
@@ -296,7 +263,6 @@ export class StepTrackerManager {
             },
             totalTimeSpent: 0
         };
-        
         this.set('user-progress', progress);
         return progress;
     }
@@ -310,27 +276,18 @@ export class StepTrackerManager {
     setCurrentStep(step) {
         const oldStep = this.getCurrentStep();
         const totalSteps = parseInt(this.get('total-steps')) || 3;
-        
-        // Validate step
         if (step < 0 || step > totalSteps) {
             console.warn(`Invalid step: ${step}. Must be between 0 and ${totalSteps}`);
             return this;
         }
-        
-        // Update progress timing for old step
         if (oldStep > 0 && oldStep <= totalSteps) {
             this.endStepTiming(oldStep);
         }
-        
-        // Set new step
         this.set('current-step', step);
         this.resetPhase(); // ← ADD THIS
-        // Start timing for new step
         if (step > 0 && step <= totalSteps) {
             this.startStepTiming(step);
         }
-        
-        // Dispatch event
         document.dispatchEvent(new CustomEvent('step-changed', {
             detail: { 
                 oldStep, 
@@ -338,7 +295,6 @@ export class StepTrackerManager {
                 totalSteps 
             }
         }));
-        
         return this;
     }
     
@@ -356,25 +312,18 @@ export class StepTrackerManager {
             const startTime = new Date(progress[`step${step}`].timeStarted);
             const endTime = new Date();
             const timeSpent = (endTime - startTime) / 1000; // in seconds
-            
             progress[`step${step}`].timeSpent += timeSpent;
             progress.totalTimeSpent += timeSpent;
             progress[`step${step}`].timeStarted = null;
-            
             this.set('user-progress', progress);
         }
     }
     
     // ========== GUESS MANAGEMENT ==========
 
-// In StepTrackerManager.js, modify setCurrentGuess:
     setCurrentGuess(guess, silent = false) {
         const numericGuess = parseInt(guess) || 0;
-        
-        // Use silent mode to prevent event dispatch
         this.set('current-guess', numericGuess, silent);
-        
-        // Update progress attempts - ONLY if not silent
         if (!silent) {
             const currentStep = this.getCurrentStep();
             if (currentStep > 0) {
@@ -386,7 +335,6 @@ export class StepTrackerManager {
                 }
             }
         }
-        
         return this;
     }
     
@@ -399,9 +347,7 @@ export class StepTrackerManager {
         const currentStep = this.getCurrentStep();
         const currentPhase = this.getCurrentPhase();
         const stepAnswers = this.get('step-answers');
-
         console.log(`[checkGuess] Step ${currentStep}, Phase ${currentPhase}, Guess: ${guessToCheck}`);
-
         if (!stepAnswers || !stepAnswers[`step${currentStep}`]) {
             console.warn(`No step answers found for step ${currentStep}`);
             return false;
@@ -409,33 +355,25 @@ export class StepTrackerManager {
     
         const stepData = stepAnswers[`step${currentStep}`];
         let isCorrect = false;
-    
-        // 🔀 PHASE-AWARE VALIDATION
         if (currentPhase === 1) {
             isCorrect = guessToCheck === stepData.expectedGuess;
             if (isCorrect) stepData.userGuess = guessToCheck;
         }
-    
         if (currentPhase === 2) {
             isCorrect = guessToCheck === stepData.expectedProduct;
             if (isCorrect) stepData.userProduct = guessToCheck;
         }
-    
         if (currentPhase === 3) {
             isCorrect = guessToCheck === stepData.expectedRemainder;
             if (isCorrect) stepData.userRemainder = guessToCheck;
         }
-    
-        // Update progress
         const progress = this.get('user-progress');
         if (progress && progress[`step${currentStep}`]) {
             if (!isCorrect) progress.mistakes++;
             progress.lastAction = `guess_checked_step${currentStep}_phase${currentPhase}`;
             this.set('user-progress', progress);
         }
-    
         this.set('step-answers', stepAnswers);
-    
         document.dispatchEvent(new CustomEvent('guess-checked', {
             detail: {
                 step: currentStep,
@@ -448,8 +386,6 @@ export class StepTrackerManager {
                     stepData.expectedRemainder
             }
         }));
-    
-        // ⏭ ADVANCE PHASE OR COMPLETE STEP
         if (isCorrect) {
             if (currentPhase < 3) {
                 this.nextPhase();
@@ -461,10 +397,8 @@ export class StepTrackerManager {
                 });
             }
         }
-    
         return isCorrect;
     }
-
 
     getCurrentPhase() {
         return parseInt(this.get('current-phase')) || 1;
@@ -472,21 +406,17 @@ export class StepTrackerManager {
     
     setCurrentPhase(phase, silent = false) {
         const total = parseInt(this.get('total-phases')) || 3;
-    
         if (phase < 1 || phase > total) {
             console.warn(`Invalid phase ${phase}`);
             return this;
         }
-    
         this.set('current-phase', phase, silent);
-    
         document.dispatchEvent(new CustomEvent('phase-changed', {
             detail: {
                 step: this.getCurrentStep(),
                 phase
             }
         }));
-    
         return this;
     }
     
@@ -504,64 +434,44 @@ export class StepTrackerManager {
     completeStep(userData = {}) {
         const currentStep = this.getCurrentStep();
         const stepAnswers = this.get('step-answers');
-    
         if (!stepAnswers || !stepAnswers[`step${currentStep}`]) {
             console.warn(`Cannot complete step ${currentStep}: no step data found`);
             return false;
         }
-    
         const step = stepAnswers[`step${currentStep}`];
-    
-        // Pull correctness explicitly
             const isStepCorrect = (
                 step.userGuess === step.expectedGuess &&
                 step.userProduct === step.expectedProduct &&
                 step.userRemainder === step.expectedRemainder
             );
-    
-        // Update step with user's actual values
         step.userGuess = userData.guess ?? step.userGuess;
         step.userProduct = userData.product ?? step.userProduct;
         step.userRemainder = userData.remainder ?? step.userRemainder;
         step.completed = true;
         step.completedAt = new Date().toISOString();
         step.isCorrect = isStepCorrect;
-    
         if (userData.timeSpent !== undefined) {
             step.timeSpent = userData.timeSpent;
         }
-    
-        // Save step answers
         stepAnswers[`step${currentStep}`] = step;
         this.set('step-answers', stepAnswers);
-    
-        // Update progress
         const progress = this.get('user-progress');
         if (progress && progress[`step${currentStep}`]) {
             progress[`step${currentStep}`].completed = true;
             progress[`step${currentStep}`].isCorrect = isStepCorrect;
             progress.lastAction = `step_completed_${currentStep}`;
-    
             if (userData.timeSpent !== undefined) {
                 progress[`step${currentStep}`].timeSpent = userData.timeSpent;
             }
-    
             this.set('user-progress', progress);
         }
-    
-        // End timing
         this.endStepTiming(currentStep);
-    
         const allStepsCompleted = this.areAllStepsCompleted();
-    
-        // Advance state
         if (currentStep < 3 && !allStepsCompleted) {
             this.setCurrentStep(currentStep + 1);
         } else if (allStepsCompleted) {
             this.completeProblem();
         }
-    
-        // Dispatch completion event (NOW SAFE)
         document.dispatchEvent(new CustomEvent('step-completed', {
             detail: {
                 step: currentStep,
@@ -570,7 +480,6 @@ export class StepTrackerManager {
                 allStepsCompleted
             }
         }));
-    
         return true;
     }
 
@@ -578,7 +487,6 @@ export class StepTrackerManager {
     areAllStepsCompleted() {
         const stepAnswers = this.get('step-answers');
         if (!stepAnswers) return false;
-        
         return ['step1', 'step2', 'step3'].every(stepKey => 
             stepAnswers[stepKey] && stepAnswers[stepKey].completed === true
         );
@@ -586,30 +494,23 @@ export class StepTrackerManager {
     
     completeProblem() {
         const allCorrect = this.areAllStepsCorrect();
-        
         this.set('problem-completed', true);
         this.set('is-correct', allCorrect);
-        
-        // Update progress
         const progress = this.get('user-progress');
         if (progress) {
             progress.lastAction = 'problem_completed';
             progress.completedAt = new Date().toISOString();
             this.set('user-progress', progress);
         }
-        
-        // Dispatch completion event
         document.dispatchEvent(new CustomEvent('problem-completed', {
             detail: this.getAllData()
         }));
-        
         return allCorrect;
     }
     
     areAllStepsCorrect() {
         const stepAnswers = this.get('step-answers');
         if (!stepAnswers) return false;
-        
         return ['step1', 'step2', 'step3'].every(stepKey => 
             stepAnswers[stepKey] && stepAnswers[stepKey].isCorrect === true
         );
@@ -620,7 +521,6 @@ export class StepTrackerManager {
     resetCurrentStep() {
         const currentStep = this.getCurrentStep();
         const stepAnswers = this.get('step-answers');
-        
         if (stepAnswers && stepAnswers[`step${currentStep}`]) {
             // Reset user data but keep expected values
             stepAnswers[`step${currentStep}`].userGuess = 0;
@@ -628,11 +528,8 @@ export class StepTrackerManager {
             stepAnswers[`step${currentStep}`].userRemainder = 0;
             stepAnswers[`step${currentStep}`].completed = false;
             stepAnswers[`step${currentStep}`].isCorrect = false;
-            
             this.set('step-answers', stepAnswers);
         }
-        
-        // Reset progress for this step
         const progress = this.get('user-progress');
         if (progress && progress[`step${currentStep}`]) {
             progress[`step${currentStep}`] = { 
@@ -643,15 +540,12 @@ export class StepTrackerManager {
             };
             this.set('user-progress', progress);
         }
-        
-        // Reset current guess
         this.setCurrentGuess(0);
         this.resetPhase();
         return this;
     }
     
     resetProblem() {
-        // Reset step data (keep expected values)
         const stepAnswers = this.get('step-answers');
         if (stepAnswers) {
             Object.keys(stepAnswers).forEach(stepKey => {
@@ -663,21 +557,14 @@ export class StepTrackerManager {
             });
             this.set('step-answers', stepAnswers);
         }
-        
-        // Reset current state
         this.setCurrentStep(1);
         this.setCurrentGuess(0);
         this.set('is-correct', false);
         this.set('problem-completed', false);
-        
-        // Reinitialize user progress
         this.initializeUserProgress();
-        
-        // Dispatch reset event
         document.dispatchEvent(new CustomEvent('problem-reset', {
             detail: this.getAllData()
         }));
-        
         this.resetPhase();
         return this;
     }
@@ -735,7 +622,6 @@ export class StepTrackerManager {
             timestamp: new Date().toISOString()
         };
     }
-    
     exportForDebug() {
         return JSON.stringify(this.getAllData(), null, 2);
     }
@@ -748,12 +634,10 @@ export class StepTrackerManager {
             isCorrect: this.get('is-correct'),
             completed: this.get('problem-completed')
         });
-        
         const stepData = this.getStepData(this.getCurrentStep());
         if (stepData) {
             console.log(`Current Step (${this.getCurrentStep()}):`, stepData);
         }
-        
         console.log('Grid Mappings:', this.get('grid-mappings'));
         console.groupEnd();
     }
@@ -761,20 +645,17 @@ export class StepTrackerManager {
     // ========== INITIALIZATION ==========
     
     initializeDefaultData() {
-        // If no data is set, initialize with defaults from HTML
         if (!this.get('problem-id')) {
             const defaultDividend = 123;
             const defaultDivisor = 5;
             const defaultQuotient = Math.floor(defaultDividend / defaultDivisor);
             const defaultRemainder = defaultDividend % defaultDivisor;
-            
             this.set('problem-id', 'default-123div5');
             this.set('dividend', defaultDividend);
             this.set('divisor', defaultDivisor);
             this.set('quotient', defaultQuotient);
             this.set('remainder', defaultRemainder);
             this.set('needs-remainder', defaultRemainder > 0);
-            
             this.initializeDigitPositions(defaultDividend, defaultDivisor, defaultQuotient, defaultRemainder);
             this.initializeStepAnswers(defaultDividend, defaultDivisor, defaultQuotient, defaultRemainder);
             this.initializeGridMappings();
@@ -787,34 +668,24 @@ export class StepTrackerManager {
     validateStepAnswers() {
         const stepAnswers = this.get('step-answers');
         if (!stepAnswers) return false;
-        
-        // Check that all required steps exist
         const requiredSteps = ['step1', 'step2', 'step3'];
         const hasAllSteps = requiredSteps.every(step => stepAnswers[step]);
-        
         if (!hasAllSteps) {
             console.warn('Missing required steps');
             return false;
         }
-        
-        // Validate step calculations
         const dividend = this.get('dividend');
         const divisor = this.get('divisor');
-        
-        // Recalculate to verify
         const recalculated = this.initializeStepAnswers(
             dividend, 
             divisor, 
             this.get('quotient'), 
             this.get('remainder')
         );
-        
-        // Compare with current
         let isValid = true;
         requiredSteps.forEach(step => {
             const current = stepAnswers[step];
             const recalc = recalculated[step];
-            
             if (current.expectedGuess !== recalc.expectedGuess ||
                 current.expectedProduct !== recalc.expectedProduct ||
                 current.expectedRemainder !== recalc.expectedRemainder) {
@@ -822,12 +693,10 @@ export class StepTrackerManager {
                 isValid = false;
             }
         });
-        
         return isValid;
     }
 }
 
-// Optional: Create a global instance if not using modules
 if (typeof window !== 'undefined' && !window.stepTracker) {
     window.stepTracker = new StepTrackerManager();
 }
