@@ -1,6 +1,10 @@
 <footer class="site-footer">
     <div class="footer-content">
         <p>Math Practice &copy; {{ "now" | date: "%Y" }}</p>
+        
+        <!-- Add the rat2.png image container here -->
+        <div class="footer-image"></div>
+        
         <div class="debug-info">
             <p>View: <span id="viewMode">Detecting...</span></p>
             <p>Screen: <span id="screenSize">Detecting...</span></p>
@@ -10,6 +14,39 @@
 </footer>
 
 <style>
+/* ===================== */
+/* === Footer Image Container === */
+/* ===================== */
+.footer-image {
+  /* Container sizing and positioning */
+  width: 100%;
+  min-height: 150px; /* Adjust based on desired height */
+  margin: 1.5rem auto;
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  
+  background-image: url('https://zbzfirst.duckdns.org/rat2.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain; /* Shows whole image without cropping */
+  
+  /* Visual styling */
+  background-color: rgba(248, 249, 255, 0.3); /* Light fallback color */
+  border: 1px solid rgba(67, 97, 238, 0.1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  
+  /* Ensures it's visible but not interactive */
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Optional: Add a subtle hover effect */
+.footer-image:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  border-color: rgba(67, 97, 238, 0.2);
+}
+
 /* Debug info styling - ensure it's visible */
 .debug-info {
     margin-top: 10px;
